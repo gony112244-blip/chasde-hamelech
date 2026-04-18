@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 
+const MOBILE_BREAKPOINT = 768;
+
 const NAV_LINKS = [
     { to: '/',          label: 'בית' },
     { to: '/gallery',   label: 'גלריה' },
@@ -14,13 +16,19 @@ const NAV_LINKS = [
 export default function Navbar() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= MOBILE_BREAKPOINT);
     const location = useLocation();
 
-    // הצללה בגלילה
+    // הצללה בגלילה + זיהוי מובייל — שניהם ב-listener אחד
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 10);
+        const onResize = () => setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
         window.addEventListener('scroll', onScroll, { passive: true });
-        return () => window.removeEventListener('scroll', onScroll);
+        window.addEventListener('resize', onResize, { passive: true });
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            window.removeEventListener('resize', onResize);
+        };
     }, []);
 
     // סגירת תפריט בניווט
@@ -41,26 +49,30 @@ export default function Navbar() {
                         <Logo size={36} showText={true} />
                     </Link>
 
-                    {/* קישורים — דסקטופ */}
-                    <div style={s.desktopLinks}>
-                        {NAV_LINKS.map(({ to, label }) => (
-                            <Link key={to} to={to} style={{
-                                ...s.link,
-                                ...(isActive(to) ? s.linkActive : {})
-                            }}>
-                                {label}
-                                {isActive(to) && <span style={s.activeDot} />}
-                            </Link>
-                        ))}
-                    </div>
+                    {/* קישורים — דסקטופ בלבד */}
+                    {!isMobile && (
+                        <div style={s.desktopLinks}>
+                            {NAV_LINKS.map(({ to, label }) => (
+                                <Link key={to} to={to} style={{
+                                    ...s.link,
+                                    ...(isActive(to) ? s.linkActive : {})
+                                }}>
+                                    {label}
+                                    {isActive(to) && <span style={s.activeDot} />}
+                                </Link>
+                            ))}
+                        </div>
+                    )}
 
-                    {/* כפתור תרומה — דסקטופ */}
-                    <Link to="/help" style={s.donateBtn}>
-                        עזרו לנו ✨
-                    </Link>
+                    {/* כפתור תרומה — דסקטופ בלבד */}
+                    {!isMobile && (
+                        <Link to="/help" style={s.donateBtn}>
+                            עזרו לנו ✨
+                        </Link>
+                    )}
 
-                    {/* המבורגר — מובייל */}
-                    <button
+                    {/* המבורגר — מובייל בלבד */}
+                    {isMobile && <button
                         style={s.burger}
                         onClick={() => setMenuOpen(o => !o)}
                         aria-label="תפריט"
@@ -68,11 +80,11 @@ export default function Navbar() {
                         <span style={{ ...s.burgerLine, ...(menuOpen ? s.burgerLine1Open : {}) }} />
                         <span style={{ ...s.burgerLine, ...(menuOpen ? s.burgerLine2Open : {}) }} />
                         <span style={{ ...s.burgerLine, ...(menuOpen ? s.burgerLine3Open : {}) }} />
-                    </button>
+                    </button>}
                 </div>
 
-                {/* תפריט מובייל */}
-                {menuOpen && (
+                {/* תפריט מובייל — רק כשפתוח ורק במובייל */}
+                {isMobile && menuOpen && (
                     <div style={s.mobileMenu}>
                         {NAV_LINKS.map(({ to, label }) => (
                             <Link key={to} to={to} style={{
@@ -122,7 +134,6 @@ const s = {
         alignItems: 'center',
         flex: 1,
         justifyContent: 'center',
-        '@media(max-width:768px)': { display: 'none' },
     },
     link: {
         color: 'rgba(255,255,255,0.82)',
@@ -158,7 +169,7 @@ const s = {
         fontWeight: 700,
         fontSize: '0.9rem',
         flexShrink: 0,
-        display: 'none', // יוצג ב-CSS, בינתיים hidden במובייל
+        display: 'inline-block',
     },
 
     // המבורגר

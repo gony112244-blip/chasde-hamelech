@@ -39,23 +39,6 @@ body {
   flex-direction: column;
 }
 
-/* ── כפתור תרומה בנאב — נגיש בדסקטופ בלבד ── */
-@media (min-width: 769px) {
-  nav a[href="/help"]:last-of-type {
-    display: inline-block !important;
-  }
-}
-
-/* ── המבורגר — נסתר בדסקטופ ── */
-@media (min-width: 769px) {
-  nav button[aria-label="תפריט"] {
-    display: none !important;
-  }
-  nav > div:first-child > div:nth-child(2) {
-    display: flex !important;
-  }
-}
-
 /* ── ניקוי כללי ── */
 a { color: inherit; }
 button { font-family: inherit; }
