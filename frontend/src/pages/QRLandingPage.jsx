@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 
 // דף QR ייעודי — ללא Navbar/Footer — נפתח מסריקת QR בבית החולים
 export default function QRLandingPage() {
@@ -58,7 +58,7 @@ export default function QRLandingPage() {
 const s = {
     page: {
         minHeight: '100vh',
-        background: 'linear-gradient(165deg, #4c1d95 0%, #5b2caa 30%, #3b0f80 70%, #2e0a66 100%)',
+        background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 30%, #071530 70%, #2e0a66 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

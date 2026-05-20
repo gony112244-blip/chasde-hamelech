@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 
 export default function VolunteerPage() {
     const [form, setForm] = useState({
@@ -102,7 +102,7 @@ export default function VolunteerPage() {
 const s = {
     page: { fontFamily: "'Heebo', sans-serif", direction: 'rtl' },
     header: {
-        background: 'linear-gradient(165deg, #4c1d95 0%, #5b2caa 50%, #3b0f80 100%)',
+        background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 50%, #071530 100%)',
         padding: '60px 20px 50px',
         textAlign: 'center',
         position: 'relative',
@@ -134,11 +134,11 @@ const s = {
     },
     checkboxWrap: { padding: '4px 0' },
     checkboxLabel: { display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: 'var(--text-soft)', fontSize: '0.95rem' },
-    checkbox: { width: '18px', height: '18px', accentColor: '#4c1d95' },
+    checkbox: { width: '18px', height: '18px', accentColor: '#0f2044' },
     submitBtn: {
-        background: 'linear-gradient(135deg, #4c1d95, #5b2caa)', color: '#fff', border: 'none',
+        background: 'linear-gradient(135deg, #0f2044, #1a3460)', color: '#fff', border: 'none',
         padding: '16px', borderRadius: '14px', fontWeight: 700, fontSize: '1.05rem', cursor: 'pointer',
-        boxShadow: '0 4px 20px rgba(76,29,149,0.2)',
+        boxShadow: '0 4px 20px rgba(15,32,68,0.2)',
     },
     note: { color: 'var(--text-muted)', fontSize: '0.82rem', textAlign: 'center', margin: 0 },
     successWrap: {

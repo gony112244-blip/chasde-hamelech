@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+﻿import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 const ToastContext = createContext();
@@ -61,7 +61,7 @@ const bgColors = {
     success: 'linear-gradient(135deg, #10b981, #059669)',
     error:   'linear-gradient(135deg, #ef4444, #dc2626)',
     warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
-    info:    'linear-gradient(135deg, #4c1d95, #5b2caa)',
+    info:    'linear-gradient(135deg, #0f2044, #1a3460)',
 };
 
 const icons = {

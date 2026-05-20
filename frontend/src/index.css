@@ -1,17 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Rubik:wght@400;500;600;700&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Rubik:wght@400;500;600;700&display=swap');
 
 /* ══════════════════════════════════════════
    חסדי המלך — עיצוב ייחודי 
-   (סגול מלכותי + זהב — שונה מהפנקס!)
+   (כחול נייבי + זהב — יוקרתי ומכובד)
    ══════════════════════════════════════════ */
 
 :root {
   /* ── צבעים ראשיים ── */
-  --royal:         #4c1d95;        /* סגול מלכותי עמוק */
-  --royal-dark:    #3b0f80;
-  --royal-mid:     #5b2caa;
-  --royal-light:   #7c3aed;
-  --royal-pale:    #ede9fe;        /* סגול בהיר מאוד */
+  --royal:         #0f2044;        /* כחול נייבי עמוק */
+  --royal-dark:    #071530;
+  --royal-mid:     #1a3460;
+  --royal-light:   #2563eb;
+  --royal-pale:    #dbeafe;        /* כחול בהיר מאוד */
 
   /* ── זהב ── */
   --gold:          #d4a017;
@@ -20,27 +20,27 @@
   --gold-shine:    linear-gradient(135deg, #d4a017 0%, #f0c040 50%, #d4a017 100%);
 
   /* ── רקעים ── */
-  --bg-light:      #faf8ff;        /* לבן עם נגיעה סגולה */
-  --bg-warm:       #f5f0ff;        /* סגול-לבן חם */
+  --bg-light:      #f8fafe;        /* לבן עם נגיעה כחולה */
+  --bg-warm:       #f0f4ff;        /* כחול-לבן חם */
   --bg-card:       #ffffff;
 
   /* ── טקסט ── */
-  --text:          #1c1533;        /* כמעט שחור עם גוון סגול */
-  --text-soft:     #4a4458;
-  --text-muted:    #7c7591;
+  --text:          #0f1f40;        /* כמעט שחור עם גוון נייבי */
+  --text-soft:     #2d4070;
+  --text-muted:    #6478a8;
   --text-on-dark:  rgba(255,255,255,0.92);
 
   /* ── שונות ── */
   --success:       #10b981;
   --error:         #ef4444;
   --warning:       #f59e0b;
-  --info:          #6366f1;
+  --info:          #2563eb;
   --white:         #ffffff;
 
   /* ── צללים ── */
-  --shadow-sm:     0 1px 3px rgba(76, 29, 149, 0.08);
-  --shadow-md:     0 4px 14px rgba(76, 29, 149, 0.1);
-  --shadow-lg:     0 10px 40px rgba(76, 29, 149, 0.12);
+  --shadow-sm:     0 1px 3px rgba(15, 32, 68, 0.08);
+  --shadow-md:     0 4px 14px rgba(15, 32, 68, 0.1);
+  --shadow-lg:     0 10px 40px rgba(15, 32, 68, 0.12);
   --shadow-gold:   0 4px 20px rgba(212, 160, 23, 0.25);
 
   /* ── מעברים ── */

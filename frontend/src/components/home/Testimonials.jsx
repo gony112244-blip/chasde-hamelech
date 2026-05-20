@@ -1,4 +1,4 @@
-// TODO: להחליף בעדויות אמיתיות
+﻿// TODO: להחליף בעדויות אמיתיות
 const TESTIMONIALS = [
     {
         name: 'אמא ממחלקת ילדים',
@@ -87,7 +87,7 @@ const s = {
         borderRadius: '20px',
         padding: '32px 28px',
         boxShadow: 'var(--shadow-sm)',
-        border: '1px solid rgba(76,29,149,0.06)',
+        border: '1px solid rgba(15,32,68,0.06)',
         display: 'flex',
         flexDirection: 'column',
         gap: '16px',
@@ -116,7 +116,7 @@ const s = {
         alignItems: 'center',
         gap: '12px',
         paddingTop: '12px',
-        borderTop: '1px solid rgba(76,29,149,0.06)',
+        borderTop: '1px solid rgba(15,32,68,0.06)',
     },
     avatar: {
         width: '42px',

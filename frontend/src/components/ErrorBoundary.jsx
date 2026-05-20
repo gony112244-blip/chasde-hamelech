@@ -1,4 +1,4 @@
-import { Component } from 'react';
+﻿import { Component } from 'react';
 
 // תופס שגיאות React ומציג מסך ידידותי במקום קריסה
 export default class ErrorBoundary extends Component {
@@ -54,7 +54,7 @@ const s = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(165deg, #4c1d95 0%, #3b0f80 50%, #2e0a66 100%)',
+        background: 'linear-gradient(165deg, #0f2044 0%, #071530 50%, #2e0a66 100%)',
         fontFamily: "'Heebo', sans-serif",
         direction: 'rtl',
         padding: '20px',
@@ -77,7 +77,7 @@ const s = {
         lineHeight: 1,
     },
     title: {
-        color: '#4c1d95',
+        color: '#0f2044',
         fontSize: '1.5rem',
         fontWeight: 700,
         margin: 0,
@@ -90,7 +90,7 @@ const s = {
     },
     btn: {
         marginTop: '8px',
-        background: 'linear-gradient(135deg, #4c1d95 0%, #5b2caa 100%)',
+        background: 'linear-gradient(135deg, #0f2044 0%, #1a3460 100%)',
         color: '#fff',
         border: 'none',
         padding: '14px 32px',
@@ -102,8 +102,8 @@ const s = {
     },
     btnSecondary: {
         background: 'transparent',
-        color: '#4c1d95',
-        border: '2px solid #4c1d95',
+        color: '#0f2044',
+        border: '2px solid #0f2044',
         padding: '12px 32px',
         borderRadius: '14px',
         fontSize: '0.95rem',

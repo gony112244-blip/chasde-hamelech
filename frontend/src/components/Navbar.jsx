@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 
@@ -53,10 +53,10 @@ export default function Navbar() {
             <nav style={{
                 ...s.nav,
                 background: scrolled
-                    ? 'rgba(76, 29, 149, 0.97)'
-                    : 'linear-gradient(135deg, #4c1d95 0%, #5b2caa 100%)',
+                    ? 'rgba(15, 32, 68, 0.97)'
+                    : 'linear-gradient(135deg, #0f2044 0%, #1a3460 100%)',
                 boxShadow: scrolled
-                    ? '0 4px 30px rgba(76, 29, 149, 0.3)'
+                    ? '0 4px 30px rgba(15, 32, 68, 0.3)'
                     : '0 1px 0 rgba(255,255,255,0.08)',
                 backdropFilter: scrolled ? 'blur(12px)' : 'none',
             }} role="navigation" aria-label="ניווט ראשי">
@@ -232,7 +232,7 @@ const s = {
         padding: '16px 20px 24px',
         gap: '4px',
         borderTop: '1px solid rgba(255,255,255,0.1)',
-        background: 'linear-gradient(180deg, #4c1d95 0%, #3b0f80 100%)',
+        background: 'linear-gradient(180deg, #0f2044 0%, #071530 100%)',
         animation: 'fadeIn 0.2s ease-out',
     },
     mobileLink: {

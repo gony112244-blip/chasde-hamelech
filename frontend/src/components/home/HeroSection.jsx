@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 
 export default function HeroSection() {
     return (
@@ -48,7 +48,7 @@ const s = {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: 'calc(100vh - 64px)',
-        background: 'linear-gradient(165deg, #4c1d95 0%, #5b2caa 25%, #3b0f80 65%, #2e0a66 100%)',
+        background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 25%, #071530 65%, #2e0a66 100%)',
         color: '#fff',
         fontFamily: "'Heebo', sans-serif",
         direction: 'rtl',

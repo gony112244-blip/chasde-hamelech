@@ -1,7 +1,7 @@
-// לוגו SVG של חסדי המלך — כתר זהב מלכותי
+﻿// לוגו SVG של חסדי המלך — כתר זהב מלכותי
 // ניתן להחליף בתמונה אמיתית בהמשך
 export default function Logo({ size = 40, showText = true, darkBg = true }) {
-    const textColor = darkBg ? '#fbbf24' : '#4c1d95';
+    const textColor = darkBg ? '#fbbf24' : '#0f2044';
 
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>

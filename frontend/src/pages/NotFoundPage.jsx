@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 
 export default function NotFoundPage() {
     return (
@@ -66,7 +66,7 @@ const s = {
     number: {
         fontSize: 'clamp(4rem, 12vw, 7rem)',
         fontWeight: 900,
-        background: 'linear-gradient(135deg, #4c1d95, #7c3aed)',
+        background: 'linear-gradient(135deg, #0f2044, #2563eb)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         lineHeight: 1,
@@ -76,7 +76,7 @@ const s = {
         animation: 'float 3s ease-in-out infinite',
     },
     title: {
-        color: '#4c1d95',
+        color: '#0f2044',
         fontSize: 'clamp(1.5rem, 4vw, 2rem)',
         fontWeight: 700,
         marginBottom: '12px',
@@ -94,14 +94,14 @@ const s = {
         alignItems: 'center',
     },
     primaryBtn: {
-        background: 'linear-gradient(135deg, #4c1d95 0%, #5b2caa 100%)',
+        background: 'linear-gradient(135deg, #0f2044 0%, #1a3460 100%)',
         color: '#fff',
         textDecoration: 'none',
         padding: '15px 36px',
         borderRadius: '14px',
         fontWeight: 700,
         fontSize: '1.05rem',
-        boxShadow: '0 4px 20px rgba(76, 29, 149, 0.25)',
+        boxShadow: '0 4px 20px rgba(15, 32, 68, 0.25)',
         transition: 'transform 0.2s, box-shadow 0.2s',
         width: '100%',
         maxWidth: '280px',
@@ -109,13 +109,13 @@ const s = {
     },
     secondaryBtn: {
         background: 'transparent',
-        color: '#4c1d95',
+        color: '#0f2044',
         textDecoration: 'none',
         padding: '13px 36px',
         borderRadius: '14px',
         fontWeight: 600,
         fontSize: '1rem',
-        border: '2px solid #4c1d95',
+        border: '2px solid #0f2044',
         width: '100%',
         maxWidth: '280px',
         textAlign: 'center',
@@ -136,6 +136,6 @@ const s = {
         width: '300px',
         height: '300px',
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(76,29,149,0.08) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(15,32,68,0.08) 0%, transparent 70%)',
     },
 };

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 
 // TODO: להחליף בלינק PayBox אמיתי
 const PAYBOX_LINK = '#';
@@ -110,7 +110,7 @@ export default function HelpPage() {
 const s = {
     page: { fontFamily: "'Heebo', sans-serif", direction: 'rtl' },
     header: {
-        background: 'linear-gradient(165deg, #4c1d95 0%, #5b2caa 50%, #3b0f80 100%)',
+        background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 50%, #071530 100%)',
         padding: '60px 20px 50px', textAlign: 'center', position: 'relative', overflow: 'hidden',
     },
     headerOrb: {
@@ -158,7 +158,7 @@ const s = {
     itemCard: {
         background: 'var(--bg-card)', borderRadius: '16px', padding: '24px 16px',
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
-        boxShadow: 'var(--shadow-sm)', border: '1px solid rgba(76,29,149,0.05)',
+        boxShadow: 'var(--shadow-sm)', border: '1px solid rgba(15,32,68,0.05)',
     },
     itemIcon: { fontSize: '2rem' },
     itemName: { color: 'var(--text)', fontSize: '0.95rem' },
@@ -176,7 +176,7 @@ const s = {
 
     // CTA
     ctaSection: {
-        background: 'linear-gradient(135deg, #4c1d95, #5b2caa)', padding: '64px 20px', textAlign: 'center',
+        background: 'linear-gradient(135deg, #0f2044, #1a3460)', padding: '64px 20px', textAlign: 'center',
     },
     ctaInner: { maxWidth: '600px', margin: '0 auto' },
     ctaTitle: { color: '#fbbf24', fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 800, marginBottom: '12px' },

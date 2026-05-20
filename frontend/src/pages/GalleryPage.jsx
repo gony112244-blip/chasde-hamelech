@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+﻿import { useState, useRef } from 'react';
 
 const CATEGORIES = [
     {
@@ -44,8 +44,8 @@ const CATEGORIES = [
         id: 'preparation',
         label: 'מאחורי הקלעים',
         icon: '🛒',
-        color: '#ede9fe',
-        borderColor: '#7c3aed',
+        color: '#dbeafe',
+        borderColor: '#2563eb',
         type: 'photos',
         photos: [
             { src: '/gallery/preparation-bags-elevator.png', caption: 'שקיות מוכנות ליד המעלית' },
@@ -257,7 +257,7 @@ export default function GalleryPage() {
 const s = {
     page: { fontFamily: "'Heebo', sans-serif", direction: 'rtl' },
     header: {
-        background: 'linear-gradient(165deg, #4c1d95 0%, #5b2caa 50%, #3b0f80 100%)',
+        background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 50%, #071530 100%)',
         padding: '60px 20px 50px', textAlign: 'center', position: 'relative', overflow: 'hidden',
     },
     headerOrb: {
@@ -276,7 +276,7 @@ const s = {
 
     filterRow: { display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' },
     filterBtn: {
-        padding: '8px 18px', borderRadius: '999px', border: '2px solid rgba(76,29,149,0.2)',
+        padding: '8px 18px', borderRadius: '999px', border: '2px solid rgba(15,32,68,0.2)',
         background: 'var(--bg-card)', color: 'var(--text-soft)', fontSize: '0.88rem', fontWeight: 600,
         cursor: 'pointer', transition: 'all 0.2s', fontFamily: "'Heebo', sans-serif",
     },
@@ -284,7 +284,7 @@ const s = {
 
     section: {
         background: 'var(--bg-card)', borderRadius: '20px', padding: '24px',
-        boxShadow: 'var(--shadow-md)', border: '1px solid rgba(76,29,149,0.05)',
+        boxShadow: 'var(--shadow-md)', border: '1px solid rgba(15,32,68,0.05)',
     },
     sectionHeader: {
         display: 'flex', alignItems: 'center', gap: '14px',

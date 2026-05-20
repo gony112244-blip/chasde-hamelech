@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+﻿import { useEffect, useState, useRef } from 'react';
 
 // TODO: להחליף במספרים אמיתיים מהמשתמש
 const STATS = [
@@ -118,7 +118,7 @@ const s = {
         alignItems: 'center',
         gap: '8px',
         boxShadow: 'var(--shadow-md)',
-        border: '1px solid rgba(76,29,149,0.06)',
+        border: '1px solid rgba(15,32,68,0.06)',
         transition: 'transform 0.3s, box-shadow 0.3s',
     },
     cardIcon: {

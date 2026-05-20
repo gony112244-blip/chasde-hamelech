@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 
 const WAYS = [
     {
@@ -112,13 +112,13 @@ const s = {
         alignItems: 'center',
         gap: '12px',
         boxShadow: 'var(--shadow-sm)',
-        border: '1px solid rgba(76,29,149,0.06)',
+        border: '1px solid rgba(15,32,68,0.06)',
         transition: 'transform 0.3s, box-shadow 0.3s',
     },
     cardHighlight: {
-        background: 'linear-gradient(135deg, #4c1d95, #5b2caa)',
+        background: 'linear-gradient(135deg, #0f2044, #1a3460)',
         border: '1px solid rgba(251,191,36,0.2)',
-        boxShadow: '0 8px 30px rgba(76,29,149,0.2)',
+        boxShadow: '0 8px 30px rgba(15,32,68,0.2)',
     },
     cardIcon: { fontSize: '2.2rem' },
     cardTitle: {

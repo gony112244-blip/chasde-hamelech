@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 
 export default function ContactPage() {
     const [form, setForm] = useState({ name: '', phone: '', email: '', message: '' });
@@ -115,7 +115,7 @@ export default function ContactPage() {
 const s = {
     page: { fontFamily: "'Heebo', sans-serif", direction: 'rtl' },
     header: {
-        background: 'linear-gradient(165deg, #4c1d95 0%, #5b2caa 50%, #3b0f80 100%)',
+        background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 50%, #071530 100%)',
         padding: '60px 20px 50px', textAlign: 'center', position: 'relative', overflow: 'hidden',
     },
     headerOrb: {
@@ -147,7 +147,7 @@ const s = {
         resize: 'vertical', boxSizing: 'border-box',
     },
     submitBtn: {
-        background: 'linear-gradient(135deg, #4c1d95, #5b2caa)', color: '#fff', border: 'none',
+        background: 'linear-gradient(135deg, #0f2044, #1a3460)', color: '#fff', border: 'none',
         padding: '16px', borderRadius: '14px', fontWeight: 700, fontSize: '1.05rem', cursor: 'pointer',
     },
     infoCard: {

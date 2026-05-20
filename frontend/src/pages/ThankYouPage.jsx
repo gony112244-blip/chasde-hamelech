@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 
 // TODO: להחליף ב-API אמיתי כשיהיה DB
 const MOCK_NOTES = [
@@ -135,7 +135,7 @@ const s = {
     },
     // Header
     header: {
-        background: 'linear-gradient(165deg, #4c1d95 0%, #5b2caa 50%, #3b0f80 100%)',
+        background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 50%, #071530 100%)',
         padding: '60px 20px 50px',
         textAlign: 'center',
         position: 'relative',
@@ -237,7 +237,7 @@ const s = {
     },
     submitBtn: {
         flex: 1,
-        background: 'linear-gradient(135deg, #4c1d95, #5b2caa)',
+        background: 'linear-gradient(135deg, #0f2044, #1a3460)',
         color: '#fff',
         border: 'none',
         padding: '14px',
@@ -288,7 +288,7 @@ const s = {
         borderRadius: '18px',
         padding: '28px 24px',
         boxShadow: 'var(--shadow-sm)',
-        border: '1px solid rgba(76,29,149,0.05)',
+        border: '1px solid rgba(15,32,68,0.05)',
         position: 'relative',
         animation: 'fadeInUp 0.5s ease-out both',
     },
@@ -314,7 +314,7 @@ const s = {
         alignItems: 'center',
         gap: '10px',
         paddingTop: '12px',
-        borderTop: '1px solid rgba(76,29,149,0.06)',
+        borderTop: '1px solid rgba(15,32,68,0.06)',
     },
     noteAvatar: {
         width: '38px',

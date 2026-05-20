@@ -1,4 +1,4 @@
-export default function AuthorCorner() {
+﻿export default function AuthorCorner() {
     return (
         <section style={s.section}>
             <div style={s.inner}>
@@ -49,7 +49,7 @@ export default function AuthorCorner() {
 
 const s = {
     section: {
-        background: 'linear-gradient(165deg, #4c1d95 0%, #3b0f80 100%)',
+        background: 'linear-gradient(165deg, #0f2044 0%, #071530 100%)',
         fontFamily: "'Heebo', sans-serif",
         direction: 'rtl',
         padding: '80px 20px',

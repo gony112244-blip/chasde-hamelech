@@ -1,4 +1,4 @@
-export default function AboutSection() {
+﻿export default function AboutSection() {
     return (
         <section style={s.section}>
             <div style={s.inner}>
@@ -128,7 +128,7 @@ const s = {
         padding: '36px 28px',
         textAlign: 'center',
         boxShadow: 'var(--shadow-sm)',
-        border: '1px solid rgba(76,29,149,0.06)',
+        border: '1px solid rgba(15,32,68,0.06)',
         transition: 'transform 0.3s, box-shadow 0.3s',
     },
     cardIconWrap: {
