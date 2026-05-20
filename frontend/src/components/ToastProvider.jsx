@@ -1,151 +1,123 @@
-import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 const ToastContext = createContext();
 
 export const useToast = () => useContext(ToastContext);
 
+function ToastContainer({ toasts, removeToast }) {
+    if (toasts.length === 0) return null;
+
+    return createPortal(
+        <div style={s.container} role="status" aria-live="polite">
+            {toasts.map((toast) => (
+                <div key={toast.id} style={{ ...s.toast, background: bgColors[toast.type] }}>
+                    <span style={s.icon}>{icons[toast.type]}</span>
+                    <span style={s.message}>{toast.message}</span>
+                    <button
+                        style={s.close}
+                        onClick={() => removeToast(toast.id)}
+                        aria-label="סגור הודעה"
+                    >
+                        ✕
+                    </button>
+                </div>
+            ))}
+        </div>,
+        document.body
+    );
+}
+
 export function ToastProvider({ children }) {
     const [toasts, setToasts] = useState([]);
-    const containerRef = useRef(null);
 
-    // יצירת div ייעודי פעם אחת — מחוץ לעץ ה-React רגיל, אבל מנוהל ע"י ref
-    useEffect(() => {
-        const el = document.createElement('div');
-        el.id = 'toast-portal-root';
-        document.body.appendChild(el);
-        containerRef.current = el;
-        return () => {
-            // ניקוי בטוח
-            try {
-                if (el.parentNode === document.body) {
-                    document.body.removeChild(el);
-                }
-            } catch (_) {}
-        };
+    const removeToast = useCallback((id) => {
+        setToasts(prev => prev.filter(t => t.id !== id));
     }, []);
 
     const showToast = useCallback((message, type = 'info', duration = 4000) => {
-        const id = Date.now();
+        const id = Date.now() + Math.random();
         setToasts(prev => [...prev, { id, message, type }]);
 
         setTimeout(() => {
-            setToasts(prev => prev.filter(t => t.id !== id));
+            removeToast(id);
         }, duration);
-    }, []);
+    }, [removeToast]);
 
-    const success = (msg) => showToast(msg, 'success');
-    const error = (msg) => showToast(msg, 'error');
-    const info = (msg) => showToast(msg, 'info');
-    const warning = (msg) => showToast(msg, 'warning');
-
-    // רינדור ה-toasts ישירות ב-DOM — ללא createPortal בכלל
-    useEffect(() => {
-        const el = containerRef.current;
-        if (!el) return;
-
-        // נבנה את ה-HTML ישירות — בלי Portal
-        if (toasts.length === 0) {
-            el.innerHTML = '';
-            return;
-        }
-
-        el.innerHTML = '';
-        Object.assign(el.style, {
-            position: 'fixed',
-            top: '80px',
-            left: '20px',
-            zIndex: '9999',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
-            maxWidth: '400px'
-        });
-
-        toasts.forEach(toast => {
-            const div = document.createElement('div');
-            const bgColors = {
-                success: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                error: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                info: 'linear-gradient(135deg, #1e3a5f, #2d4a6f)'
-            };
-            const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
-
-            Object.assign(div.style, {
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '15px 20px',
-                borderRadius: '12px',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-                animation: 'slideIn 0.3s ease-out',
-                direction: 'rtl',
-                fontFamily: "'Heebo', sans-serif",
-                background: bgColors[toast.type] || bgColors.info,
-                color: '#fff'
-            });
-
-            const iconSpan = document.createElement('span');
-            iconSpan.style.fontSize = '1.2rem';
-            iconSpan.textContent = icons[toast.type] || 'ℹ️';
-
-            const msgSpan = document.createElement('span');
-            msgSpan.style.flex = '1';
-            msgSpan.style.fontWeight = '500';
-            msgSpan.textContent = toast.message;
-
-            const closeBtn = document.createElement('button');
-            Object.assign(closeBtn.style, {
-                background: 'rgba(255,255,255,0.2)',
-                border: 'none',
-                color: '#fff',
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                cursor: 'pointer',
-                fontSize: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-            });
-            closeBtn.textContent = '✕';
-            closeBtn.onclick = () => {
-                setToasts(prev => prev.filter(t => t.id !== toast.id));
-            };
-
-            div.appendChild(iconSpan);
-            div.appendChild(msgSpan);
-            div.appendChild(closeBtn);
-            el.appendChild(div);
-        });
-    }, [toasts]);
+    const success = useCallback((msg) => showToast(msg, 'success'), [showToast]);
+    const error = useCallback((msg) => showToast(msg, 'error'), [showToast]);
+    const info = useCallback((msg) => showToast(msg, 'info'), [showToast]);
+    const warning = useCallback((msg) => showToast(msg, 'warning'), [showToast]);
 
     return (
         <ToastContext.Provider value={{ showToast, success, error, info, warning }}>
             {children}
+            <ToastContainer toasts={toasts} removeToast={removeToast} />
         </ToastContext.Provider>
     );
 }
 
-// CSS Animation (add to index.css or global styles)
-const cssAnimation = `
-@keyframes slideIn {
-    from {
-        transform: translateX(-100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-`;
+const bgColors = {
+    success: 'linear-gradient(135deg, #10b981, #059669)',
+    error:   'linear-gradient(135deg, #ef4444, #dc2626)',
+    warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
+    info:    'linear-gradient(135deg, #4c1d95, #5b2caa)',
+};
 
-// Inject animation
-if (typeof document !== 'undefined') {
-    const style = document.createElement('style');
-    style.textContent = cssAnimation;
-    document.head.appendChild(style);
-}
+const icons = {
+    success: '✅',
+    error:   '❌',
+    warning: '⚠️',
+    info:    'ℹ️',
+};
+
+const s = {
+    container: {
+        position: 'fixed',
+        top: '80px',
+        left: '20px',
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        maxWidth: '400px',
+    },
+    toast: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '15px 20px',
+        borderRadius: '14px',
+        boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+        animation: 'slideInLeft 0.3s ease-out',
+        direction: 'rtl',
+        fontFamily: "'Heebo', sans-serif",
+        color: '#fff',
+    },
+    icon: {
+        fontSize: '1.2rem',
+        flexShrink: 0,
+    },
+    message: {
+        flex: 1,
+        fontWeight: 500,
+        fontSize: '0.95rem',
+    },
+    close: {
+        background: 'rgba(255,255,255,0.2)',
+        border: 'none',
+        color: '#fff',
+        width: '26px',
+        height: '26px',
+        borderRadius: '50%',
+        cursor: 'pointer',
+        fontSize: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        transition: 'background 0.2s',
+    },
+};
 
 export default ToastProvider;

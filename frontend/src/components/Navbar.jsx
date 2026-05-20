@@ -5,34 +5,45 @@ import Logo from './Logo';
 const MOBILE_BREAKPOINT = 768;
 
 const NAV_LINKS = [
-    { to: '/',          label: 'בית' },
-    { to: '/gallery',   label: 'גלריה' },
-    { to: '/thank-you', label: 'קיר תודה' },
-    { to: '/help',      label: 'איך עוזרים' },
-    { to: '/volunteer', label: 'מתנדבים' },
-    { to: '/contact',   label: 'צור קשר' },
+    { to: '/',          label: 'בית',        icon: '🏠' },
+    { to: '/gallery',   label: 'גלריה',      icon: '📸' },
+    { to: '/thank-you', label: 'קיר תודה',   icon: '💬' },
+    { to: '/help',      label: 'איך עוזרים', icon: '💝' },
+    { to: '/volunteer', label: 'מתנדבים',    icon: '🤝' },
+    { to: '/contact',   label: 'צור קשר',    icon: '📩' },
 ];
 
 export default function Navbar() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= MOBILE_BREAKPOINT);
+    const [isMobile, setIsMobile] = useState(
+        typeof window !== 'undefined' ? window.innerWidth <= MOBILE_BREAKPOINT : false
+    );
     const location = useLocation();
 
-    // הצללה בגלילה + זיהוי מובייל — שניהם ב-listener אחד
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 10);
-        const onResize = () => setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
+        const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
+        const onMQ = (e) => setIsMobile(e.matches);
+
         window.addEventListener('scroll', onScroll, { passive: true });
-        window.addEventListener('resize', onResize, { passive: true });
+        mq.addEventListener('change', onMQ);
+        setIsMobile(mq.matches);
+
         return () => {
             window.removeEventListener('scroll', onScroll);
-            window.removeEventListener('resize', onResize);
+            mq.removeEventListener('change', onMQ);
         };
     }, []);
 
     // סגירת תפריט בניווט
     useEffect(() => { setMenuOpen(false); }, [location.pathname]);
+
+    // מניעת גלילה כשתפריט מובייל פתוח
+    useEffect(() => {
+        document.body.style.overflow = menuOpen ? 'hidden' : '';
+        return () => { document.body.style.overflow = ''; };
+    }, [menuOpen]);
 
     const isActive = (path) =>
         path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
@@ -41,11 +52,17 @@ export default function Navbar() {
         <>
             <nav style={{
                 ...s.nav,
-                boxShadow: scrolled ? '0 2px 20px rgba(0,0,0,0.25)' : '0 1px 0 rgba(255,255,255,0.08)'
-            }}>
+                background: scrolled
+                    ? 'rgba(76, 29, 149, 0.97)'
+                    : 'linear-gradient(135deg, #4c1d95 0%, #5b2caa 100%)',
+                boxShadow: scrolled
+                    ? '0 4px 30px rgba(76, 29, 149, 0.3)'
+                    : '0 1px 0 rgba(255,255,255,0.08)',
+                backdropFilter: scrolled ? 'blur(12px)' : 'none',
+            }} role="navigation" aria-label="ניווט ראשי">
                 <div style={s.inner}>
                     {/* לוגו */}
-                    <Link to="/" style={s.logoLink}>
+                    <Link to="/" style={s.logoLink} aria-label="חסדי המלך — דף הבית">
                         <Logo size={36} showText={true} />
                     </Link>
 
@@ -66,7 +83,7 @@ export default function Navbar() {
 
                     {/* כפתור תרומה — דסקטופ בלבד */}
                     {!isMobile && (
-                        <Link to="/help" style={s.donateBtn}>
+                        <Link to="/help" style={s.donateBtn} aria-label="עזרו לנו — דף תרומה">
                             עזרו לנו ✨
                         </Link>
                     )}
@@ -75,7 +92,8 @@ export default function Navbar() {
                     {isMobile && <button
                         style={s.burger}
                         onClick={() => setMenuOpen(o => !o)}
-                        aria-label="תפריט"
+                        aria-label={menuOpen ? "סגור תפריט" : "פתח תפריט"}
+                        aria-expanded={menuOpen}
                     >
                         <span style={{ ...s.burgerLine, ...(menuOpen ? s.burgerLine1Open : {}) }} />
                         <span style={{ ...s.burgerLine, ...(menuOpen ? s.burgerLine2Open : {}) }} />
@@ -85,21 +103,32 @@ export default function Navbar() {
 
                 {/* תפריט מובייל — רק כשפתוח ורק במובייל */}
                 {isMobile && menuOpen && (
-                    <div style={s.mobileMenu}>
-                        {NAV_LINKS.map(({ to, label }) => (
+                    <div style={s.mobileMenu} role="menu">
+                        {NAV_LINKS.map(({ to, label, icon }) => (
                             <Link key={to} to={to} style={{
                                 ...s.mobileLink,
                                 ...(isActive(to) ? s.mobileLinkActive : {})
-                            }}>
+                            }} role="menuitem">
+                                <span style={{ fontSize: '1.1rem' }}>{icon}</span>
                                 {label}
                             </Link>
                         ))}
-                        <Link to="/help" style={s.mobileDonateBtn}>
+                        <Link to="/help" style={s.mobileDonateBtn} role="menuitem">
                             ✨ עזרו לנו
                         </Link>
                     </div>
                 )}
             </nav>
+
+            {/* Overlay כשתפריט מובייל פתוח */}
+            {isMobile && menuOpen && (
+                <div
+                    style={s.overlay}
+                    onClick={() => setMenuOpen(false)}
+                    aria-hidden="true"
+                />
+            )}
+
             {/* spacer כדי שהתוכן לא יתחבא מתחת לנאב */}
             <div style={{ height: '64px' }} />
         </>
@@ -111,10 +140,9 @@ const s = {
         position: 'fixed',
         top: 0, right: 0, left: 0,
         zIndex: 1000,
-        background: '#1e3a5f',
         direction: 'rtl',
         fontFamily: "'Heebo', sans-serif",
-        transition: 'box-shadow 0.3s',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     },
     inner: {
         maxWidth: '1100px',
@@ -140,14 +168,14 @@ const s = {
         textDecoration: 'none',
         fontSize: '0.95rem',
         fontWeight: 500,
-        padding: '6px 12px',
-        borderRadius: '8px',
+        padding: '6px 14px',
+        borderRadius: '10px',
         position: 'relative',
         transition: 'color 0.2s, background 0.2s',
     },
     linkActive: {
-        color: '#c9a227',
-        background: 'rgba(201,162,39,0.12)',
+        color: '#fbbf24',
+        background: 'rgba(251, 191, 36, 0.12)',
         fontWeight: 700,
     },
     activeDot: {
@@ -155,21 +183,23 @@ const s = {
         bottom: '-2px',
         right: '50%',
         transform: 'translateX(50%)',
-        width: '4px',
-        height: '4px',
-        background: '#c9a227',
+        width: '5px',
+        height: '5px',
+        background: '#fbbf24',
         borderRadius: '50%',
     },
     donateBtn: {
-        background: '#c9a227',
-        color: '#1e3a5f',
+        background: 'linear-gradient(135deg, #d4a017 0%, #f0c040 100%)',
+        color: '#3b0764',
         textDecoration: 'none',
-        padding: '8px 18px',
-        borderRadius: '10px',
+        padding: '9px 20px',
+        borderRadius: '12px',
         fontWeight: 700,
         fontSize: '0.9rem',
         flexShrink: 0,
         display: 'inline-block',
+        boxShadow: '0 2px 12px rgba(212, 160, 23, 0.3)',
+        transition: 'transform 0.2s, box-shadow 0.2s',
     },
 
     // המבורגר
@@ -199,34 +229,48 @@ const s = {
     mobileMenu: {
         display: 'flex',
         flexDirection: 'column',
-        padding: '12px 20px 20px',
+        padding: '16px 20px 24px',
         gap: '4px',
         borderTop: '1px solid rgba(255,255,255,0.1)',
-        background: '#1a3358',
+        background: 'linear-gradient(180deg, #4c1d95 0%, #3b0f80 100%)',
+        animation: 'fadeIn 0.2s ease-out',
     },
     mobileLink: {
         color: 'rgba(255,255,255,0.85)',
         textDecoration: 'none',
         fontSize: '1.05rem',
         fontWeight: 500,
-        padding: '12px 16px',
-        borderRadius: '10px',
+        padding: '14px 16px',
+        borderRadius: '12px',
         transition: 'background 0.2s',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
     },
     mobileLinkActive: {
-        color: '#c9a227',
-        background: 'rgba(201,162,39,0.12)',
+        color: '#fbbf24',
+        background: 'rgba(251, 191, 36, 0.12)',
         fontWeight: 700,
     },
     mobileDonateBtn: {
-        marginTop: '8px',
-        background: '#c9a227',
-        color: '#1e3a5f',
+        marginTop: '12px',
+        background: 'linear-gradient(135deg, #d4a017 0%, #f0c040 100%)',
+        color: '#3b0764',
         textDecoration: 'none',
-        padding: '13px 16px',
-        borderRadius: '10px',
+        padding: '15px 16px',
+        borderRadius: '14px',
         fontWeight: 700,
-        fontSize: '1rem',
+        fontSize: '1.05rem',
         textAlign: 'center',
+        boxShadow: '0 4px 20px rgba(212, 160, 23, 0.25)',
+    },
+
+    // Overlay
+    overlay: {
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.4)',
+        zIndex: 999,
+        backdropFilter: 'blur(2px)',
     },
 };

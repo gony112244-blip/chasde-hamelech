@@ -1,81 +1,55 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ToastProvider } from './components/ToastProvider';
+import ErrorBoundary from './components/ErrorBoundary';
+import ScrollToTop from './components/ScrollToTop';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
-// ── דפים placeholder — יוחלפו בשלבים הבאים ──
-function HomePage() {
+// דפים
+import HomePage from './pages/HomePage';
+import ThankYouPage from './pages/ThankYouPage';
+import VolunteerPage from './pages/VolunteerPage';
+import ContactPage from './pages/ContactPage';
+import HelpPage from './pages/HelpPage';
+import GalleryPage from './pages/GalleryPage';
+import QRLandingPage from './pages/QRLandingPage';
+import NotFoundPage from './pages/NotFoundPage';
+
+// placeholder לדפי Admin שייבנו בהמשך
+function PlaceholderPage({ name, icon = '🚧' }) {
     return (
-        <main style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: 'calc(100vh - 64px)',
-            background: 'linear-gradient(165deg, #1e3a5f 0%, #2d4a6f 50%, #1e3a5f 100%)',
-            color: '#fff',
-            fontFamily: "'Heebo', sans-serif",
-            direction: 'rtl',
-            gap: '16px',
-            padding: '40px 20px',
-            textAlign: 'center',
-        }}>
-            <h1 style={{ fontSize: 'clamp(2rem, 6vw, 3.5rem)', fontWeight: 800, color: '#c9a227' }}>
-                חסדי המלך
-            </h1>
-            <p style={{ fontSize: 'clamp(1rem, 3vw, 1.3rem)', opacity: 0.85, maxWidth: '500px', lineHeight: 1.6 }}>
-                מחזירים את החיוך לגיבורים הקטנים
-            </p>
-            <div style={{
-                marginTop: '20px',
-                background: 'rgba(201,162,39,0.15)',
-                border: '1px solid rgba(201,162,39,0.4)',
-                padding: '10px 24px',
-                borderRadius: '10px',
-                fontSize: '0.9rem',
-                color: '#c9a227',
-                fontWeight: 600,
-            }}>
-                ✅ שלב 2 — עיצוב בסיסי פועל
+        <div style={ph.wrapper}>
+            <div style={ph.card}>
+                <span style={{ fontSize: '3rem' }}>{icon}</span>
+                <h2 style={ph.title}>{name}</h2>
+                <p style={ph.text}>דף זה ייבנה בקרוב</p>
             </div>
-        </main>
+        </div>
     );
 }
 
-// placeholder לדפים שייבנו בשלבים הבאים
-function PlaceholderPage({ name }) {
-    return (
-        <main style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            minHeight: 'calc(100vh - 64px)', background: 'var(--cream)',
-            fontFamily: "'Heebo', sans-serif", direction: 'rtl', flexDirection: 'column', gap: '12px'
-        }}>
-            <h2 style={{ color: 'var(--navy)', fontSize: '1.8rem', fontWeight: 700 }}>{name}</h2>
-            <p style={{ color: 'var(--text-muted)' }}>דף זה ייבנה בשלב הבא</p>
-        </main>
-    );
-}
-
-// ── Layout ראשי עם נאב ופוטר ──
 function Layout() {
     const location = useLocation();
-    // דפי QR לא מציגים נאב ופוטר (שלב 6)
     const isQR = location.pathname.startsWith('/qr');
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <a href="#main-content" className="skip-to-content">דלג לתוכן הראשי</a>
             {!isQR && <Navbar />}
-            <Routes>
-                <Route path="/"          element={<HomePage />} />
-                <Route path="/gallery"   element={<PlaceholderPage name="גלריית רגעים" />} />
-                <Route path="/thank-you" element={<PlaceholderPage name="קיר התודה" />} />
-                <Route path="/help"      element={<PlaceholderPage name="איך עוזרים" />} />
-                <Route path="/volunteer" element={<PlaceholderPage name="הצטרפו כמתנדבים" />} />
-                <Route path="/contact"   element={<PlaceholderPage name="צור קשר" />} />
-                <Route path="/admin/*"   element={<PlaceholderPage name="ניהול" />} />
-                <Route path="/qr/:id"    element={<PlaceholderPage name="QR" />} />
-            </Routes>
+            <main id="main-content" style={{ flex: 1 }}>
+                <Routes>
+                    <Route path="/"          element={<HomePage />} />
+                    <Route path="/gallery"   element={<GalleryPage />} />
+                    <Route path="/thank-you" element={<ThankYouPage />} />
+                    <Route path="/help"      element={<HelpPage />} />
+                    <Route path="/volunteer" element={<VolunteerPage />} />
+                    <Route path="/contact"   element={<ContactPage />} />
+                    <Route path="/admin/*"   element={<PlaceholderPage name="ניהול" icon="⚙️" />} />
+                    <Route path="/qr"        element={<QRLandingPage />} />
+                    <Route path="/qr/:id"    element={<QRLandingPage />} />
+                    <Route path="*"          element={<NotFoundPage />} />
+                </Routes>
+            </main>
             {!isQR && <Footer />}
         </div>
     );
@@ -83,12 +57,31 @@ function Layout() {
 
 function App() {
     return (
-        <ToastProvider>
-            <Router>
-                <Layout />
-            </Router>
-        </ToastProvider>
+        <ErrorBoundary>
+            <ToastProvider>
+                <Router>
+                    <ScrollToTop />
+                    <Layout />
+                </Router>
+            </ToastProvider>
+        </ErrorBoundary>
     );
 }
 
 export default App;
+
+const ph = {
+    wrapper: {
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        minHeight: 'calc(100vh - 64px)', background: 'var(--bg-light)',
+        fontFamily: "'Heebo', sans-serif", direction: 'rtl', padding: '40px 20px',
+    },
+    card: {
+        background: 'var(--bg-card)', borderRadius: '24px', padding: '48px 40px',
+        textAlign: 'center', boxShadow: 'var(--shadow-md)', display: 'flex',
+        flexDirection: 'column', alignItems: 'center', gap: '16px', maxWidth: '400px',
+        width: '100%', animation: 'fadeInUp 0.5s ease-out',
+    },
+    title: { color: 'var(--royal)', fontSize: '1.6rem', fontWeight: 700 },
+    text: { color: 'var(--text-muted)', fontSize: '1rem' },
+};

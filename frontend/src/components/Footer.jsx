@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import Logo from './Logo';
 
 export default function Footer() {
@@ -19,10 +20,10 @@ export default function Footer() {
                 <div style={s.col}>
                     <h4 style={s.colTitle}>ניווט מהיר</h4>
                     <nav style={s.links}>
-                        <a href="/gallery" style={s.link}>גלריית רגעים</a>
-                        <a href="/thank-you" style={s.link}>קיר תודה</a>
-                        <a href="/volunteer" style={s.link}>הצטרפו כמתנדבים</a>
-                        <a href="/contact" style={s.link}>צור קשר</a>
+                        <Link to="/gallery" style={s.link}>גלריית רגעים</Link>
+                        <Link to="/thank-you" style={s.link}>קיר תודה</Link>
+                        <Link to="/volunteer" style={s.link}>הצטרפו כמתנדבים</Link>
+                        <Link to="/contact" style={s.link}>צור קשר</Link>
                     </nav>
                 </div>
 
@@ -48,7 +49,7 @@ export default function Footer() {
 
 const s = {
     footer: {
-        background: '#142844',
+        background: 'linear-gradient(180deg, #1e1145 0%, #130b2e 100%)',
         color: 'rgba(255,255,255,0.75)',
         fontFamily: "'Heebo', sans-serif",
         direction: 'rtl',
@@ -65,7 +66,7 @@ const s = {
     },
     col: { display: 'flex', flexDirection: 'column', gap: '14px' },
     colTitle: {
-        color: '#c9a227',
+        color: '#d4a017',
         fontWeight: 700,
         fontSize: '1rem',
         margin: 0,
@@ -102,5 +103,5 @@ const s = {
         flexWrap: 'wrap',
         gap: '8px',
     },
-    credit: { color: '#c9a227', fontWeight: 600 },
+    credit: { color: '#d4a017', fontWeight: 600 },
 };

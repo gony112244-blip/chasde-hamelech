@@ -1,0 +1,9 @@
+# chasdehamelech.org.il
+# Robots.txt
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://chasdehamelech.org.il/sitemap.xml
