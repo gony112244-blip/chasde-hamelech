@@ -3,48 +3,6 @@
         <section style={s.section}>
             <div style={s.inner}>
 
-                {/* ── פינת הסופר ── */}
-                <div style={s.block}>
-                    <h2 style={s.blockTitle}>
-                        <span>✍️</span> פינת הסופר
-                    </h2>
-                    <div style={s.layout}>
-                        <div style={s.imageWrap}>
-                            <div style={{ ...s.imageFrame, borderColor: '#fbbf24' }}>
-                                {/* תמונת גוני תתווסף כאן */}
-                                <div style={s.photoPlaceholder}>
-                                    <span style={{ fontSize: '2.5rem' }}>📸</span>
-                                    <span style={s.placeholderText}>תמונה בקרוב</span>
-                                </div>
-                            </div>
-                            <p style={s.personName}>גוני שמוחה</p>
-                            <p style={s.personRole}>סופר הספר &ldquo;שר הצבא&rdquo;</p>
-                        </div>
-
-                        <div style={s.textContent}>
-                            <h3 style={s.bookTitle}>הספר &ldquo;שר הצבא&rdquo;</h3>
-                            <p style={s.text}>
-                                כתבתי את הספר הזה כי רציתי לתת לילדים שנלחמים במחלה
-                                משהו שמזכיר להם כמה הם חזקים. &ldquo;שר הצבא&rdquo; הוא סיפור על גיבור
-                                שלא ויתר — בדיוק כמו הילדים שאנחנו פוגשים.
-                            </p>
-                            <p style={s.text}>
-                                כל ילד שמקבל את הספר, מקבל גם מסר: אתה גיבור.
-                                לא צריך שריון, לא צריך חרב — מספיק הלב שלך.
-                            </p>
-                            <div style={s.quote}>
-                                <span style={s.quoteIcon}>&ldquo;</span>
-                                <p style={s.quoteText}>
-                                    כשילד חולה מחייך — זה הנצחון הכי גדול שיש
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* ── מפריד ── */}
-                <div style={s.divider} />
-
                 {/* ── דבר המנהל ── */}
                 <div style={s.block}>
                     <h2 style={s.blockTitle}>
@@ -83,6 +41,48 @@
                                 <span style={{ ...s.quoteIcon, color: '#93c5fd' }}>&ldquo;</span>
                                 <p style={{ ...s.quoteText, color: '#93c5fd' }}>
                                     ילד אחד שמחייך — שווה הכל
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── מפריד ── */}
+                <div style={s.divider} />
+
+                {/* ── פינת הסופר ── */}
+                <div style={s.block}>
+                    <h2 style={s.blockTitle}>
+                        <span>✍️</span> פינת הסופר
+                    </h2>
+                    <div style={s.layout}>
+                        <div style={s.imageWrap}>
+                            <div style={{ ...s.imageFrame, borderColor: '#fbbf24' }}>
+                                {/* תמונת גוני תתווסף כאן */}
+                                <div style={s.photoPlaceholder}>
+                                    <span style={{ fontSize: '2.5rem' }}>📸</span>
+                                    <span style={s.placeholderText}>תמונה בקרוב</span>
+                                </div>
+                            </div>
+                            <p style={s.personName}>גוני שמוחה</p>
+                            <p style={s.personRole}>סופר הספר &ldquo;שר הצבא&rdquo;</p>
+                        </div>
+
+                        <div style={s.textContent}>
+                            <h3 style={s.bookTitle}>הספר &ldquo;שר הצבא&rdquo;</h3>
+                            <p style={s.text}>
+                                כתבתי את הספר הזה כי רציתי לתת לילדים שנלחמים במחלה
+                                משהו שמזכיר להם כמה הם חזקים. &ldquo;שר הצבא&rdquo; הוא סיפור על גיבור
+                                שלא ויתר — בדיוק כמו הילדים שאנחנו פוגשים.
+                            </p>
+                            <p style={s.text}>
+                                כל ילד שמקבל את הספר, מקבל גם מסר: אתה גיבור.
+                                לא צריך שריון, לא צריך חרב — מספיק הלב שלך.
+                            </p>
+                            <div style={s.quote}>
+                                <span style={s.quoteIcon}>&ldquo;</span>
+                                <p style={s.quoteText}>
+                                    כשילד חולה מחייך — זה הנצחון הכי גדול שיש
                                 </p>
                             </div>
                         </div>
