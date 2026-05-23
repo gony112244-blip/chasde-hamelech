@@ -1,5 +1,9 @@
 ﻿import { Link } from 'react-router-dom';
 
+function scrollDown() {
+    window.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
+}
+
 export default function HeroSection() {
     return (
         <section style={s.hero}>
@@ -33,9 +37,9 @@ export default function HeroSection() {
                 </div>
 
                 {/* חץ גלילה */}
-                <div style={s.scrollHint}>
+                <button style={s.scrollHint} onClick={scrollDown} aria-label="גלול למטה">
                     <span style={s.scrollArrow}>↓</span>
-                </div>
+                </button>
             </div>
         </section>
     );
@@ -169,9 +173,15 @@ const s = {
     scrollHint: {
         marginTop: '30px',
         animation: 'float 2.5s ease-in-out infinite',
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        padding: '8px',
     },
     scrollArrow: {
         fontSize: '1.5rem',
-        opacity: 0.4,
+        opacity: 0.5,
+        color: '#fbbf24',
+        display: 'block',
     },
 };
