@@ -3,26 +3,61 @@
         <section style={s.section}>
             <div style={s.inner}>
 
-                {/* ── דבר המנהל ── */}
-                <div style={s.block}>
-                    <h2 style={s.blockTitle}>
-                        <span>👑</span> דבר המנהל
-                    </h2>
-                    <div style={s.layout}>
+                {/* ── דבר המייסדים ── */}
+                <h2 style={s.mainTitle}>
+                    <span>👑</span> דבר המייסדים
+                </h2>
+
+                <div style={s.foundersGrid}>
+
+                    {/* ── אביתר ── */}
+                    <div style={s.founderCard}>
+                        <div style={s.imageWrap}>
+                            <div style={{ ...s.imageFrame, borderColor: '#fbbf24' }}>
+                                <img
+                                    src="/avitar.png"
+                                    alt="אביתר — מייסד שותף"
+                                    style={{ ...s.profileImg, objectPosition: 'center top' }}
+                                />
+                            </div>
+                            <p style={s.personName}>אביתר</p>
+                            <p style={s.personRole}>מייסד שותף</p>
+                        </div>
+                        <div style={s.textContent}>
+                            <p style={s.text}>
+                                לפני כ-7 שנים, ביום פורים, חשבתי על כל הילדים המאושפזים שלא יחגגו כמו כולם —
+                                וזה ציער אותי מאוד. התארגנתי עם כמה חברים, קנינו ממתקים וצעצועים ויצאנו לשמח אותם.
+                            </p>
+                            <p style={s.text}>
+                                ראיתי כמה זה מנתק אותם מהכאב, כמה זה משמח את ההורים ואפילו את הצוות הרפואי —
+                                וקיבלתי על עצמי שכל עוד אוכל, אצא לשמח את הילדים, לא רק בפורים.
+                            </p>
+                            <div style={s.quote}>
+                                <span style={s.quoteIcon}>&ldquo;</span>
+                                <p style={s.quoteText}>
+                                    ברוך ה׳, זכיתי מאז לצאת כמעט כל שבוע — תודה על הזכות
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── מפריד אנכי (דסקטופ) ── */}
+                    <div style={s.verticalDivider} />
+
+                    {/* ── דוד ── */}
+                    <div style={s.founderCard}>
                         <div style={s.imageWrap}>
                             <div style={{ ...s.imageFrame, borderColor: '#93c5fd' }}>
                                 <img
                                     src="/david-shmukha.png"
-                                    alt="דוד שמוחה — מייסד חסדי המלך"
-                                    style={s.profileImg}
+                                    alt="דוד שמוחה — מייסד שותף"
+                                    style={{ ...s.profileImg, objectPosition: '62% top' }}
                                 />
                             </div>
                             <p style={s.personName}>דוד שמוחה</p>
-                            <p style={s.personRole}>מייסד ומנהל חסדי המלך</p>
+                            <p style={s.personRole}>מייסד שותף</p>
                         </div>
-
                         <div style={s.textContent}>
-                            <h3 style={{ ...s.bookTitle, color: '#93c5fd' }}>המשימה שלנו</h3>
                             <p style={s.text}>
                                 חסדי המלך נולד מתוך אמונה פשוטה: ילד חולה שנמצא בבית חולים
                                 לא צריך לחוש לבד. הוא צריך לדעת שיש אנשים שחושבים עליו,
@@ -33,10 +68,6 @@
                                 חילקנו ספרים, משחקים, מתוקים — ובעיקר חיוכים.
                                 כל ביקור הוא עולם ומלואו עבור הילד ועבור המשפחה.
                             </p>
-                            <p style={s.text}>
-                                השאיפה שלנו: להגיע לכל בית חולים בישראל,
-                                ולוודא שאף ילד לא ישכב במיטה ללא צעצוע ביד וחיוך על הפנים.
-                            </p>
                             <div style={{ ...s.quote, borderColor: 'rgba(147,197,253,0.25)', background: 'rgba(147,197,253,0.08)' }}>
                                 <span style={{ ...s.quoteIcon, color: '#93c5fd' }}>&ldquo;</span>
                                 <p style={{ ...s.quoteText, color: '#93c5fd' }}>
@@ -45,6 +76,7 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
 
                 {/* ── מפריד ── */}
@@ -58,7 +90,6 @@
                     <div style={s.layout}>
                         <div style={s.imageWrap}>
                             <div style={{ ...s.imageFrame, borderColor: '#fbbf24' }}>
-                                {/* תמונת גוני תתווסף כאן */}
                                 <div style={s.photoPlaceholder}>
                                     <span style={{ fontSize: '2.5rem' }}>📸</span>
                                     <span style={s.placeholderText}>תמונה בקרוב</span>
@@ -67,7 +98,6 @@
                             <p style={s.personName}>גוני שמוחה</p>
                             <p style={s.personRole}>סופר הספר &ldquo;שר הצבא&rdquo;</p>
                         </div>
-
                         <div style={s.textContent}>
                             <h3 style={s.bookTitle}>הספר &ldquo;שר הצבא&rdquo;</h3>
                             <p style={s.text}>
@@ -103,11 +133,37 @@ const s = {
         color: '#fff',
     },
     inner: {
-        maxWidth: '900px',
+        maxWidth: '1000px',
         margin: '0 auto',
+    },
+    mainTitle: {
+        fontSize: 'clamp(1.6rem, 4vw, 2.2rem)',
+        fontWeight: 800,
+        color: '#fbbf24',
+        textAlign: 'center',
+        marginBottom: '48px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '10px',
+    },
+    foundersGrid: {
+        display: 'grid',
+        gridTemplateColumns: '1fr auto 1fr',
+        gap: '32px',
+        alignItems: 'start',
+    },
+    verticalDivider: {
+        width: '1px',
+        background: 'rgba(255,255,255,0.1)',
+        alignSelf: 'stretch',
+        minHeight: '200px',
+    },
+    founderCard: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '0',
+        gap: '20px',
+        alignItems: 'center',
     },
     block: {
         padding: '20px 0',
@@ -126,7 +182,7 @@ const s = {
     divider: {
         border: 'none',
         borderTop: '1px solid rgba(255,255,255,0.1)',
-        margin: '40px 0',
+        margin: '52px 0 40px',
     },
     layout: {
         display: 'grid',
@@ -141,8 +197,8 @@ const s = {
         gap: '12px',
     },
     imageFrame: {
-        width: '160px',
-        height: '160px',
+        width: '150px',
+        height: '150px',
         borderRadius: '50%',
         border: '4px solid #fbbf24',
         overflow: 'hidden',
@@ -153,7 +209,6 @@ const s = {
         width: '100%',
         height: '100%',
         objectFit: 'cover',
-        objectPosition: '62% top',
     },
     photoPlaceholder: {
         width: '100%',
@@ -194,10 +249,11 @@ const s = {
         margin: 0,
     },
     text: {
-        fontSize: '1rem',
+        fontSize: '0.97rem',
         lineHeight: 1.8,
         opacity: 0.85,
         margin: 0,
+        textAlign: 'center',
     },
     quote: {
         background: 'rgba(251,191,36,0.1)',
@@ -218,7 +274,7 @@ const s = {
         fontFamily: 'serif',
     },
     quoteText: {
-        fontSize: '1.05rem',
+        fontSize: '1rem',
         fontWeight: 600,
         fontStyle: 'italic',
         color: '#fbbf24',
