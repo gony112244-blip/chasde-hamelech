@@ -153,7 +153,7 @@ const s = {
         width: '100%',
         height: '100%',
         objectFit: 'cover',
-        objectPosition: 'center top',
+        objectPosition: '62% top',
     },
     photoPlaceholder: {
         width: '100%',
