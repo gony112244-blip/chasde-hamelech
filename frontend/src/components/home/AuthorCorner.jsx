@@ -8,75 +8,71 @@
                     <span>👑</span> דבר המייסדים
                 </h2>
 
-                <div style={s.foundersGrid}>
-
-                    {/* ── אביתר ── */}
-                    <div style={s.founderCard}>
-                        <div style={s.imageWrap}>
-                            <div style={{ ...s.imageFrame, borderColor: '#fbbf24' }}>
-                                <img
-                                    src="/avitar.png"
-                                    alt="אביתר — מייסד שותף"
-                                    style={{ ...s.profileImg, objectPosition: 'center top' }}
-                                />
-                            </div>
-                            <p style={s.personName}>אביתר</p>
-                            <p style={s.personRole}>מייסד שותף</p>
+                {/* ── דוד — ראשון ── */}
+                <div style={s.founderRow}>
+                    <div style={s.imageWrap}>
+                        <div style={{ ...s.imageFrame, borderColor: '#93c5fd' }}>
+                            <img
+                                src="/david-shmukha.png"
+                                alt="דוד שמוחה — מייסד שותף"
+                                style={{ ...s.profileImg, objectPosition: '62% top' }}
+                            />
                         </div>
-                        <div style={s.textContent}>
-                            <p style={s.text}>
-                                לפני כ-7 שנים, ביום פורים, חשבתי על כל הילדים המאושפזים שלא יחגגו כמו כולם —
-                                וזה ציער אותי מאוד. התארגנתי עם כמה חברים, קנינו ממתקים וצעצועים ויצאנו לשמח אותם.
+                        <p style={s.personName}>דוד שמוחה</p>
+                        <p style={s.personRole}>מייסד שותף</p>
+                    </div>
+                    <div style={s.textContent}>
+                        <p style={s.text}>
+                            חסדי המלך נולד מתוך אמונה פשוטה: ילד חולה שנמצא בבית חולים
+                            לא צריך לחוש לבד. הוא צריך לדעת שיש אנשים שחושבים עליו,
+                            אוהבים אותו — גם אם מעולם לא פגשו אותו.
+                        </p>
+                        <p style={s.text}>
+                            מאז שהתחלנו, ביקרנו במאות ילדים בבתי חולים ברחבי הארץ.
+                            חילקנו ספרים, משחקים, מתוקים — ובעיקר חיוכים.
+                            כל ביקור הוא עולם ומלואו עבור הילד ועבור המשפחה.
+                        </p>
+                        <div style={{ ...s.quote, borderColor: 'rgba(147,197,253,0.25)', background: 'rgba(147,197,253,0.08)' }}>
+                            <span style={{ ...s.quoteIcon, color: '#93c5fd' }}>&ldquo;</span>
+                            <p style={{ ...s.quoteText, color: '#93c5fd' }}>
+                                ילד אחד שמחייך — שווה הכל
                             </p>
-                            <p style={s.text}>
-                                ראיתי כמה זה מנתק אותם מהכאב, כמה זה משמח את ההורים ואפילו את הצוות הרפואי —
-                                וקיבלתי על עצמי שכל עוד אוכל, אצא לשמח את הילדים, לא רק בפורים.
-                            </p>
-                            <div style={s.quote}>
-                                <span style={s.quoteIcon}>&ldquo;</span>
-                                <p style={s.quoteText}>
-                                    ברוך ה׳, זכיתי מאז לצאת כמעט כל שבוע — תודה על הזכות
-                                </p>
-                            </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* ── מפריד אנכי (דסקטופ) ── */}
-                    <div style={s.verticalDivider} />
+                {/* ── מפריד ── */}
+                <div style={{ ...s.divider, margin: '40px 0' }} />
 
-                    {/* ── דוד ── */}
-                    <div style={s.founderCard}>
-                        <div style={s.imageWrap}>
-                            <div style={{ ...s.imageFrame, borderColor: '#93c5fd' }}>
-                                <img
-                                    src="/david-shmukha.png"
-                                    alt="דוד שמוחה — מייסד שותף"
-                                    style={{ ...s.profileImg, objectPosition: '62% top' }}
-                                />
-                            </div>
-                            <p style={s.personName}>דוד שמוחה</p>
-                            <p style={s.personRole}>מייסד שותף</p>
+                {/* ── אביתר — שני ── */}
+                <div style={s.founderRow}>
+                    <div style={s.imageWrap}>
+                        <div style={{ ...s.imageFrame, borderColor: '#fbbf24' }}>
+                            <img
+                                src="/avitar.png"
+                                alt="אביתר — מייסד שותף"
+                                style={{ ...s.profileImg, objectPosition: 'center top' }}
+                            />
                         </div>
-                        <div style={s.textContent}>
-                            <p style={s.text}>
-                                חסדי המלך נולד מתוך אמונה פשוטה: ילד חולה שנמצא בבית חולים
-                                לא צריך לחוש לבד. הוא צריך לדעת שיש אנשים שחושבים עליו,
-                                אוהבים אותו — גם אם מעולם לא פגשו אותו.
+                        <p style={s.personName}>אביתר</p>
+                        <p style={s.personRole}>מייסד שותף</p>
+                    </div>
+                    <div style={s.textContent}>
+                        <p style={s.text}>
+                            לפני כ-7 שנים, ביום פורים, חשבתי על כל הילדים המאושפזים שלא יחגגו כמו כולם —
+                            וזה ציער אותי מאוד. התארגנתי עם כמה חברים, קנינו ממתקים וצעצועים ויצאנו לשמח אותם.
+                        </p>
+                        <p style={s.text}>
+                            ראיתי כמה זה מנתק אותם מהכאב, כמה זה משמח את ההורים ואפילו את הצוות הרפואי —
+                            וקיבלתי על עצמי שכל עוד אוכל, אצא לשמח את הילדים, לא רק בפורים.
+                        </p>
+                        <div style={s.quote}>
+                            <span style={s.quoteIcon}>&ldquo;</span>
+                            <p style={s.quoteText}>
+                                ברוך ה׳, זכיתי מאז לצאת כמעט כל שבוע — תודה על הזכות
                             </p>
-                            <p style={s.text}>
-                                מאז שהתחלנו, ביקרנו במאות ילדים בבתי חולים ברחבי הארץ.
-                                חילקנו ספרים, משחקים, מתוקים — ובעיקר חיוכים.
-                                כל ביקור הוא עולם ומלואו עבור הילד ועבור המשפחה.
-                            </p>
-                            <div style={{ ...s.quote, borderColor: 'rgba(147,197,253,0.25)', background: 'rgba(147,197,253,0.08)' }}>
-                                <span style={{ ...s.quoteIcon, color: '#93c5fd' }}>&ldquo;</span>
-                                <p style={{ ...s.quoteText, color: '#93c5fd' }}>
-                                    ילד אחד שמחייך — שווה הכל
-                                </p>
-                            </div>
                         </div>
                     </div>
-
                 </div>
 
                 {/* ── מפריד ── */}
@@ -147,23 +143,13 @@ const s = {
         justifyContent: 'center',
         gap: '10px',
     },
-    foundersGrid: {
+    founderRow: {
         display: 'grid',
-        gridTemplateColumns: '1fr auto 1fr',
-        gap: '32px',
-        alignItems: 'start',
-    },
-    verticalDivider: {
-        width: '1px',
-        background: 'rgba(255,255,255,0.1)',
-        alignSelf: 'stretch',
-        minHeight: '200px',
-    },
-    founderCard: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
+        gridTemplateColumns: 'auto 1fr',
+        gap: '48px',
         alignItems: 'center',
+        maxWidth: '860px',
+        margin: '0 auto',
     },
     block: {
         padding: '20px 0',
