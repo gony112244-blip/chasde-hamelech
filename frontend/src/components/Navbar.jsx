@@ -24,11 +24,12 @@ export default function Navbar() {
     const tapCount = useRef(0);
     const tapTimer = useRef(null);
 
-    function handleLogoTap() {
+    function handleLogoTap(e) {
         tapCount.current += 1;
         clearTimeout(tapTimer.current);
         tapTimer.current = setTimeout(() => { tapCount.current = 0; }, 2000);
         if (tapCount.current >= 5) {
+            e.preventDefault();
             tapCount.current = 0;
             navigate('/admin');
         }
