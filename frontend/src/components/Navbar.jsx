@@ -1,5 +1,5 @@
-﻿import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+﻿import { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Logo from './Logo';
 
 const MOBILE_BREAKPOINT = 768;
@@ -20,6 +20,19 @@ export default function Navbar() {
         typeof window !== 'undefined' ? window.innerWidth <= MOBILE_BREAKPOINT : false
     );
     const location = useLocation();
+    const navigate = useNavigate();
+    const tapCount = useRef(0);
+    const tapTimer = useRef(null);
+
+    function handleLogoTap() {
+        tapCount.current += 1;
+        clearTimeout(tapTimer.current);
+        tapTimer.current = setTimeout(() => { tapCount.current = 0; }, 2000);
+        if (tapCount.current >= 5) {
+            tapCount.current = 0;
+            navigate('/admin');
+        }
+    }
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 10);
@@ -62,7 +75,7 @@ export default function Navbar() {
             }} role="navigation" aria-label="ניווט ראשי">
                 <div style={s.inner}>
                     {/* לוגו */}
-                    <Link to="/" style={s.logoLink} aria-label="חסדי המלך — דף הבית">
+                    <Link to="/" style={s.logoLink} aria-label="חסדי המלך — דף הבית" onClick={handleLogoTap}>
                         <Logo size={36} showText={true} />
                     </Link>
 

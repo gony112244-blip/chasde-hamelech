@@ -1,4 +1,40 @@
-﻿export default function AuthorCorner() {
+﻿import { useState, useEffect } from 'react';
+
+function useIsMobile() {
+    const [isMobile, setIsMobile] = useState(
+        typeof window !== 'undefined' ? window.innerWidth <= 640 : false
+    );
+    useEffect(() => {
+        const mq = window.matchMedia('(max-width: 640px)');
+        const handler = (e) => setIsMobile(e.matches);
+        mq.addEventListener('change', handler);
+        setIsMobile(mq.matches);
+        return () => mq.removeEventListener('change', handler);
+    }, []);
+    return isMobile;
+}
+
+function FounderBlock({ imgSrc, imgAlt, imgPosition, borderColor, name, role, children, quoteColor }) {
+    const isMobile = useIsMobile();
+    return (
+        <div style={{ ...s.founderRow, flexDirection: isMobile ? 'column' : 'row' }}>
+            <div style={s.imageWrap}>
+                <div style={{ ...s.imageFrame, borderColor }}>
+                    <img src={imgSrc} alt={imgAlt} style={{ ...s.profileImg, objectPosition: imgPosition }} />
+                </div>
+                <p style={s.personName}>{name}</p>
+                <p style={s.personRole}>{role}</p>
+            </div>
+            <div style={s.textContent}>
+                {children}
+            </div>
+        </div>
+    );
+}
+
+export default function AuthorCorner() {
+    const isMobile = useIsMobile();
+
     return (
         <section style={s.section}>
             <div style={s.inner}>
@@ -9,71 +45,54 @@
                 </h2>
 
                 {/* ── דוד — ראשון ── */}
-                <div style={s.founderRow}>
-                    <div style={s.imageWrap}>
-                        <div style={{ ...s.imageFrame, borderColor: '#93c5fd' }}>
-                            <img
-                                src="/david-shmukha.png"
-                                alt="דוד שמוחה — מייסד שותף"
-                                style={{ ...s.profileImg, objectPosition: '62% top' }}
-                            />
-                        </div>
-                        <p style={s.personName}>דוד שמוחה</p>
-                        <p style={s.personRole}>מייסד שותף</p>
+                <FounderBlock
+                    imgSrc="/david-shmukha.png"
+                    imgAlt="דוד שמוחה — מייסד שותף"
+                    imgPosition="62% top"
+                    borderColor="#93c5fd"
+                    name="דוד שמוחה"
+                    role="מייסד שותף"
+                >
+                    <p style={s.text}>
+                        חסדי המלך נולד מתוך אמונה פשוטה: ילד חולה שנמצא בבית חולים
+                        לא צריך לחוש לבד. הוא צריך לדעת שיש אנשים שחושבים עליו,
+                        אוהבים אותו — גם אם מעולם לא פגשו אותו.
+                    </p>
+                    <p style={s.text}>
+                        מאז שהתחלנו, ביקרנו במאות ילדים בבתי חולים ברחבי הארץ.
+                        חילקנו ספרים, משחקים, מתוקים — ובעיקר חיוכים.
+                        כל ביקור הוא עולם ומלואו עבור הילד ועבור המשפחה.
+                    </p>
+                    <div style={{ ...s.quote, borderColor: 'rgba(147,197,253,0.25)', background: 'rgba(147,197,253,0.08)' }}>
+                        <span style={{ ...s.quoteIcon, color: '#93c5fd' }}>&ldquo;</span>
+                        <p style={{ ...s.quoteText, color: '#93c5fd' }}>ילד אחד שמחייך — שווה הכל</p>
                     </div>
-                    <div style={s.textContent}>
-                        <p style={s.text}>
-                            חסדי המלך נולד מתוך אמונה פשוטה: ילד חולה שנמצא בבית חולים
-                            לא צריך לחוש לבד. הוא צריך לדעת שיש אנשים שחושבים עליו,
-                            אוהבים אותו — גם אם מעולם לא פגשו אותו.
-                        </p>
-                        <p style={s.text}>
-                            מאז שהתחלנו, ביקרנו במאות ילדים בבתי חולים ברחבי הארץ.
-                            חילקנו ספרים, משחקים, מתוקים — ובעיקר חיוכים.
-                            כל ביקור הוא עולם ומלואו עבור הילד ועבור המשפחה.
-                        </p>
-                        <div style={{ ...s.quote, borderColor: 'rgba(147,197,253,0.25)', background: 'rgba(147,197,253,0.08)' }}>
-                            <span style={{ ...s.quoteIcon, color: '#93c5fd' }}>&ldquo;</span>
-                            <p style={{ ...s.quoteText, color: '#93c5fd' }}>
-                                ילד אחד שמחייך — שווה הכל
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                </FounderBlock>
 
-                {/* ── מפריד ── */}
                 <div style={{ ...s.divider, margin: '40px 0' }} />
 
                 {/* ── אביתר — שני ── */}
-                <div style={s.founderRow}>
-                    <div style={s.imageWrap}>
-                        <div style={{ ...s.imageFrame, borderColor: '#fbbf24' }}>
-                            <img
-                                src="/avitar.png"
-                                alt="אביתר — מייסד שותף"
-                                style={{ ...s.profileImg, objectPosition: 'center top' }}
-                            />
-                        </div>
-                        <p style={s.personName}>אביתר</p>
-                        <p style={s.personRole}>מייסד שותף</p>
+                <FounderBlock
+                    imgSrc="/avitar.png"
+                    imgAlt="אביתר — מייסד שותף"
+                    imgPosition="center top"
+                    borderColor="#fbbf24"
+                    name="אביתר"
+                    role="מייסד שותף"
+                >
+                    <p style={s.text}>
+                        לפני כ-7 שנים, ביום פורים, חשבתי על כל הילדים המאושפזים שלא יחגגו כמו כולם —
+                        וזה ציער אותי מאוד. התארגנתי עם כמה חברים, קנינו ממתקים וצעצועים ויצאנו לשמח אותם.
+                    </p>
+                    <p style={s.text}>
+                        ראיתי כמה זה מנתק אותם מהכאב, כמה זה משמח את ההורים ואפילו את הצוות הרפואי —
+                        וקיבלתי על עצמי שכל עוד אוכל, אצא לשמח את הילדים, לא רק בפורים.
+                    </p>
+                    <div style={s.quote}>
+                        <span style={s.quoteIcon}>&ldquo;</span>
+                        <p style={s.quoteText}>ברוך ה׳, זכיתי מאז לצאת כמעט כל שבוע — תודה על הזכות</p>
                     </div>
-                    <div style={s.textContent}>
-                        <p style={s.text}>
-                            לפני כ-7 שנים, ביום פורים, חשבתי על כל הילדים המאושפזים שלא יחגגו כמו כולם —
-                            וזה ציער אותי מאוד. התארגנתי עם כמה חברים, קנינו ממתקים וצעצועים ויצאנו לשמח אותם.
-                        </p>
-                        <p style={s.text}>
-                            ראיתי כמה זה מנתק אותם מהכאב, כמה זה משמח את ההורים ואפילו את הצוות הרפואי —
-                            וקיבלתי על עצמי שכל עוד אוכל, אצא לשמח את הילדים, לא רק בפורים.
-                        </p>
-                        <div style={s.quote}>
-                            <span style={s.quoteIcon}>&ldquo;</span>
-                            <p style={s.quoteText}>
-                                ברוך ה׳, זכיתי מאז לצאת כמעט כל שבוע — תודה על הזכות
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                </FounderBlock>
 
                 {/* ── מפריד ── */}
                 <div style={s.divider} />
@@ -83,7 +102,7 @@
                     <h2 style={s.blockTitle}>
                         <span>✍️</span> פינת הסופר
                     </h2>
-                    <div style={s.layout}>
+                    <div style={{ ...s.founderRow, flexDirection: isMobile ? 'column' : 'row' }}>
                         <div style={s.imageWrap}>
                             <div style={{ ...s.imageFrame, borderColor: '#fbbf24' }}>
                                 <div style={s.photoPlaceholder}>
@@ -107,9 +126,7 @@
                             </p>
                             <div style={s.quote}>
                                 <span style={s.quoteIcon}>&ldquo;</span>
-                                <p style={s.quoteText}>
-                                    כשילד חולה מחייך — זה הנצחון הכי גדול שיש
-                                </p>
+                                <p style={s.quoteText}>כשילד חולה מחייך — זה הנצחון הכי גדול שיש</p>
                             </div>
                         </div>
                     </div>
@@ -128,10 +145,7 @@ const s = {
         padding: '80px 20px',
         color: '#fff',
     },
-    inner: {
-        maxWidth: '1000px',
-        margin: '0 auto',
-    },
+    inner: { maxWidth: '1000px', margin: '0 auto' },
     mainTitle: {
         fontSize: 'clamp(1.6rem, 4vw, 2.2rem)',
         fontWeight: 800,
@@ -144,16 +158,13 @@ const s = {
         gap: '10px',
     },
     founderRow: {
-        display: 'grid',
-        gridTemplateColumns: 'auto 1fr',
-        gap: '48px',
+        display: 'flex',
+        gap: '36px',
         alignItems: 'center',
         maxWidth: '860px',
         margin: '0 auto',
     },
-    block: {
-        padding: '20px 0',
-    },
+    block: { padding: '20px 0' },
     blockTitle: {
         fontSize: 'clamp(1.4rem, 3.5vw, 2rem)',
         fontWeight: 800,
@@ -170,17 +181,12 @@ const s = {
         borderTop: '1px solid rgba(255,255,255,0.1)',
         margin: '52px 0 40px',
     },
-    layout: {
-        display: 'grid',
-        gridTemplateColumns: 'auto 1fr',
-        gap: '48px',
-        alignItems: 'center',
-    },
     imageWrap: {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         gap: '12px',
+        flexShrink: 0,
     },
     imageFrame: {
         width: '150px',
@@ -189,13 +195,8 @@ const s = {
         border: '4px solid #fbbf24',
         overflow: 'hidden',
         boxShadow: '0 0 0 6px rgba(251,191,36,0.12)',
-        flexShrink: 0,
     },
-    profileImg: {
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-    },
+    profileImg: { width: '100%', height: '100%', objectFit: 'cover' },
     photoPlaceholder: {
         width: '100%',
         height: '100%',
@@ -206,41 +207,12 @@ const s = {
         justifyContent: 'center',
         gap: '6px',
     },
-    placeholderText: {
-        fontSize: '0.75rem',
-        color: 'rgba(255,255,255,0.4)',
-    },
-    personName: {
-        fontSize: '1.05rem',
-        fontWeight: 700,
-        color: '#fbbf24',
-        margin: 0,
-        textAlign: 'center',
-    },
-    personRole: {
-        fontSize: '0.82rem',
-        color: 'rgba(255,255,255,0.5)',
-        margin: 0,
-        textAlign: 'center',
-    },
-    textContent: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '14px',
-    },
-    bookTitle: {
-        fontSize: '1.3rem',
-        fontWeight: 700,
-        color: '#fbbf24',
-        margin: 0,
-    },
-    text: {
-        fontSize: '0.97rem',
-        lineHeight: 1.8,
-        opacity: 0.85,
-        margin: 0,
-        textAlign: 'center',
-    },
+    placeholderText: { fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' },
+    personName: { fontSize: '1.05rem', fontWeight: 700, color: '#fbbf24', margin: 0, textAlign: 'center' },
+    personRole: { fontSize: '0.82rem', color: 'rgba(255,255,255,0.5)', margin: 0, textAlign: 'center' },
+    textContent: { display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 },
+    bookTitle: { fontSize: '1.3rem', fontWeight: 700, color: '#fbbf24', margin: 0 },
+    text: { fontSize: '0.97rem', lineHeight: 1.8, opacity: 0.85, margin: 0 },
     quote: {
         background: 'rgba(251,191,36,0.1)',
         border: '1px solid rgba(251,191,36,0.2)',
@@ -259,11 +231,5 @@ const s = {
         lineHeight: 1,
         fontFamily: 'serif',
     },
-    quoteText: {
-        fontSize: '1rem',
-        fontWeight: 600,
-        fontStyle: 'italic',
-        color: '#fbbf24',
-        margin: 0,
-    },
+    quoteText: { fontSize: '1rem', fontWeight: 600, fontStyle: 'italic', color: '#fbbf24', margin: 0 },
 };
