@@ -1,0 +1,78 @@
+-- ===================================
+-- חסדי המלך — Schema PostgreSQL
+-- ===================================
+
+-- פניות
+CREATE TABLE IF NOT EXISTS contacts (
+    id          SERIAL PRIMARY KEY,
+    name        TEXT NOT NULL,
+    email       TEXT DEFAULT '',
+    phone       TEXT DEFAULT '',
+    message     TEXT NOT NULL,
+    replied     BOOLEAN DEFAULT FALSE,
+    reply_text  TEXT DEFAULT '',
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- מתנדבים
+CREATE TABLE IF NOT EXISTS volunteers (
+    id          SERIAL PRIMARY KEY,
+    name        TEXT NOT NULL,
+    phone       TEXT NOT NULL,
+    email       TEXT DEFAULT '',
+    city        TEXT NOT NULL,
+    has_car     BOOLEAN DEFAULT FALSE,
+    notes       TEXT DEFAULT '',
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- קיר תודות
+CREATE TABLE IF NOT EXISTS thank_you_notes (
+    id           SERIAL PRIMARY KEY,
+    display_name TEXT DEFAULT 'אנונימי',
+    message      TEXT NOT NULL,
+    status       TEXT DEFAULT 'pending',  -- pending | approved | rejected
+    created_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- סטטיסטיקות ידניות
+CREATE TABLE IF NOT EXISTS stats (
+    key   TEXT PRIMARY KEY,
+    value INTEGER DEFAULT 0
+);
+
+INSERT INTO stats (key, value) VALUES
+    ('children_count',  350),
+    ('hospitals_count', 5),
+    ('books_count',     200),
+    ('games_count',     500)
+ON CONFLICT (key) DO NOTHING;
+
+-- מדיה (תמונות + סרטונים)
+CREATE TABLE IF NOT EXISTS media (
+    id            SERIAL PRIMARY KEY,
+    filename      TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    title         TEXT DEFAULT '',
+    description   TEXT DEFAULT '',
+    category      TEXT DEFAULT 'general',  -- books | toys | food | preparation | videos | general
+    type          TEXT DEFAULT 'photo',    -- photo | video
+    created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ביקורים בדפים
+CREATE TABLE IF NOT EXISTS page_visits (
+    id         SERIAL PRIMARY KEY,
+    path       TEXT NOT NULL,
+    visited_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- תרומות
+CREATE TABLE IF NOT EXISTS donations (
+    id          SERIAL PRIMARY KEY,
+    donor_name  TEXT DEFAULT 'אנונימי',
+    amount      NUMERIC(10,2) NOT NULL,
+    method      TEXT DEFAULT 'bit',   -- bit | paybox | cash | bank | other
+    note        TEXT DEFAULT '',
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);

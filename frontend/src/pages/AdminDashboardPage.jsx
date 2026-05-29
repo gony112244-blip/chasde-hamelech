@@ -1,12 +1,13 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API_BASE from '../config';
 
 const TABS = [
-    { id: 'contacts',   label: 'פניות',       icon: '✉️' },
-    { id: 'volunteers', label: 'מתנדבים',     icon: '🙋' },
-    { id: 'thankyou',   label: 'הודעות תודה', icon: '💌' },
-    { id: 'stats',      label: 'סטטיסטיקות',  icon: '📊' },
+    { id: 'contacts',   label: 'פניות',        icon: '✉️' },
+    { id: 'volunteers', label: 'מתנדבים',      icon: '🙋' },
+    { id: 'thankyou',   label: 'הודעות תודה',  icon: '💌' },
+    { id: 'stats',      label: 'סטטיסטיקות',   icon: '📊' },
+    { id: 'media',      label: 'מדיה',          icon: '🖼️' },
 ];
 
 function useAdminFetch(path, token) {
@@ -32,17 +33,48 @@ function useAdminFetch(path, token) {
     return { data, loading, reload: load };
 }
 
-// ─── Tab: פניות ───────────────────────────────────────────
+// ─── Tab: פניות ────────────────────────────────────────────
 function ContactsTab({ token }) {
-    const { data, loading } = useAdminFetch('/api/admin/contacts', token);
+    const { data, loading, reload } = useAdminFetch('/api/admin/contacts', token);
+    const [replyOpen, setReplyOpen] = useState(null);
+    const [replyText, setReplyText] = useState('');
+    const [sending, setSending] = useState(false);
+    const [msg, setMsg] = useState('');
+
+    async function sendReply(id) {
+        if (!replyText.trim()) return;
+        setSending(true);
+        setMsg('');
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/contacts/${id}/reply`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ reply_text: replyText }),
+            });
+            const json = await res.json();
+            if (res.ok) {
+                setMsg(json.emailSent ? '✅ תשובה נשלחה במייל!' : '✅ נשמר (אין כתובת מייל)');
+                setReplyOpen(null);
+                setReplyText('');
+                reload();
+            } else {
+                setMsg('❌ ' + (json.error || 'שגיאה'));
+            }
+        } catch {
+            setMsg('❌ שגיאת רשת');
+        } finally {
+            setSending(false);
+        }
+    }
 
     if (loading) return <Spinner />;
     if (!data?.length) return <Empty text="אין פניות עדיין" />;
 
     return (
         <div style={s.list}>
+            {msg && <div style={s.flashMsg}>{msg}</div>}
             {data.map(c => (
-                <div key={c.id} style={s.card}>
+                <div key={c.id} style={{ ...s.card, borderRight: c.replied ? '4px solid #10b981' : '4px solid #dbeafe' }}>
                     <div style={s.cardTop}>
                         <strong style={s.name}>{c.name}</strong>
                         <span style={s.date}>{fmt(c.created_at)}</span>
@@ -50,15 +82,44 @@ function ContactsTab({ token }) {
                     <div style={s.meta}>
                         {c.phone && <span>📞 {c.phone}</span>}
                         {c.email && <span>📧 {c.email}</span>}
+                        {c.replied && <span style={s.repliedBadge}>✅ הושב</span>}
                     </div>
                     <p style={s.msg}>{c.message}</p>
+                    {c.reply_text && (
+                        <div style={s.replyPreview}>
+                            <strong>תשובתי:</strong> {c.reply_text}
+                        </div>
+                    )}
+                    {!c.replied && (
+                        <div style={{ marginTop: '12px' }}>
+                            {replyOpen === c.id ? (
+                                <div style={s.replyBox}>
+                                    <textarea
+                                        style={s.replyTextarea}
+                                        placeholder="כתוב תשובה..."
+                                        value={replyText}
+                                        onChange={e => setReplyText(e.target.value)}
+                                        rows={4}
+                                    />
+                                    <div style={s.actions}>
+                                        <button style={s.approveBtn} disabled={sending} onClick={() => sendReply(c.id)}>
+                                            {sending ? 'שולח...' : c.email ? '📨 שלח במייל' : '💾 שמור תשובה'}
+                                        </button>
+                                        <button style={s.rejectBtn} onClick={() => { setReplyOpen(null); setReplyText(''); }}>ביטול</button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <button style={s.replyBtn} onClick={() => setReplyOpen(c.id)}>✏️ השב</button>
+                            )}
+                        </div>
+                    )}
                 </div>
             ))}
         </div>
     );
 }
 
-// ─── Tab: מתנדבים ─────────────────────────────────────────
+// ─── Tab: מתנדבים ──────────────────────────────────────────
 function VolunteersTab({ token }) {
     const { data, loading } = useAdminFetch('/api/admin/volunteers', token);
 
@@ -79,22 +140,22 @@ function VolunteersTab({ token }) {
                         {v.has_car && <span style={s.badge}>🚗 יש רכב</span>}
                         {v.email && <span>📧 {v.email}</span>}
                     </div>
-                    {v.message && <p style={s.msg}>{v.message}</p>}
+                    {v.notes && <p style={s.msg}>{v.notes}</p>}
                 </div>
             ))}
         </div>
     );
 }
 
-// ─── Tab: הודעות תודה ─────────────────────────────────────
+// ─── Tab: הודעות תודה ──────────────────────────────────────
 function ThankYouTab({ token }) {
     const { data, loading, reload } = useAdminFetch('/api/admin/thank-you', token);
 
-    async function approve(id, approved) {
+    async function setStatus(id, status) {
         await fetch(`${API_BASE}/api/admin/thank-you/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ approved }),
+            body: JSON.stringify({ status }),
         });
         reload();
     }
@@ -102,8 +163,9 @@ function ThankYouTab({ token }) {
     if (loading) return <Spinner />;
     if (!data?.length) return <Empty text="אין הודעות עדיין" />;
 
-    const pending = data.filter(n => !n.approved);
-    const approved = data.filter(n => n.approved);
+    const pending  = data.filter(n => n.status === 'pending');
+    const approved = data.filter(n => n.status === 'approved');
+    const rejected = data.filter(n => n.status === 'rejected');
 
     return (
         <div>
@@ -119,8 +181,8 @@ function ThankYouTab({ token }) {
                                 </div>
                                 <p style={s.msg}>{n.message}</p>
                                 <div style={s.actions}>
-                                    <button style={s.approveBtn} onClick={() => approve(n.id, true)}>✅ אשר פרסום</button>
-                                    <button style={s.rejectBtn} onClick={() => approve(n.id, false)}>🗑️ דחה</button>
+                                    <button style={s.approveBtn} onClick={() => setStatus(n.id, 'approved')}>✅ אשר פרסום</button>
+                                    <button style={s.rejectBtn} onClick={() => setStatus(n.id, 'rejected')}>🗑️ דחה</button>
                                 </div>
                             </div>
                         ))}
@@ -132,13 +194,30 @@ function ThankYouTab({ token }) {
                     <h3 style={{ ...s.groupTitle, marginTop: '24px' }}>✅ מאושרות ({approved.length})</h3>
                     <div style={s.list}>
                         {approved.map(n => (
-                            <div key={n.id} style={{ ...s.card, borderRight: '4px solid #10b981', opacity: 0.8 }}>
+                            <div key={n.id} style={{ ...s.card, borderRight: '4px solid #10b981' }}>
                                 <div style={s.cardTop}>
                                     <strong style={s.name}>{n.display_name}</strong>
                                     <span style={s.date}>{fmt(n.created_at)}</span>
                                 </div>
                                 <p style={s.msg}>{n.message}</p>
-                                <button style={s.rejectBtn} onClick={() => approve(n.id, false)}>↩️ בטל אישור</button>
+                                <button style={s.rejectBtn} onClick={() => setStatus(n.id, 'rejected')}>↩️ בטל אישור</button>
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
+            {rejected.length > 0 && (
+                <>
+                    <h3 style={{ ...s.groupTitle, marginTop: '24px', color: '#ef4444' }}>❌ נדחו ({rejected.length})</h3>
+                    <div style={s.list}>
+                        {rejected.map(n => (
+                            <div key={n.id} style={{ ...s.card, borderRight: '4px solid #fca5a5', opacity: 0.7 }}>
+                                <div style={s.cardTop}>
+                                    <strong style={s.name}>{n.display_name}</strong>
+                                    <span style={s.date}>{fmt(n.created_at)}</span>
+                                </div>
+                                <p style={s.msg}>{n.message}</p>
+                                <button style={s.approveBtn} onClick={() => setStatus(n.id, 'approved')}>↩️ שחזר</button>
                             </div>
                         ))}
                     </div>
@@ -148,18 +227,24 @@ function ThankYouTab({ token }) {
     );
 }
 
-// ─── Tab: סטטיסטיקות ──────────────────────────────────────
+// ─── Tab: סטטיסטיקות ───────────────────────────────────────
 function StatsTab({ token }) {
-    const { data, loading, reload } = useAdminFetch('/api/stats', token);
+    const { data: statsData, loading: statsLoading, reload: reloadStats } = useAdminFetch('/api/stats', token);
+    const { data: visitsData, loading: visitsLoading } = useAdminFetch('/api/admin/stats/visits', token);
+    const { data: donationsData, loading: donationsLoading, reload: reloadDonations } = useAdminFetch('/api/admin/donations', token);
+
     const [form, setForm] = useState(null);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [donForm, setDonForm] = useState({ donor_name: '', amount: '', method: 'bit', note: '' });
+    const [addingDon, setAddingDon] = useState(false);
+    const [donMsg, setDonMsg] = useState('');
 
     useEffect(() => {
-        if (data && !form) setForm({ ...data });
-    }, [data, form]);
+        if (statsData && !form) setForm({ ...statsData });
+    }, [statsData, form]);
 
-    async function save(e) {
+    async function saveStats(e) {
         e.preventDefault();
         setSaving(true);
         try {
@@ -170,46 +255,318 @@ function StatsTab({ token }) {
             });
             setSaved(true);
             setTimeout(() => setSaved(false), 2500);
-            reload();
+            reloadStats();
         } finally {
             setSaving(false);
         }
     }
 
-    if (loading || !form) return <Spinner />;
+    async function addDonation(e) {
+        e.preventDefault();
+        if (!donForm.amount) return;
+        setAddingDon(true);
+        setDonMsg('');
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/donations`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(donForm),
+            });
+            if (res.ok) {
+                setDonMsg('✅ תרומה נוספה');
+                setDonForm({ donor_name: '', amount: '', method: 'bit', note: '' });
+                reloadDonations();
+                setTimeout(() => setDonMsg(''), 2500);
+            }
+        } finally {
+            setAddingDon(false);
+        }
+    }
 
-    const fields = [
-        { key: 'children_count',   label: 'ילדים שקיבלו מתנות', icon: '👦' },
-        { key: 'hospitals_count',  label: 'בתי חולים',           icon: '🏥' },
-        { key: 'books_count',      label: 'ספרים שחולקו',        icon: '📚' },
-        { key: 'games_count',      label: 'משחקים שנמסרו',       icon: '🧸' },
+    if (statsLoading || !form) return <Spinner />;
+
+    const statFields = [
+        { key: 'children_count',  label: 'ילדים שקיבלו מתנות', icon: '👦' },
+        { key: 'hospitals_count', label: 'בתי חולים',            icon: '🏥' },
+        { key: 'books_count',     label: 'ספרים שחולקו',         icon: '📚' },
+        { key: 'games_count',     label: 'משחקים שנמסרו',        icon: '🧸' },
     ];
 
+    const methodLabel = { bit: 'Bit', paybox: 'Paybox', cash: 'מזומן', bank: 'העברה', other: 'אחר' };
+
     return (
-        <form onSubmit={save} style={s.statsForm}>
-            <p style={s.statsNote}>
-                המספרים האלה מוצגים בדף הבית תחת "מדד החיוכים". עדכן אותם לאחר כל חלוקה.
-            </p>
-            {fields.map(f => (
-                <div key={f.key} style={s.statRow}>
-                    <label style={s.statLabel}>{f.icon} {f.label}</label>
-                    <input
-                        type="number"
-                        min="0"
-                        value={form[f.key] ?? 0}
-                        onChange={e => setForm(p => ({ ...p, [f.key]: parseInt(e.target.value) || 0 }))}
-                        style={s.statInput}
-                    />
-                </div>
-            ))}
-            <button type="submit" style={s.saveBtn} disabled={saving}>
-                {saving ? 'שומר...' : saved ? '✅ נשמר!' : 'שמור שינויים'}
-            </button>
-        </form>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '36px' }}>
+
+            {/* מדד החיוכים */}
+            <section>
+                <h3 style={s.sectionTitle}>🌟 מדד החיוכים (דף הבית)</h3>
+                <form onSubmit={saveStats} style={s.statsForm}>
+                    {statFields.map(f => (
+                        <div key={f.key} style={s.statRow}>
+                            <label style={s.statLabel}>{f.icon} {f.label}</label>
+                            <input
+                                type="number" min="0"
+                                value={form[f.key] ?? 0}
+                                onChange={e => setForm(p => ({ ...p, [f.key]: parseInt(e.target.value) || 0 }))}
+                                style={s.statInput}
+                            />
+                        </div>
+                    ))}
+                    <button type="submit" style={s.saveBtn} disabled={saving}>
+                        {saving ? 'שומר...' : saved ? '✅ נשמר!' : 'שמור שינויים'}
+                    </button>
+                </form>
+            </section>
+
+            {/* ביקורים */}
+            <section>
+                <h3 style={s.sectionTitle}>👁️ ביקורים באתר</h3>
+                {visitsLoading ? <Spinner /> : (
+                    <div style={s.visitsWrap}>
+                        <div style={s.visitsStat}>
+                            <span style={s.visitsBig}>{visitsData?.total?.toLocaleString() || 0}</span>
+                            <span style={s.visitsLabel}>סך ביקורים</span>
+                        </div>
+                        {visitsData?.daily?.length > 0 && (
+                            <div style={s.dailyList}>
+                                <p style={{ color: '#6478a8', fontSize: '0.85rem', margin: '0 0 8px' }}>30 ימים אחרונים:</p>
+                                {visitsData.daily.slice(0, 10).map(d => (
+                                    <div key={d.day} style={s.dailyRow}>
+                                        <span style={s.dailyDate}>{fmtDate(d.day)}</span>
+                                        <div style={s.dailyBar}>
+                                            <div style={{
+                                                ...s.dailyBarFill,
+                                                width: `${Math.min(100, (d.count / Math.max(...visitsData.daily.map(x => x.count))) * 100)}%`
+                                            }} />
+                                        </div>
+                                        <span style={s.dailyCount}>{d.count}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </section>
+
+            {/* תרומות */}
+            <section>
+                <h3 style={s.sectionTitle}>💰 תרומות</h3>
+                {!donationsLoading && donationsData && (
+                    <div style={s.donTotal}>סה"כ: <strong>₪{donationsData.total?.toLocaleString('he-IL', { minimumFractionDigits: 0 })}</strong></div>
+                )}
+
+                {/* הוספת תרומה */}
+                <form onSubmit={addDonation} style={s.donForm}>
+                    <h4 style={{ margin: '0 0 12px', color: '#0f2044', fontSize: '0.95rem' }}>+ הוסף תרומה ידנית</h4>
+                    <div style={s.donRow}>
+                        <input style={s.donInput} placeholder="שם התורם (אופציונלי)" value={donForm.donor_name}
+                            onChange={e => setDonForm(p => ({ ...p, donor_name: e.target.value }))} />
+                        <input style={{ ...s.donInput, width: '100px' }} type="number" min="1" placeholder="₪ סכום" value={donForm.amount}
+                            onChange={e => setDonForm(p => ({ ...p, amount: e.target.value }))} required />
+                        <select style={s.donInput} value={donForm.method} onChange={e => setDonForm(p => ({ ...p, method: e.target.value }))}>
+                            <option value="bit">Bit</option>
+                            <option value="paybox">Paybox</option>
+                            <option value="cash">מזומן</option>
+                            <option value="bank">העברה בנקאית</option>
+                            <option value="other">אחר</option>
+                        </select>
+                    </div>
+                    <input style={{ ...s.donInput, width: '100%', boxSizing: 'border-box' }} placeholder="הערה (אופציונלי)"
+                        value={donForm.note} onChange={e => setDonForm(p => ({ ...p, note: e.target.value }))} />
+                    <button type="submit" style={{ ...s.saveBtn, marginTop: '4px' }} disabled={addingDon}>
+                        {addingDon ? 'מוסיף...' : '+ הוסף'}
+                    </button>
+                    {donMsg && <div style={s.flashMsg}>{donMsg}</div>}
+                </form>
+
+                {/* רשימת תרומות */}
+                {donationsLoading ? <Spinner /> : (
+                    <div style={{ ...s.list, marginTop: '20px' }}>
+                        {donationsData?.donations?.length === 0 && <Empty text="אין תרומות עדיין" />}
+                        {donationsData?.donations?.map(d => (
+                            <div key={d.id} style={{ ...s.card, borderRight: '4px solid #d1fae5' }}>
+                                <div style={s.cardTop}>
+                                    <span style={{ color: '#059669', fontWeight: 700, fontSize: '1.1rem' }}>
+                                        ₪{parseFloat(d.amount).toLocaleString('he-IL')}
+                                    </span>
+                                    <span style={s.date}>{fmt(d.created_at)}</span>
+                                </div>
+                                <div style={s.meta}>
+                                    <span>👤 {d.donor_name}</span>
+                                    <span style={s.badge}>{methodLabel[d.method] || d.method}</span>
+                                    {d.note && <span>{d.note}</span>}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
+        </div>
     );
 }
 
-// ─── Helpers ──────────────────────────────────────────────
+// ─── Tab: מדיה ─────────────────────────────────────────────
+function MediaTab({ token }) {
+    const { data, loading, reload } = useAdminFetch('/api/admin/media', token);
+    const [uploading, setUploading] = useState(false);
+    const [uploadMsg, setUploadMsg] = useState('');
+    const [form, setForm] = useState({ title: '', description: '', category: 'general' });
+    const [file, setFile] = useState(null);
+    const [preview, setPreview] = useState(null);
+    const fileRef = useRef();
+
+    const CATEGORIES = [
+        { value: 'general',      label: '🌟 כללי'    },
+        { value: 'toys',         label: '🧸 משחקים'  },
+        { value: 'books',        label: '📚 ספרים'   },
+        { value: 'food',         label: '🍰 אוכל'    },
+        { value: 'preparation',  label: '🎁 הכנות'   },
+        { value: 'videos',       label: '🎥 סרטונים' },
+    ];
+
+    function onFileChange(e) {
+        const f = e.target.files[0];
+        if (!f) return;
+        setFile(f);
+        const url = URL.createObjectURL(f);
+        setPreview({ url, type: f.type.startsWith('video') ? 'video' : 'photo' });
+    }
+
+    async function handleUpload(e) {
+        e.preventDefault();
+        if (!file) { setUploadMsg('⚠️ בחר קובץ תחילה'); return; }
+        setUploading(true);
+        setUploadMsg('');
+        try {
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('title', form.title);
+            fd.append('description', form.description);
+            fd.append('category', form.category);
+
+            const res = await fetch(`${API_BASE}/api/admin/media`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: fd,
+            });
+            const json = await res.json();
+            if (res.ok) {
+                setUploadMsg('✅ הקובץ הועלה בהצלחה!');
+                setFile(null);
+                setPreview(null);
+                setForm({ title: '', description: '', category: 'general' });
+                if (fileRef.current) fileRef.current.value = '';
+                reload();
+                setTimeout(() => setUploadMsg(''), 3000);
+            } else {
+                setUploadMsg('❌ ' + (json.error || 'שגיאה'));
+            }
+        } catch {
+            setUploadMsg('❌ שגיאת רשת');
+        } finally {
+            setUploading(false);
+        }
+    }
+
+    async function deleteMedia(id, filename) {
+        if (!window.confirm(`למחוק את "${filename}"?`)) return;
+        await fetch(`${API_BASE}/api/admin/media/${id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        reload();
+    }
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+
+            {/* טופס העלאה */}
+            <section>
+                <h3 style={s.sectionTitle}>📤 העלאת תמונה / סרטון</h3>
+                <form onSubmit={handleUpload} style={s.uploadForm}>
+                    <div style={s.fileDropzone} onClick={() => fileRef.current?.click()}>
+                        {preview ? (
+                            preview.type === 'video'
+                                ? <video src={preview.url} style={s.previewMedia} controls />
+                                : <img src={preview.url} alt="preview" style={s.previewMedia} />
+                        ) : (
+                            <div style={s.filePrompt}>
+                                <span style={{ fontSize: '2.5rem' }}>📁</span>
+                                <p>לחץ לבחירת קובץ<br /><span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>תמונות וסרטונים עד 100MB</span></p>
+                            </div>
+                        )}
+                        <input
+                            ref={fileRef}
+                            type="file"
+                            accept="image/*,video/*"
+                            style={{ display: 'none' }}
+                            onChange={onFileChange}
+                        />
+                    </div>
+
+                    {file && <p style={{ color: '#6478a8', fontSize: '0.85rem', margin: 0 }}>📎 {file.name}</p>}
+
+                    <input
+                        style={s.uploadInput}
+                        placeholder="כותרת (תוצג בגלריה)"
+                        value={form.title}
+                        onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
+                    />
+                    <input
+                        style={s.uploadInput}
+                        placeholder="תיאור (אופציונלי)"
+                        value={form.description}
+                        onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+                    />
+                    <select
+                        style={s.uploadInput}
+                        value={form.category}
+                        onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
+                    >
+                        {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                    </select>
+
+                    <button type="submit" style={s.saveBtn} disabled={uploading}>
+                        {uploading ? 'מעלה...' : '⬆️ העלה'}
+                    </button>
+                    {uploadMsg && <div style={s.flashMsg}>{uploadMsg}</div>}
+                </form>
+            </section>
+
+            {/* רשימת מדיה */}
+            <section>
+                <h3 style={s.sectionTitle}>📂 מדיה קיימת ({data?.length || 0} פריטים)</h3>
+                {loading ? <Spinner /> : (
+                    data?.length === 0
+                        ? <Empty text="עדיין לא הועלו קבצים" />
+                        : (
+                            <div style={s.mediaGrid}>
+                                {data.map(item => (
+                                    <div key={item.id} style={s.mediaCard}>
+                                        {item.type === 'video'
+                                            ? <video src={`${API_BASE}/uploads/${item.filename}`} style={s.mediaThumbnail} />
+                                            : <img src={`${API_BASE}/uploads/${item.filename}`} alt={item.title} style={s.mediaThumbnail} />
+                                        }
+                                        <div style={s.mediaInfo}>
+                                            <p style={s.mediaTitle}>{item.title || item.original_name}</p>
+                                            <p style={s.mediaDate}>{fmt(item.created_at)} · {item.category}</p>
+                                        </div>
+                                        <button
+                                            style={s.deleteBtn}
+                                            onClick={() => deleteMedia(item.id, item.original_name)}
+                                            title="מחק"
+                                        >🗑️</button>
+                                    </div>
+                                ))}
+                            </div>
+                        )
+                )}
+            </section>
+        </div>
+    );
+}
+
+// ─── Helpers ───────────────────────────────────────────────
 function Spinner() {
     return <div style={s.spinner}><div style={s.spinnerDot} /></div>;
 }
@@ -218,10 +575,18 @@ function Empty({ text }) {
 }
 function fmt(iso) {
     if (!iso) return '';
-    return new Date(iso).toLocaleString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return new Date(iso).toLocaleString('he-IL', {
+        day: '2-digit', month: '2-digit', year: '2-digit',
+        hour: '2-digit', minute: '2-digit',
+    });
+}
+function fmtDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' });
 }
 
-// ─── Main ─────────────────────────────────────────────────
+// ─── Main ──────────────────────────────────────────────────
 export default function AdminDashboardPage() {
     const navigate = useNavigate();
     const [tab, setTab] = useState('contacts');
@@ -240,7 +605,6 @@ export default function AdminDashboardPage() {
 
     return (
         <div style={s.page}>
-            {/* Header */}
             <div style={s.header}>
                 <div style={s.headerInner}>
                     <div>
@@ -251,7 +615,6 @@ export default function AdminDashboardPage() {
                 </div>
             </div>
 
-            {/* Tabs */}
             <div style={s.tabBar}>
                 {TABS.map(t => (
                     <button
@@ -264,22 +627,25 @@ export default function AdminDashboardPage() {
                 ))}
             </div>
 
-            {/* Content */}
             <div style={s.content}>
                 {tab === 'contacts'   && <ContactsTab   token={token} />}
                 {tab === 'volunteers' && <VolunteersTab  token={token} />}
                 {tab === 'thankyou'   && <ThankYouTab    token={token} />}
                 {tab === 'stats'      && <StatsTab       token={token} />}
+                {tab === 'media'      && <MediaTab       token={token} />}
             </div>
         </div>
     );
 }
 
+const NAVY = '#0f2044';
+const BLUE = '#dbeafe';
+
 const s = {
     page: { minHeight: '100vh', background: '#f8fafe', fontFamily: "'Heebo', sans-serif", direction: 'rtl' },
 
     header: { background: 'linear-gradient(135deg, #071530 0%, #0f2044 100%)', padding: '20px' },
-    headerInner: { maxWidth: '900px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    headerInner: { maxWidth: '960px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
     headerTitle: { color: '#fbbf24', fontSize: '1.4rem', fontWeight: 800, margin: 0 },
     headerSub: { color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem', margin: 0 },
     logoutBtn: {
@@ -288,35 +654,37 @@ const s = {
         fontFamily: "'Heebo', sans-serif", fontSize: '0.88rem',
     },
 
-    tabBar: {
-        background: '#fff', borderBottom: '2px solid #dbeafe',
-        display: 'flex', gap: 0, overflowX: 'auto',
-    },
+    tabBar: { background: '#fff', borderBottom: `2px solid ${BLUE}`, display: 'flex', overflowX: 'auto' },
     tabBtn: {
-        padding: '14px 22px', border: 'none', background: 'none',
-        color: '#6478a8', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
+        padding: '14px 20px', border: 'none', background: 'none',
+        color: '#6478a8', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer',
         fontFamily: "'Heebo', sans-serif", whiteSpace: 'nowrap',
         borderBottom: '3px solid transparent', transition: 'all 0.2s',
     },
-    tabBtnActive: { color: '#0f2044', borderBottom: '3px solid #0f2044' },
+    tabBtnActive: { color: NAVY, borderBottom: `3px solid ${NAVY}` },
 
-    content: { maxWidth: '900px', margin: '0 auto', padding: '28px 20px' },
+    content: { maxWidth: '960px', margin: '0 auto', padding: '28px 20px' },
 
     list: { display: 'flex', flexDirection: 'column', gap: '14px' },
     card: {
         background: '#fff', borderRadius: '16px', padding: '20px 22px',
-        boxShadow: '0 2px 10px rgba(15,32,68,0.07)', borderRight: '4px solid #dbeafe',
+        boxShadow: '0 2px 10px rgba(15,32,68,0.07)', borderRight: `4px solid ${BLUE}`,
     },
     cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' },
-    name: { color: '#0f2044', fontSize: '1rem' },
+    name: { color: NAVY, fontSize: '1rem' },
     date: { color: '#6478a8', fontSize: '0.8rem' },
     meta: { display: 'flex', gap: '16px', flexWrap: 'wrap', color: '#2d4070', fontSize: '0.88rem', marginBottom: '10px' },
-    badge: {
-        background: '#dbeafe', color: '#0f2044', padding: '2px 10px',
-        borderRadius: '999px', fontSize: '0.8rem', fontWeight: 600,
-    },
+    badge: { background: BLUE, color: NAVY, padding: '2px 10px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 600 },
+    repliedBadge: { background: '#d1fae5', color: '#059669', padding: '2px 10px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 600 },
     msg: { color: '#2d4070', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 },
-    actions: { display: 'flex', gap: '10px', marginTop: '12px' },
+    replyPreview: { background: '#f0fdf4', borderRadius: '8px', padding: '10px 14px', marginTop: '10px', color: '#065f46', fontSize: '0.88rem' },
+
+    actions: { display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' },
+    replyBtn: {
+        padding: '8px 18px', background: BLUE, color: NAVY,
+        border: 'none', borderRadius: '10px', cursor: 'pointer',
+        fontFamily: "'Heebo', sans-serif", fontWeight: 600, fontSize: '0.88rem',
+    },
     approveBtn: {
         padding: '8px 18px', background: '#10b981', color: '#fff',
         border: 'none', borderRadius: '10px', cursor: 'pointer',
@@ -327,28 +695,87 @@ const s = {
         border: 'none', borderRadius: '10px', cursor: 'pointer',
         fontFamily: "'Heebo', sans-serif", fontWeight: 600, fontSize: '0.88rem',
     },
-    groupTitle: { color: '#0f2044', fontSize: '1rem', fontWeight: 700, margin: '0 0 12px' },
 
-    statsForm: { display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '420px' },
-    statsNote: { color: '#6478a8', fontSize: '0.9rem', margin: 0, lineHeight: 1.6 },
+    replyBox: { display: 'flex', flexDirection: 'column', gap: '10px' },
+    replyTextarea: {
+        padding: '12px 14px', borderRadius: '12px', border: `2px solid ${BLUE}`,
+        fontSize: '0.95rem', fontFamily: "'Heebo', sans-serif", resize: 'vertical',
+        direction: 'rtl', outline: 'none', lineHeight: 1.6,
+    },
+
+    groupTitle: { color: NAVY, fontSize: '1rem', fontWeight: 700, margin: '0 0 12px' },
+    sectionTitle: { color: NAVY, fontSize: '1.05rem', fontWeight: 700, margin: '0 0 16px', paddingBottom: '8px', borderBottom: `2px solid ${BLUE}` },
+
+    statsForm: { display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '460px' },
     statRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' },
     statLabel: { color: '#2d4070', fontSize: '0.95rem', fontWeight: 600 },
     statInput: {
-        padding: '10px 14px', borderRadius: '10px', border: '2px solid #dbeafe',
-        fontSize: '1rem', fontFamily: "'Heebo', sans-serif", width: '120px', textAlign: 'center',
-        outline: 'none',
+        padding: '10px 14px', borderRadius: '10px', border: `2px solid ${BLUE}`,
+        fontSize: '1rem', fontFamily: "'Heebo', sans-serif", width: '120px', textAlign: 'center', outline: 'none',
     },
     saveBtn: {
-        padding: '14px', background: '#0f2044', color: '#fff',
-        border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: 700,
-        cursor: 'pointer', fontFamily: "'Heebo', sans-serif", marginTop: '8px',
+        padding: '12px 24px', background: NAVY, color: '#fff',
+        border: 'none', borderRadius: '12px', fontSize: '0.95rem', fontWeight: 700,
+        cursor: 'pointer', fontFamily: "'Heebo', sans-serif",
     },
 
+    visitsWrap: { display: 'flex', flexDirection: 'column', gap: '16px' },
+    visitsStat: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' },
+    visitsBig: { fontSize: '2.5rem', fontWeight: 800, color: NAVY },
+    visitsLabel: { color: '#6478a8', fontSize: '0.9rem' },
+    dailyList: { display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '420px' },
+    dailyRow: { display: 'flex', alignItems: 'center', gap: '12px' },
+    dailyDate: { color: '#6478a8', fontSize: '0.82rem', minWidth: '38px', textAlign: 'left' },
+    dailyBar: { flex: 1, height: '10px', background: BLUE, borderRadius: '999px', overflow: 'hidden' },
+    dailyBarFill: { height: '100%', background: NAVY, borderRadius: '999px', transition: 'width 0.4s' },
+    dailyCount: { color: NAVY, fontSize: '0.82rem', minWidth: '28px', textAlign: 'right', fontWeight: 600 },
+
+    donTotal: { fontSize: '1.2rem', color: '#059669', marginBottom: '20px', fontWeight: 700 },
+    donForm: { display: 'flex', flexDirection: 'column', gap: '10px', background: '#f0fdf4', padding: '20px', borderRadius: '16px', maxWidth: '460px', marginBottom: '12px' },
+    donRow: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
+    donInput: {
+        padding: '10px 12px', borderRadius: '10px', border: `2px solid ${BLUE}`,
+        fontSize: '0.9rem', fontFamily: "'Heebo', sans-serif", flex: 1, outline: 'none', direction: 'rtl',
+    },
+
+    uploadForm: { display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '500px' },
+    fileDropzone: {
+        border: `2px dashed ${BLUE}`, borderRadius: '16px', padding: '20px',
+        cursor: 'pointer', textAlign: 'center', background: '#f8fafe',
+        minHeight: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        overflow: 'hidden',
+    },
+    filePrompt: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: '#6478a8' },
+    previewMedia: { maxWidth: '100%', maxHeight: '200px', borderRadius: '10px', objectFit: 'cover' },
+    uploadInput: {
+        padding: '10px 14px', borderRadius: '12px', border: `2px solid ${BLUE}`,
+        fontSize: '0.95rem', fontFamily: "'Heebo', sans-serif", outline: 'none', direction: 'rtl',
+    },
+
+    mediaGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '14px' },
+    mediaCard: {
+        background: '#fff', borderRadius: '14px', overflow: 'hidden',
+        boxShadow: '0 2px 10px rgba(15,32,68,0.08)', position: 'relative',
+    },
+    mediaThumbnail: { width: '100%', height: '130px', objectFit: 'cover', display: 'block', background: '#e5e7eb' },
+    mediaInfo: { padding: '10px 12px' },
+    mediaTitle: { margin: 0, fontWeight: 600, color: NAVY, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+    mediaDate: { margin: '4px 0 0', color: '#9ca3af', fontSize: '0.75rem' },
+    deleteBtn: {
+        position: 'absolute', top: '8px', left: '8px',
+        background: 'rgba(239,68,68,0.85)', border: 'none', borderRadius: '8px',
+        padding: '4px 8px', cursor: 'pointer', fontSize: '1rem',
+    },
+
+    flashMsg: {
+        padding: '10px 16px', borderRadius: '10px', background: '#f0fdf4',
+        color: '#065f46', fontSize: '0.9rem', fontWeight: 600,
+    },
     empty: { textAlign: 'center', color: '#6478a8', padding: '60px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' },
     spinner: { display: 'flex', justifyContent: 'center', padding: '60px 0' },
     spinnerDot: {
         width: '36px', height: '36px', borderRadius: '50%',
-        border: '3px solid #dbeafe', borderTop: '3px solid #0f2044',
+        border: `3px solid ${BLUE}`, borderTop: `3px solid ${NAVY}`,
         animation: 'spin 0.8s linear infinite',
     },
 };
