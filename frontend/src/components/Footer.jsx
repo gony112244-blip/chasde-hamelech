@@ -22,26 +22,33 @@ export default function Footer() {
                     <nav style={s.links}>
                         <Link to="/gallery" style={s.link}>גלריית רגעים</Link>
                         <Link to="/thank-you" style={s.link}>קיר תודה</Link>
+                        <Link to="/parasha" style={s.link}>עלון השבוע</Link>
                         <Link to="/volunteer" style={s.link}>הצטרפו כמתנדבים</Link>
                         <Link to="/contact" style={s.link}>צור קשר</Link>
                     </nav>
                 </div>
 
-                {/* יצירת קשר */}
+                {/* מידע משפטי */}
                 <div style={s.col}>
-                    <h4 style={s.colTitle}>יצירת קשר</h4>
-                    <div style={s.contactLines}>
-                        <span>📧 chasdehamelech@gmail.com</span>
-                        <span style={{ fontSize: '0.8rem', opacity: 0.6, marginTop: '8px' }}>
-                            פועלים מתוך אהבה ואמונה
-                        </span>
-                    </div>
+                    <h4 style={s.colTitle}>מידע</h4>
+                    <nav style={s.links}>
+                        <Link to="/privacy" style={s.link}>מדיניות פרטיות</Link>
+                        <Link to="/accessibility" style={s.link}>הצהרת נגישות</Link>
+                    </nav>
+                    <span style={{ fontSize: '0.82rem', opacity: 0.55, marginTop: '6px' }}>
+                        פועלים מתוך אהבה ואמונה
+                    </span>
                 </div>
             </div>
 
             <div style={s.bottom}>
                 <span>© {year} חסדי המלך. כל הזכויות שמורות.</span>
                 <span style={s.credit}>נבנה באהבה ובהתנדבות</span>
+            </div>
+            <div style={s.authorCredit}>
+                ספר הילדים &ldquo;שר הצבא&rdquo; מאת{' '}
+                <a href="mailto:gony112233@gmail.com" style={s.authorLink}>גוני שמוחה</a>
+                {' '}— מחוברים בנשמה לייעוד הזה
             </div>
         </footer>
     );
@@ -104,4 +111,16 @@ const s = {
         gap: '8px',
     },
     credit: { color: '#d4a017', fontWeight: 600 },
+    authorCredit: {
+        textAlign: 'center',
+        fontSize: '0.78rem',
+        color: 'rgba(255,255,255,0.28)',
+        padding: '10px 20px 16px',
+        fontFamily: "'Heebo', sans-serif",
+        direction: 'rtl',
+    },
+    authorLink: {
+        color: 'rgba(255,255,255,0.38)',
+        textDecoration: 'none',
+    },
 };

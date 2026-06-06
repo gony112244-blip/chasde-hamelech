@@ -1,36 +1,22 @@
 ﻿import { Link } from 'react-router-dom';
 
-const WAYS = [
-    {
-        icon: '💰',
-        title: 'תרומה כספית',
-        desc: 'כל שקל הופך למשחק או ספר ביד ילד מאושפז',
-        action: 'תרמו עכשיו',
-        to: '/help',
-        highlight: true,
-    },
-    {
-        icon: '🤝',
-        title: 'התנדבות',
-        desc: 'הצטרפו לצוות המחלקים — גם שעה בחודש עושה הבדל',
-        action: 'הצטרפו',
-        to: '/volunteer',
-    },
-    {
-        icon: '🎮',
-        title: 'תרומת משחקים',
-        desc: 'יש לכם משחקים חדשים שלא בשימוש? הילדים ישמחו',
-        action: 'צרו קשר',
-        to: '/contact',
-    },
-    {
-        icon: '📣',
-        title: 'הפיצו',
-        desc: 'ספרו לחברים — כל שיתוף מגדיל את מעגל החיוכים',
-        action: 'שתפו',
-        to: '/help',
-    },
-];
+async function handleShare() {
+    const shareData = {
+        title: 'חסדי המלך',
+        text: 'מחלקים משחקים וספרים לילדים מאושפזים בבתי חולים ברחבי הארץ — אולי גם אתם יכולים לעזור!',
+        url: window.location.origin,
+    };
+    try {
+        if (navigator.share) {
+            await navigator.share(shareData);
+        } else {
+            await navigator.clipboard.writeText(window.location.origin);
+            alert('הקישור הועתק ללוח!');
+        }
+    } catch {
+        // המשתמש ביטל
+    }
+}
 
 export default function HowToHelp() {
     return (
@@ -43,28 +29,41 @@ export default function HowToHelp() {
                 <p style={s.subtitle}>כל אחד יכול לעשות הבדל — גם אתם</p>
 
                 <div style={s.grid}>
-                    {WAYS.map((way, i) => (
-                        <div key={i} style={{
-                            ...s.card,
-                            ...(way.highlight ? s.cardHighlight : {})
-                        }}>
-                            <span style={s.cardIcon}>{way.icon}</span>
-                            <h3 style={{
-                                ...s.cardTitle,
-                                ...(way.highlight ? { color: '#fbbf24' } : {})
-                            }}>{way.title}</h3>
-                            <p style={{
-                                ...s.cardDesc,
-                                ...(way.highlight ? { color: 'rgba(255,255,255,0.8)' } : {})
-                            }}>{way.desc}</p>
-                            <Link to={way.to} style={{
-                                ...s.cardBtn,
-                                ...(way.highlight ? s.cardBtnHighlight : {})
-                            }}>
-                                {way.action} →
-                            </Link>
-                        </div>
-                    ))}
+                    {/* תרומה כספית */}
+                    <div style={{ ...s.card, ...s.cardHighlight }}>
+                        <span style={s.cardIcon}>💰</span>
+                        <h3 style={{ ...s.cardTitle, color: '#fbbf24' }}>תרומה כספית</h3>
+                        <p style={{ ...s.cardDesc, color: 'rgba(255,255,255,0.8)' }}>
+                            כל שקל הופך למשחק או ספר ביד ילד מאושפז
+                        </p>
+                        <Link to="/help" style={{ ...s.cardBtn, ...s.cardBtnHighlight }}>
+                            תרמו עכשיו →
+                        </Link>
+                    </div>
+
+                    {/* התנדבות */}
+                    <div style={s.card}>
+                        <span style={s.cardIcon}>🤝</span>
+                        <h3 style={s.cardTitle}>התנדבות</h3>
+                        <p style={s.cardDesc}>הצטרפו לצוות המחלקים — גם שעה בחודש עושה הבדל</p>
+                        <Link to="/volunteer" style={s.cardBtn}>הצטרפו →</Link>
+                    </div>
+
+                    {/* תרומת משחקים */}
+                    <div style={s.card}>
+                        <span style={s.cardIcon}>🎮</span>
+                        <h3 style={s.cardTitle}>תרומת משחקים</h3>
+                        <p style={s.cardDesc}>יש לכם ציוד חדש? נשמח לכל תרומה — חדש בלבד</p>
+                        <Link to="/help#donate" style={s.cardBtn}>לפרטים →</Link>
+                    </div>
+
+                    {/* הפיצו */}
+                    <div style={s.card}>
+                        <span style={s.cardIcon}>📣</span>
+                        <h3 style={s.cardTitle}>הפיצו</h3>
+                        <p style={s.cardDesc}>ספרו לחברים — כל שיתוף מגדיל את מעגל החיוכים</p>
+                        <button style={s.cardBtn} onClick={handleShare}>שתפו →</button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -144,6 +143,9 @@ const s = {
         borderRadius: '10px',
         background: 'var(--royal-pale)',
         transition: 'background 0.2s',
+        border: 'none',
+        cursor: 'pointer',
+        fontFamily: "'Heebo', sans-serif",
     },
     cardBtnHighlight: {
         background: 'linear-gradient(135deg, #d4a017, #f0c040)',

@@ -88,6 +88,15 @@ export default function GalleryPage() {
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [lightbox, setLightbox] = useState(null);
+    const [posts, setPosts] = useState([]);
+
+    // טעינת פוסטים
+    useEffect(() => {
+        fetch(`${API_BASE}/api/gallery-posts`)
+            .then(r => r.ok ? r.json() : [])
+            .then(data => setPosts(Array.isArray(data) ? data : []))
+            .catch(() => {});
+    }, []);
 
     const loadItems = useCallback(async (cat, pg, append = false) => {
         if (append) setLoadingMore(true);
@@ -160,7 +169,40 @@ export default function GalleryPage() {
             <section style={s.content}>
                 <div style={s.inner}>
 
-                    {/* Filter */}
+                    {/* פוסטים עדכניים */}
+                    {posts.length > 0 && (
+                        <div style={s.postsSection}>
+                            <h2 style={s.postsSectionTitle}>📋 עדכונים מהשטח</h2>
+                            <div style={s.postsList}>
+                                {posts.map(post => (
+                                    <div key={post.id} style={s.postCard}>
+                                        <div style={s.postHeader}>
+                                            <h3 style={s.postTitle}>{post.title}</h3>
+                                            <span style={s.postDate}>{fmtDate(post.created_at)}</span>
+                                        </div>
+                                        {post.body && <p style={s.postBody}>{post.body}</p>}
+                                        {post.media && post.media.length > 0 && (
+                                            <div style={s.postMedia}>
+                                                {post.media.filter(m => m.type === 'photo').map(m => (
+                                                    <button key={m.id} style={s.postThumb}
+                                                        onClick={() => setLightbox(m)}>
+                                                        <img
+                                                            src={`${API_BASE}/uploads/${m.filename}`}
+                                                            alt={m.title || ''}
+                                                            style={s.postThumbImg}
+                                                            loading="lazy"
+                                                        />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Filter לכל המדיה */}
                     <div style={s.filterRow}>
                         {CATEGORIES.map(cat => (
                             <button
@@ -277,6 +319,25 @@ const s = {
 
     content: { padding: '40px 20px 60px', background: 'var(--bg-light)' },
     inner: { maxWidth: '960px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px' },
+
+    postsSection: { display: 'flex', flexDirection: 'column', gap: '16px' },
+    postsSectionTitle: { color: 'var(--royal)', fontSize: '1.15rem', fontWeight: 800, margin: 0 },
+    postsList: { display: 'flex', flexDirection: 'column', gap: '16px' },
+    postCard: {
+        background: 'var(--bg-card)', borderRadius: '18px', padding: '24px',
+        boxShadow: 'var(--shadow-sm)', border: '1px solid rgba(15,32,68,0.06)',
+    },
+    postHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' },
+    postTitle: { color: 'var(--royal)', fontSize: '1.05rem', fontWeight: 700, margin: 0 },
+    postDate: { color: 'var(--text-muted)', fontSize: '0.82rem' },
+    postBody: { color: 'var(--text-soft)', fontSize: '0.95rem', lineHeight: 1.7, margin: '0 0 14px' },
+    postMedia: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
+    postThumb: {
+        width: '100px', height: '100px', borderRadius: '12px', overflow: 'hidden',
+        border: 'none', padding: 0, cursor: 'pointer', background: 'transparent',
+        flexShrink: 0,
+    },
+    postThumbImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
 
     filterRow: { display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' },
     filterBtn: {

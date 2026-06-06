@@ -1,7 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import HeroSection from '../components/home/HeroSection';
 import SmileCounter from '../components/home/SmileCounter';
+import GalleryPreview from '../components/home/GalleryPreview';
 import AboutSection from '../components/home/AboutSection';
 import AuthorCorner from '../components/home/AuthorCorner';
 import HowToHelp from '../components/home/HowToHelp';
@@ -12,10 +11,11 @@ export default function HomePage() {
         <>
             <HeroSection />
             <SmileCounter />
+            <GalleryPreview />
+            <Testimonials />
             <AboutSection />
             <AuthorCorner />
             <HowToHelp />
-            <Testimonials />
         </>
     );
 }

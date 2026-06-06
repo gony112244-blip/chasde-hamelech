@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import API_BASE from '../config';
 
 const TABS = [
-    { id: 'contacts',   label: 'פניות',        icon: '✉️' },
-    { id: 'volunteers', label: 'מתנדבים',      icon: '🙋' },
-    { id: 'thankyou',   label: 'הודעות תודה',  icon: '💌' },
-    { id: 'stats',      label: 'סטטיסטיקות',   icon: '📊' },
-    { id: 'media',      label: 'מדיה',          icon: '🖼️' },
+    { id: 'contacts',    label: 'פניות',        icon: '✉️' },
+    { id: 'volunteers',  label: 'מתנדבים',      icon: '🙋' },
+    { id: 'thankyou',    label: 'הודעות תודה',  icon: '💌' },
+    { id: 'stats',       label: 'סטטיסטיקות',   icon: '📊' },
+    { id: 'media',       label: 'מדיה וגלריה',   icon: '🖼️' },
+    { id: 'newsletter',  label: 'עלון השבוע',    icon: '📖' },
 ];
 
 function useAdminFetch(path, token) {
@@ -90,29 +91,40 @@ function ContactsTab({ token }) {
                             <strong>תשובתי:</strong> {c.reply_text}
                         </div>
                     )}
-                    {!c.replied && (
-                        <div style={{ marginTop: '12px' }}>
-                            {replyOpen === c.id ? (
-                                <div style={s.replyBox}>
-                                    <textarea
-                                        style={s.replyTextarea}
-                                        placeholder="כתוב תשובה..."
-                                        value={replyText}
-                                        onChange={e => setReplyText(e.target.value)}
-                                        rows={4}
-                                    />
-                                    <div style={s.actions}>
-                                        <button style={s.approveBtn} disabled={sending} onClick={() => sendReply(c.id)}>
-                                            {sending ? 'שולח...' : c.email ? '📨 שלח במייל' : '💾 שמור תשובה'}
-                                        </button>
-                                        <button style={s.rejectBtn} onClick={() => { setReplyOpen(null); setReplyText(''); }}>ביטול</button>
+                    <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {!c.replied && (
+                            <>
+                                {replyOpen === c.id ? (
+                                    <div style={{ ...s.replyBox, width: '100%' }}>
+                                        <textarea
+                                            style={s.replyTextarea}
+                                            placeholder="כתוב תשובה..."
+                                            value={replyText}
+                                            onChange={e => setReplyText(e.target.value)}
+                                            rows={4}
+                                        />
+                                        <div style={s.actions}>
+                                            <button style={s.approveBtn} disabled={sending} onClick={() => sendReply(c.id)}>
+                                                {sending ? 'שולח...' : c.email ? '📨 שלח במייל' : '💾 שמור תשובה'}
+                                            </button>
+                                            <button style={s.rejectBtn} onClick={() => { setReplyOpen(null); setReplyText(''); }}>ביטול</button>
+                                        </div>
                                     </div>
-                                </div>
-                            ) : (
-                                <button style={s.replyBtn} onClick={() => setReplyOpen(c.id)}>✏️ השב</button>
-                            )}
-                        </div>
-                    )}
+                                ) : (
+                                    <button style={s.replyBtn} onClick={() => setReplyOpen(c.id)}>✏️ השב</button>
+                                )}
+                            </>
+                        )}
+                        {c.phone && (
+                            <a
+                                href={`https://wa.me/972${c.phone.replace(/^0/, '').replace(/[-\s]/g, '')}`}
+                                target="_blank" rel="noopener noreferrer"
+                                style={s.waBtn}
+                            >
+                                💬 WhatsApp
+                            </a>
+                        )}
+                    </div>
                 </div>
             ))}
         </div>
@@ -121,7 +133,25 @@ function ContactsTab({ token }) {
 
 // ─── Tab: מתנדבים ──────────────────────────────────────────
 function VolunteersTab({ token }) {
-    const { data, loading } = useAdminFetch('/api/admin/volunteers', token);
+    const { data, loading, reload } = useAdminFetch('/api/admin/volunteers', token);
+    const [editNotes, setEditNotes] = useState(null);
+    const [noteText, setNoteText] = useState('');
+    const [savingNote, setSavingNote] = useState(false);
+
+    async function saveNote(id) {
+        setSavingNote(true);
+        try {
+            await fetch(`${API_BASE}/api/admin/volunteers/${id}/notes`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ notes: noteText }),
+            });
+            setEditNotes(null);
+            reload();
+        } finally {
+            setSavingNote(false);
+        }
+    }
 
     if (loading) return <Spinner />;
     if (!data?.length) return <Empty text="אין מתנדבים עדיין" />;
@@ -140,7 +170,33 @@ function VolunteersTab({ token }) {
                         {v.has_car && <span style={s.badge}>🚗 יש רכב</span>}
                         {v.email && <span>📧 {v.email}</span>}
                     </div>
-                    {v.notes && <p style={s.msg}>{v.notes}</p>}
+                    {/* הערות */}
+                    {editNotes === v.id ? (
+                        <div style={s.replyBox}>
+                            <textarea style={s.replyTextarea} rows={3}
+                                value={noteText} onChange={e => setNoteText(e.target.value)}
+                                placeholder="הערה לגבי המתנדב..." />
+                            <div style={s.actions}>
+                                <button style={s.approveBtn} disabled={savingNote} onClick={() => saveNote(v.id)}>
+                                    {savingNote ? 'שומר...' : '💾 שמור'}
+                                </button>
+                                <button style={s.rejectBtn} onClick={() => setEditNotes(null)}>ביטול</button>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            {v.notes && <p style={s.msg}>📝 {v.notes}</p>}
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
+                                <button style={s.replyBtn} onClick={() => { setEditNotes(v.id); setNoteText(v.notes || ''); }}>
+                                    📝 {v.notes ? 'ערוך הערה' : 'הוסף הערה'}
+                                </button>
+                                <a href={`https://wa.me/972${v.phone.replace(/^0/, '').replace(/[-\s]/g, '')}`}
+                                    target="_blank" rel="noopener noreferrer" style={s.waBtn}>
+                                    💬 WhatsApp
+                                </a>
+                            </div>
+                        </>
+                    )}
                 </div>
             ))}
         </div>
@@ -160,6 +216,15 @@ function ThankYouTab({ token }) {
         reload();
     }
 
+    async function deleteNote(id) {
+        if (!window.confirm('למחוק את ההודעה?')) return;
+        await fetch(`${API_BASE}/api/admin/thank-you/${id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        reload();
+    }
+
     if (loading) return <Spinner />;
     if (!data?.length) return <Empty text="אין הודעות עדיין" />;
 
@@ -175,6 +240,10 @@ function ThankYouTab({ token }) {
                     <div style={s.list}>
                         {pending.map(n => (
                             <div key={n.id} style={{ ...s.card, borderRight: '4px solid #f59e0b' }}>
+                                {n.photo_filename && (
+                                    <img src={`${API_BASE}/uploads/${n.photo_filename}`}
+                                        alt="מכתב תודה" style={s.notePhoto} />
+                                )}
                                 <div style={s.cardTop}>
                                     <strong style={s.name}>{n.display_name}</strong>
                                     <span style={s.date}>{fmt(n.created_at)}</span>
@@ -182,7 +251,8 @@ function ThankYouTab({ token }) {
                                 <p style={s.msg}>{n.message}</p>
                                 <div style={s.actions}>
                                     <button style={s.approveBtn} onClick={() => setStatus(n.id, 'approved')}>✅ אשר פרסום</button>
-                                    <button style={s.rejectBtn} onClick={() => setStatus(n.id, 'rejected')}>🗑️ דחה</button>
+                                    <button style={s.rejectBtn} onClick={() => setStatus(n.id, 'rejected')}>❌ דחה</button>
+                                    <button style={s.rejectBtn} onClick={() => deleteNote(n.id)}>🗑️ מחק</button>
                                 </div>
                             </div>
                         ))}
@@ -200,7 +270,10 @@ function ThankYouTab({ token }) {
                                     <span style={s.date}>{fmt(n.created_at)}</span>
                                 </div>
                                 <p style={s.msg}>{n.message}</p>
-                                <button style={s.rejectBtn} onClick={() => setStatus(n.id, 'rejected')}>↩️ בטל אישור</button>
+                                <div style={s.actions}>
+                                    <button style={s.rejectBtn} onClick={() => setStatus(n.id, 'rejected')}>↩️ בטל אישור</button>
+                                    <button style={s.rejectBtn} onClick={() => deleteNote(n.id)}>🗑️ מחק</button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -232,6 +305,8 @@ function StatsTab({ token }) {
     const { data: statsData, loading: statsLoading, reload: reloadStats } = useAdminFetch('/api/stats', token);
     const { data: visitsData, loading: visitsLoading } = useAdminFetch('/api/admin/stats/visits', token);
     const { data: donationsData, loading: donationsLoading, reload: reloadDonations } = useAdminFetch('/api/admin/donations', token);
+    const { data: shoppingData, loading: shoppingLoading, reload: reloadShopping } = useAdminFetch('/api/admin/shopping-list', token);
+    const { data: activityData, loading: activityLoading } = useAdminFetch('/api/admin/activity-log', token);
 
     const [form, setForm] = useState(null);
     const [saving, setSaving] = useState(false);
@@ -239,6 +314,8 @@ function StatsTab({ token }) {
     const [donForm, setDonForm] = useState({ donor_name: '', amount: '', method: 'bit', note: '' });
     const [addingDon, setAddingDon] = useState(false);
     const [donMsg, setDonMsg] = useState('');
+    const [shopForm, setShopForm] = useState({ name: '', quantity: '' });
+    const [addingShop, setAddingShop] = useState(false);
 
     useEffect(() => {
         if (statsData && !form) setForm({ ...statsData });
@@ -281,6 +358,40 @@ function StatsTab({ token }) {
         } finally {
             setAddingDon(false);
         }
+    }
+
+    async function addShopItem(e) {
+        e.preventDefault();
+        if (!shopForm.name.trim()) return;
+        setAddingShop(true);
+        try {
+            await fetch(`${API_BASE}/api/admin/shopping-list`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(shopForm),
+            });
+            setShopForm({ name: '', quantity: '' });
+            reloadShopping();
+        } finally {
+            setAddingShop(false);
+        }
+    }
+
+    async function toggleShopDone(item) {
+        await fetch(`${API_BASE}/api/admin/shopping-list/${item.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ ...item, done: !item.done }),
+        });
+        reloadShopping();
+    }
+
+    async function deleteShopItem(id) {
+        await fetch(`${API_BASE}/api/admin/shopping-list/${id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        reloadShopping();
     }
 
     if (statsLoading || !form) return <Spinner />;
@@ -401,6 +512,157 @@ function StatsTab({ token }) {
                     </div>
                 )}
             </section>
+
+            {/* רשימת קניות */}
+            <section>
+                <h3 style={s.sectionTitle}>🛒 רשימת קניות</h3>
+                <form onSubmit={addShopItem} style={{ display: 'flex', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
+                    <input style={{ ...s.donInput, flex: 2 }} placeholder="שם פריט"
+                        value={shopForm.name} onChange={e => setShopForm(p => ({ ...p, name: e.target.value }))} required />
+                    <input style={{ ...s.donInput, flex: 1 }} placeholder="כמות"
+                        value={shopForm.quantity} onChange={e => setShopForm(p => ({ ...p, quantity: e.target.value }))} />
+                    <button type="submit" style={s.saveBtn} disabled={addingShop}>+ הוסף</button>
+                </form>
+                {shoppingLoading ? <Spinner /> : (
+                    <div style={s.list}>
+                        {(!shoppingData || shoppingData.length === 0) && <Empty text="רשימה ריקה" />}
+                        {shoppingData?.map(item => (
+                            <div key={item.id} style={{ ...s.card, opacity: item.done ? 0.55 : 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <input type="checkbox" checked={item.done} onChange={() => toggleShopDone(item)}
+                                        style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                                    <span style={{ flex: 1, textDecoration: item.done ? 'line-through' : 'none', color: '#2d4070', fontSize: '0.95rem' }}>
+                                        {item.name} {item.quantity ? `(${item.quantity})` : ''}
+                                    </span>
+                                    <button style={s.rejectBtn} onClick={() => deleteShopItem(item.id)}>🗑️</button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
+
+            {/* יומן פעילות */}
+            <section>
+                <h3 style={s.sectionTitle}>📋 יומן פעילות</h3>
+                {activityLoading ? <Spinner /> : (
+                    <div style={s.list}>
+                        {(!activityData || activityData.length === 0) && <Empty text="אין פעילות עדיין" />}
+                        {activityData?.slice(0, 30).map(entry => (
+                            <div key={entry.id} style={{ ...s.card, padding: '14px 18px' }}>
+                                <div style={s.cardTop}>
+                                    <span style={{ color: '#2d4070', fontSize: '0.9rem', fontWeight: 600 }}>{entry.details || entry.action}</span>
+                                    <span style={s.date}>{fmt(entry.created_at)}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
+        </div>
+    );
+}
+
+// ─── Tab: עלון שבועי ──────────────────────────────────────
+function NewsletterTab({ token }) {
+    const { data, loading, reload } = useAdminFetch('/api/newsletters', token);
+    const [form, setForm] = useState({ title: '', parasha_name: '', week_of: '' });
+    const [file, setFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const [msg, setMsg] = useState('');
+    const fileRef = useRef();
+
+    async function handleUpload(e) {
+        e.preventDefault();
+        if (!file) { setMsg('⚠️ בחר קובץ PDF או תמונה'); return; }
+        setUploading(true);
+        setMsg('');
+        try {
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('title', form.title);
+            fd.append('parasha_name', form.parasha_name);
+            fd.append('week_of', form.week_of);
+            const res = await fetch(`${API_BASE}/api/admin/newsletters`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: fd,
+            });
+            const json = await res.json();
+            if (res.ok) {
+                setMsg('✅ העלון הועלה בהצלחה!');
+                setFile(null);
+                setForm({ title: '', parasha_name: '', week_of: '' });
+                if (fileRef.current) fileRef.current.value = '';
+                reload();
+                setTimeout(() => setMsg(''), 3000);
+            } else setMsg('❌ ' + (json.error || 'שגיאה'));
+        } catch { setMsg('❌ שגיאת רשת'); }
+        finally { setUploading(false); }
+    }
+
+    async function deleteNewsletter(id) {
+        if (!window.confirm('למחוק את העלון?')) return;
+        await fetch(`${API_BASE}/api/admin/newsletters/${id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        reload();
+    }
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            <section>
+                <h3 style={s.sectionTitle}>📤 העלאת עלון חדש</h3>
+                <form onSubmit={handleUpload} style={s.uploadForm}>
+                    <input style={s.uploadInput} placeholder="כותרת (למשל: פרשת בראשית)"
+                        value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} />
+                    <input style={s.uploadInput} placeholder="שם הפרשה"
+                        value={form.parasha_name} onChange={e => setForm(p => ({ ...p, parasha_name: e.target.value }))} />
+                    <input type="date" style={s.uploadInput}
+                        value={form.week_of} onChange={e => setForm(p => ({ ...p, week_of: e.target.value }))} />
+                    <div style={{ ...s.fileDropzone, minHeight: '80px' }} onClick={() => fileRef.current?.click()}>
+                        {file
+                            ? <p style={{ color: '#2d4070', margin: 0 }}>📎 {file.name}</p>
+                            : <div style={s.filePrompt}><span style={{ fontSize: '2rem' }}>📄</span><p>PDF או תמונה</p></div>
+                        }
+                        <input ref={fileRef} type="file" accept=".pdf,image/*" style={{ display: 'none' }}
+                            onChange={e => setFile(e.target.files[0] || null)} />
+                    </div>
+                    <button type="submit" style={s.saveBtn} disabled={uploading}>
+                        {uploading ? 'מעלה...' : '⬆️ העלה עלון'}
+                    </button>
+                    {msg && <div style={s.flashMsg}>{msg}</div>}
+                </form>
+            </section>
+
+            <section>
+                <h3 style={s.sectionTitle}>📚 עלונים קיימים</h3>
+                {loading ? <Spinner /> : (
+                    <div style={s.list}>
+                        {(!data || data.length === 0) && <Empty text="אין עלונים עדיין" />}
+                        {data?.map(n => (
+                            <div key={n.id} style={s.card}>
+                                <div style={s.cardTop}>
+                                    <strong style={s.name}>{n.title || n.parasha_name}</strong>
+                                    <span style={s.date}>{fmt(n.created_at)}</span>
+                                </div>
+                                <div style={s.meta}>
+                                    {n.parasha_name && <span>📖 {n.parasha_name}</span>}
+                                    {n.week_of && <span>📅 {new Date(n.week_of).toLocaleDateString('he-IL')}</span>}
+                                    <span style={s.badge}>{n.file_type?.includes('pdf') ? 'PDF' : 'תמונה'}</span>
+                                </div>
+                                <div style={s.actions}>
+                                    <a href={`${API_BASE}/uploads/${n.filename}`} target="_blank" rel="noopener noreferrer" style={s.replyBtn}>
+                                        👁️ צפה
+                                    </a>
+                                    <button style={s.rejectBtn} onClick={() => deleteNewsletter(n.id)}>🗑️ מחק</button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
         </div>
     );
 }
@@ -408,6 +670,43 @@ function StatsTab({ token }) {
 // ─── Tab: מדיה ─────────────────────────────────────────────
 function MediaTab({ token }) {
     const { data, loading, reload } = useAdminFetch('/api/admin/media', token);
+    const { data: postsData, loading: postsLoading, reload: reloadPosts } = useAdminFetch('/api/gallery-posts', token);
+    const [postForm, setPostForm] = useState({ title: '', body: '' });
+    const [addingPost, setAddingPost] = useState(false);
+    const [postMsg, setPostMsg] = useState('');
+    const [selectedPostId, setSelectedPostId] = useState(null);
+
+    async function createPost(e) {
+        e.preventDefault();
+        if (!postForm.title.trim()) return;
+        setAddingPost(true);
+        setPostMsg('');
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/gallery-posts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(postForm),
+            });
+            const json = await res.json();
+            if (res.ok) {
+                setPostMsg('✅ הפוסט נוצר! עכשיו ניתן להעלות תמונות אליו');
+                setSelectedPostId(json.post.id);
+                setPostForm({ title: '', body: '' });
+                reloadPosts();
+                setTimeout(() => setPostMsg(''), 4000);
+            } else setPostMsg('❌ ' + json.error);
+        } catch { setPostMsg('❌ שגיאת רשת'); }
+        finally { setAddingPost(false); }
+    }
+
+    async function deletePost(id) {
+        if (!window.confirm('למחוק את הפוסט?')) return;
+        await fetch(`${API_BASE}/api/admin/gallery-posts/${id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        reloadPosts();
+    }
     const [uploading, setUploading] = useState(false);
     const [uploadMsg, setUploadMsg] = useState('');
     const [form, setForm] = useState({ title: '', description: '', category: 'general' });
@@ -444,7 +743,11 @@ function MediaTab({ token }) {
             fd.append('description', form.description);
             fd.append('category', form.category);
 
-            const res = await fetch(`${API_BASE}/api/admin/media`, {
+            const endpoint = selectedPostId
+                ? `${API_BASE}/api/admin/gallery-posts/${selectedPostId}/media`
+                : `${API_BASE}/api/admin/media`;
+
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` },
                 body: fd,
@@ -457,6 +760,7 @@ function MediaTab({ token }) {
                 setForm({ title: '', description: '', category: 'general' });
                 if (fileRef.current) fileRef.current.value = '';
                 reload();
+                if (selectedPostId) reloadPosts();
                 setTimeout(() => setUploadMsg(''), 3000);
             } else {
                 setUploadMsg('❌ ' + (json.error || 'שגיאה'));
@@ -479,6 +783,50 @@ function MediaTab({ token }) {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+
+            {/* ניהול פוסטים */}
+            <section>
+                <h3 style={s.sectionTitle}>📋 ניהול פוסטים לגלריה</h3>
+                <form onSubmit={createPost} style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '500px', marginBottom: '16px' }}>
+                    <input style={s.uploadInput} placeholder='כותרת (למשל: "השבוע חילקנו ב-3 בתי חולים")' required
+                        value={postForm.title} onChange={e => setPostForm(p => ({ ...p, title: e.target.value }))} />
+                    <textarea style={{ ...s.uploadInput, resize: 'vertical', minHeight: '70px' }} rows={3}
+                        placeholder="תיאור אופציונלי..." value={postForm.body}
+                        onChange={e => setPostForm(p => ({ ...p, body: e.target.value }))} />
+                    <button type="submit" style={s.saveBtn} disabled={addingPost}>
+                        {addingPost ? 'יוצר...' : '+ צור פוסט חדש'}
+                    </button>
+                    {postMsg && <div style={s.flashMsg}>{postMsg}</div>}
+                </form>
+                {postsLoading ? <Spinner /> : (
+                    <div style={s.list}>
+                        {(!postsData || postsData.length === 0) && <Empty text="אין פוסטים עדיין" />}
+                        {postsData?.map(p => (
+                            <div key={p.id} style={{ ...s.card, borderRight: `4px solid ${selectedPostId === p.id ? '#10b981' : '#dbeafe'}` }}>
+                                <div style={s.cardTop}>
+                                    <strong style={s.name}>{p.title}</strong>
+                                    <span style={s.date}>{fmt(p.created_at)}</span>
+                                </div>
+                                {p.body && <p style={s.msg}>{p.body}</p>}
+                                {p.media && p.media.length > 0 && (
+                                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                                        {p.media.map(m => (
+                                            <img key={m.id} src={`${API_BASE}/uploads/${m.filename}`}
+                                                alt="" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px' }} />
+                                        ))}
+                                    </div>
+                                )}
+                                <div style={s.actions}>
+                                    <button style={s.replyBtn} onClick={() => setSelectedPostId(p.id === selectedPostId ? null : p.id)}>
+                                        {selectedPostId === p.id ? '✓ נבחר להעלאה' : '📎 בחר לצירוף תמונה'}
+                                    </button>
+                                    <button style={s.rejectBtn} onClick={() => deletePost(p.id)}>🗑️</button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
 
             {/* טופס העלאה */}
             <section>
@@ -628,11 +976,12 @@ export default function AdminDashboardPage() {
             </div>
 
             <div style={s.content}>
-                {tab === 'contacts'   && <ContactsTab   token={token} />}
-                {tab === 'volunteers' && <VolunteersTab  token={token} />}
-                {tab === 'thankyou'   && <ThankYouTab    token={token} />}
-                {tab === 'stats'      && <StatsTab       token={token} />}
-                {tab === 'media'      && <MediaTab       token={token} />}
+                {tab === 'contacts'   && <ContactsTab    token={token} />}
+                {tab === 'volunteers' && <VolunteersTab   token={token} />}
+                {tab === 'thankyou'   && <ThankYouTab     token={token} />}
+                {tab === 'stats'      && <StatsTab        token={token} />}
+                {tab === 'media'      && <MediaTab        token={token} />}
+                {tab === 'newsletter' && <NewsletterTab   token={token} />}
             </div>
         </div>
     );
@@ -767,6 +1116,17 @@ const s = {
         padding: '4px 8px', cursor: 'pointer', fontSize: '1rem',
     },
 
+    waBtn: {
+        display: 'inline-flex', alignItems: 'center', gap: '4px',
+        padding: '8px 18px', background: '#25d366', color: '#fff',
+        textDecoration: 'none', borderRadius: '10px', cursor: 'pointer',
+        fontFamily: "'Heebo', sans-serif", fontWeight: 600, fontSize: '0.88rem',
+        border: 'none',
+    },
+    notePhoto: {
+        width: '100%', maxHeight: '200px', objectFit: 'cover',
+        borderRadius: '10px', marginBottom: '10px',
+    },
     flashMsg: {
         padding: '10px 16px', borderRadius: '10px', background: '#f0fdf4',
         color: '#065f46', fontSize: '0.9rem', fontWeight: 600,

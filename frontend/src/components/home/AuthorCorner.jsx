@@ -14,7 +14,7 @@ function useIsMobile() {
     return isMobile;
 }
 
-function FounderBlock({ imgSrc, imgAlt, imgPosition, borderColor, name, role, children, quoteColor }) {
+function FounderBlock({ imgSrc, imgAlt, imgPosition, borderColor, name, children }) {
     const isMobile = useIsMobile();
     return (
         <div style={{ ...s.founderRow, flexDirection: isMobile ? 'column' : 'row' }}>
@@ -23,7 +23,6 @@ function FounderBlock({ imgSrc, imgAlt, imgPosition, borderColor, name, role, ch
                     <img src={imgSrc} alt={imgAlt} style={{ ...s.profileImg, objectPosition: imgPosition }} />
                 </div>
                 <p style={s.personName}>{name}</p>
-                <p style={s.personRole}>{role}</p>
             </div>
             <div style={s.textContent}>
                 {children}
@@ -39,19 +38,18 @@ export default function AuthorCorner() {
         <section style={s.section}>
             <div style={s.inner}>
 
-                {/* ── דבר המייסדים ── */}
+                {/* ── החברים מהשטח ── */}
                 <h2 style={s.mainTitle}>
-                    <span>👑</span> דבר המייסדים
+                    <span>👑</span> החברים מהשטח
                 </h2>
 
                 {/* ── דוד — ראשון ── */}
                 <FounderBlock
                     imgSrc="/david-shmukha.png"
-                    imgAlt="דוד שמוחה — מייסד שותף"
+                    imgAlt="דוד שמוחה"
                     imgPosition="62% top"
                     borderColor="#93c5fd"
                     name="דוד שמוחה"
-                    role="מייסד שותף"
                 >
                     <p style={s.text}>
                         חסדי המלך נולד מתוך אמונה פשוטה: ילד חולה שנמצא בבית חולים
@@ -74,11 +72,10 @@ export default function AuthorCorner() {
                 {/* ── אביתר — שני ── */}
                 <FounderBlock
                     imgSrc="/avitar.png"
-                    imgAlt="אביתר — מייסד שותף"
+                    imgAlt="אביתר"
                     imgPosition="center top"
                     borderColor="#fbbf24"
                     name="אביתר"
-                    role="מייסד שותף"
                 >
                     <p style={s.text}>
                         לפני כ-7 שנים, ביום פורים, חשבתי על כל הילדים המאושפזים שלא יחגגו כמו כולם —
@@ -116,17 +113,22 @@ export default function AuthorCorner() {
                         <div style={s.textContent}>
                             <h3 style={s.bookTitle}>הספר &ldquo;שר הצבא&rdquo;</h3>
                             <p style={s.text}>
-                                כתבתי את הספר הזה כי רציתי לתת לילדים שנלחמים במחלה
-                                משהו שמזכיר להם כמה הם חזקים. &ldquo;שר הצבא&rdquo; הוא סיפור על גיבור
-                                שלא ויתר — בדיוק כמו הילדים שאנחנו פוגשים.
+                                במשך שנים אני רואה את דוד ואביתר — בחורים טובים שיוצאים שבוע אחרי שבוע,
+                                מארגנים בעצמם ומחלקים לילדים מאושפזים. הרגיש לי שזה אחד הדברים הטהורים
+                                ביותר שאפשר לעשות.
                             </p>
                             <p style={s.text}>
-                                כל ילד שמקבל את הספר, מקבל גם מסר: אתה גיבור.
-                                לא צריך שריון, לא צריך חרב — מספיק הלב שלך.
+                                עלה בידנו רעיון: שגם אם לא זכיתי להיות בחזית, אני יכול לתרום את ספרי.
+                                &ldquo;שר הצבא&rdquo; עוסק בהתמודדות מול קשיים — ידיים קטנות מול קירות חיוורים של
+                                בית חולים, ועולם הדמיון שמוציא אותם למקומות גבוהים.
+                            </p>
+                            <p style={s.text}>
+                                לאחר שהבנתי שזה משנה, החלטתי לתרום ספרים כמה שביכולתי.
+                                כי לספר יש כוח שלא ניתן לכמת.
                             </p>
                             <div style={s.quote}>
                                 <span style={s.quoteIcon}>&ldquo;</span>
-                                <p style={s.quoteText}>כשילד חולה מחייך — זה הנצחון הכי גדול שיש</p>
+                                <p style={s.quoteText}>כשילד חולה מחייך על ספר שכתבתי — זה הנצחון הכי גדול שיש</p>
                             </div>
                         </div>
                     </div>

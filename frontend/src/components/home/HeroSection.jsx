@@ -13,7 +13,7 @@ export default function HeroSection() {
             <div style={s.orb3} />
 
             <div style={s.content}>
-                <div style={s.badge}>👑 מחלקים אהבה מאז 2024</div>
+                <div style={s.badge}>👑 מחלקים אהבה מאז 2019</div>
 
                 <h1 style={s.title}>חסדי המלך</h1>
 
@@ -36,10 +36,12 @@ export default function HeroSection() {
                     </Link>
                 </div>
 
-                {/* חץ גלילה */}
-                <button style={s.scrollHint} onClick={scrollDown} aria-label="גלול למטה">
-                    <span style={s.scrollArrow}>↓</span>
-                </button>
+                {/* פס פעילות */}
+                <div style={s.activityBadge} onClick={scrollDown} role="button" tabIndex={0} aria-label="גלול למטה">
+                    <span style={s.activityPulse} />
+                    <span>פעילים מדי שבוע · בבתי חולים ברחבי הארץ</span>
+                    <span style={s.activityArrow}>↓</span>
+                </div>
             </div>
         </section>
     );
@@ -170,18 +172,33 @@ const s = {
         fontSize: '1.05rem',
         transition: 'background 0.2s',
     },
-    scrollHint: {
+    activityBadge: {
         marginTop: '30px',
-        animation: 'float 2.5s ease-in-out infinite',
-        background: 'none',
-        border: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '10px',
+        background: 'rgba(255,255,255,0.07)',
+        border: '1px solid rgba(251,191,36,0.35)',
+        borderRadius: '100px',
+        padding: '10px 24px',
+        fontSize: '0.9rem',
+        fontWeight: 600,
+        color: 'rgba(255,255,255,0.8)',
         cursor: 'pointer',
-        padding: '8px',
+        letterSpacing: '0.3px',
+        transition: 'background 0.2s',
     },
-    scrollArrow: {
-        fontSize: '1.5rem',
-        opacity: 0.5,
+    activityPulse: {
+        width: '8px',
+        height: '8px',
+        borderRadius: '50%',
+        background: '#4ade80',
+        boxShadow: '0 0 8px rgba(74,222,128,0.8)',
+        flexShrink: 0,
+    },
+    activityArrow: {
         color: '#fbbf24',
-        display: 'block',
+        fontSize: '0.85rem',
+        animation: 'float 2.5s ease-in-out infinite',
     },
 };

@@ -1,18 +1,40 @@
-﻿import { Link } from 'react-router-dom';
+﻿import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
-// TODO: להחליף בלינק PayBox אמיתי
-const PAYBOX_LINK = '#';
+const PAYBOX_LINK = 'https://payboxapp.page.link/WXV7'; // יש לעדכן בקישור אמיתי
+
+const BIT_NUMBER = '050-XXXXXXX'; // יש לעדכן
+
+const BANK_DETAILS = {
+    bank: 'הפועלים',
+    branch: '000',
+    account: '000000',
+    name: 'חסדי המלך',
+};
 
 const ITEMS_NEEDED = [
-    { icon: '🎲', name: 'משחקי קופסה', desc: 'חדשים, לגילאי 4–12' },
-    { icon: '📚', name: 'ספרי ילדים', desc: 'בעברית, חדשים' },
-    { icon: '🧸', name: 'בובות ודובונים', desc: 'חדשים בלבד (תקנות בתי חולים)' },
-    { icon: '🎨', name: 'ערכות יצירה', desc: 'צבעים, חוברות צביעה, פלסטלינה' },
-    { icon: '🧩', name: 'פאזלים', desc: 'לגילאי 3–10' },
-    { icon: '🎮', name: 'משחקי כיס', desc: 'משחקי קלפים, מגנטים' },
+    { icon: '🎲', name: 'משחקי קופסה', desc: 'חדש בלבד · לגילאי 4–12' },
+    { icon: '🧸', name: 'בובות ודובונים', desc: 'חדש בלבד · תקנות בתי חולים' },
+    { icon: '🎨', name: 'ערכות יצירה', desc: 'חדש בלבד · צבעים, חוברות, פלסטלינה' },
+    { icon: '🦷', name: 'ערכות שיניים', desc: 'חדש בלבד · מברשת + משחה' },
+    { icon: '✏️', name: 'אביזרי כתיבה', desc: 'חדש בלבד · עפרונות, טושים, מחברות' },
+    { icon: '🃏', name: 'משחקי קלפים', desc: 'חדש בלבד · קלפים, משחקי מסיבה' },
+    { icon: '🧩', name: 'פאזלים', desc: 'חדש בלבד · לגילאי 3–10' },
 ];
 
 export default function HelpPage() {
+    const [showBank, setShowBank] = useState(false);
+    const itemsRef = useRef(null);
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.hash === '#donate' && itemsRef.current) {
+            setTimeout(() => {
+                itemsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+    }, [location.hash]);
+
     return (
         <div style={s.page}>
             {/* Header */}
@@ -34,41 +56,62 @@ export default function HelpPage() {
                         <span style={{ fontSize: '3rem' }}>💰</span>
                         <h2 style={s.donateTitle}>תרומה כספית</h2>
                         <p style={s.donateText}>
-                            כל שקל הופך למשחק או ספר ביד ילד מאושפז.
-                            <br />אנחנו מחויבים לשקיפות מלאה.
+                            כל שקל הופך למשחק, ספר או חיוך ביד ילד מאושפז.
                         </p>
 
-                        <div style={s.amountGrid}>
-                            {[36, 72, 180, 360].map(amount => (
-                                <div key={amount} style={s.amountCard}>
-                                    <span style={s.amountNumber}>₪{amount}</span>
-                                    <span style={s.amountDesc}>
-                                        {amount <= 50 ? 'משחק אחד' :
-                                         amount <= 100 ? 'חבילה לילד' :
-                                         amount <= 200 ? '3 חבילות' : '5 ילדים שמחים'}
-                                    </span>
-                                </div>
-                            ))}
+                        {/* PayBox */}
+                        <a href={PAYBOX_LINK} style={s.donateBtnPrimary}
+                            target="_blank" rel="noopener noreferrer">
+                            💳 PayBox — תרמו עכשיו
+                        </a>
+
+                        {/* Bit */}
+                        <div style={s.payOption}>
+                            <span style={s.payOptionIcon}>📱</span>
+                            <div>
+                                <strong style={s.payOptionLabel}>Bit</strong>
+                                <span style={s.payOptionValue}>{BIT_NUMBER}</span>
+                            </div>
                         </div>
 
-                        <a href={PAYBOX_LINK} style={s.donateBtn} target="_blank" rel="noopener noreferrer">
-                            💳 תרמו דרך PayBox
-                        </a>
+                        {/* העברה בנקאית */}
+                        <button
+                            style={s.bankToggle}
+                            onClick={() => setShowBank(v => !v)}
+                        >
+                            🏦 {showBank ? 'הסתר' : 'הצג'} פרטי העברה בנקאית
+                        </button>
+                        {showBank && (
+                            <div style={s.bankBox}>
+                                <p style={s.bankLine}>בנק: {BANK_DETAILS.bank}</p>
+                                <p style={s.bankLine}>סניף: {BANK_DETAILS.branch}</p>
+                                <p style={s.bankLine}>חשבון: {BANK_DETAILS.account}</p>
+                                <p style={s.bankLine}>על שם: {BANK_DETAILS.name}</p>
+                            </div>
+                        )}
+
+                        {/* כרטיס אשראי — בקרוב */}
+                        <div style={s.creditPlaceholder}>
+                            <span>💳</span>
+                            <span>תשלום בכרטיס אשראי — בקרוב</span>
+                        </div>
+
                         <p style={s.donateNote}>
-                            ✅ מאובטח · 🔒 ללא עמלות · 💯 100% מגיע לילדים
+                            100% מהתרומות מגיעות ישירות לילדים
                         </p>
                     </div>
                 </div>
             </section>
 
-            {/* תרומת משחקים */}
-            <section style={s.itemsSection}>
+            {/* תרומת פריטים */}
+            <section style={s.itemsSection} ref={itemsRef} id="donate">
                 <div style={s.itemsInner}>
                     <h2 style={s.sectionTitle}>
-                        <span>🎁</span> תרומת משחקים וספרים
+                        <span>🎁</span> תרומת ציוד לילדים
                     </h2>
                     <p style={s.sectionSubtitle}>
-                        יש לכם משחקים חדשים בבית? הילדים ישמחו לקבל אותם!
+                        יש לכם ציוד חדש שתרצו לתרום? כל הפריטים חייבים להיות{' '}
+                        <strong>חדשים לגמרי</strong> בשל תקנות בתי החולים.
                     </p>
 
                     <div style={s.itemsGrid}>
@@ -83,7 +126,7 @@ export default function HelpPage() {
 
                     <div style={s.contactBox}>
                         <p style={s.contactText}>
-                            רוצים לתרום משחקים? צרו איתנו קשר ונתאם איסוף!
+                            רוצים לתרום ציוד? צרו איתנו קשר ונתאם!
                         </p>
                         <Link to="/contact" style={s.contactBtn}>📩 צרו קשר</Link>
                     </div>
@@ -120,9 +163,8 @@ const s = {
     title: { color: '#fbbf24', fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: 800, marginBottom: '12px' },
     subtitle: { color: 'rgba(255,255,255,0.8)', fontSize: '1.05rem', lineHeight: 1.7 },
 
-    // Donate
     donateSection: { padding: '0 20px 60px', marginTop: '-20px', position: 'relative', zIndex: 3 },
-    donateInner: { maxWidth: '600px', margin: '0 auto' },
+    donateInner: { maxWidth: '560px', margin: '0 auto' },
     donateCard: {
         background: 'var(--bg-card)', borderRadius: '24px', padding: '40px 32px',
         boxShadow: 'var(--shadow-lg)', textAlign: 'center', display: 'flex', flexDirection: 'column',
@@ -130,39 +172,52 @@ const s = {
     },
     donateTitle: { color: 'var(--royal)', fontSize: '1.5rem', fontWeight: 800, margin: 0 },
     donateText: { color: 'var(--text-soft)', fontSize: '1rem', lineHeight: 1.7, margin: 0 },
-    amountGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', width: '100%', margin: '8px 0' },
-    amountCard: {
-        background: 'var(--royal-pale)', borderRadius: '14px', padding: '16px 12px',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-        border: '2px solid transparent', cursor: 'pointer', transition: 'border-color 0.2s',
-    },
-    amountNumber: { color: 'var(--royal)', fontSize: '1.4rem', fontWeight: 800 },
-    amountDesc: { color: 'var(--text-muted)', fontSize: '0.82rem' },
-    donateBtn: {
+    donateBtnPrimary: {
         background: 'linear-gradient(135deg, #d4a017, #f0c040)', color: '#3b0764',
         textDecoration: 'none', padding: '16px 48px', borderRadius: '14px', fontWeight: 700,
-        fontSize: '1.15rem', boxShadow: '0 4px 20px rgba(212,160,23,0.3)', width: '100%',
+        fontSize: '1.1rem', boxShadow: '0 4px 20px rgba(212,160,23,0.3)', width: '100%',
         display: 'block', textAlign: 'center',
+    },
+    payOption: {
+        width: '100%', display: 'flex', alignItems: 'center', gap: '14px',
+        background: 'var(--royal-pale)', borderRadius: '14px', padding: '14px 20px', textAlign: 'right',
+    },
+    payOptionIcon: { fontSize: '1.6rem', flexShrink: 0 },
+    payOptionLabel: { display: 'block', color: 'var(--royal)', fontSize: '0.95rem', fontWeight: 700 },
+    payOptionValue: { display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '2px' },
+    bankToggle: {
+        background: 'none', border: '2px solid var(--royal-pale)', color: 'var(--royal)',
+        borderRadius: '12px', padding: '10px 20px', fontWeight: 600, cursor: 'pointer',
+        fontSize: '0.92rem', fontFamily: "'Heebo', sans-serif",
+    },
+    bankBox: {
+        width: '100%', background: 'var(--royal-pale)', borderRadius: '14px', padding: '16px 20px',
+        textAlign: 'right',
+    },
+    bankLine: { color: 'var(--royal)', fontSize: '0.93rem', margin: '4px 0', fontWeight: 500 },
+    creditPlaceholder: {
+        display: 'flex', alignItems: 'center', gap: '8px',
+        color: 'var(--text-muted)', fontSize: '0.88rem',
+        border: '1px dashed rgba(15,32,68,0.2)', borderRadius: '10px', padding: '10px 16px',
     },
     donateNote: { color: 'var(--text-muted)', fontSize: '0.82rem', margin: 0 },
 
-    // Items
-    itemsSection: { padding: '60px 20px', background: 'var(--bg-warm)' },
+    itemsSection: { padding: '60px 20px', background: 'var(--bg-warm)', scrollMarginTop: '90px' },
     itemsInner: { maxWidth: '900px', margin: '0 auto', textAlign: 'center' },
     sectionTitle: {
         color: 'var(--royal)', fontSize: 'clamp(1.4rem, 4vw, 1.8rem)', fontWeight: 800,
         marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
     },
-    sectionSubtitle: { color: 'var(--text-muted)', fontSize: '1rem', marginBottom: '32px' },
-    itemsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', marginBottom: '32px' },
+    sectionSubtitle: { color: 'var(--text-muted)', fontSize: '1rem', marginBottom: '32px', lineHeight: 1.7 },
+    itemsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px', marginBottom: '32px' },
     itemCard: {
-        background: 'var(--bg-card)', borderRadius: '16px', padding: '24px 16px',
+        background: 'var(--bg-card)', borderRadius: '16px', padding: '24px 14px',
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
         boxShadow: 'var(--shadow-sm)', border: '1px solid rgba(15,32,68,0.05)',
     },
     itemIcon: { fontSize: '2rem' },
-    itemName: { color: 'var(--text)', fontSize: '0.95rem' },
-    itemDesc: { color: 'var(--text-muted)', fontSize: '0.8rem' },
+    itemName: { color: 'var(--text)', fontSize: '0.92rem' },
+    itemDesc: { color: 'var(--text-muted)', fontSize: '0.78rem', lineHeight: 1.4 },
     contactBox: {
         background: 'var(--bg-card)', borderRadius: '16px', padding: '28px',
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px',
@@ -174,7 +229,6 @@ const s = {
         padding: '12px 28px', borderRadius: '12px', fontWeight: 700,
     },
 
-    // CTA
     ctaSection: {
         background: 'linear-gradient(135deg, #0f2044, #1a3460)', padding: '64px 20px', textAlign: 'center',
     },

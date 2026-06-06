@@ -1,13 +1,33 @@
 ﻿import { useState } from 'react';
 
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3002' : '');
+
 export default function ContactPage() {
     const [form, setForm] = useState({ name: '', phone: '', email: '', message: '' });
     const [submitted, setSubmitted] = useState(false);
+    const [sending, setSending] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // TODO: שליחה ל-API
-        setSubmitted(true);
+        setSending(true);
+        setError('');
+        try {
+            const res = await fetch(`${API_BASE}/api/contact`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(form),
+            });
+            if (res.ok) {
+                setSubmitted(true);
+            } else {
+                setError('שגיאה בשליחה. נסו שוב או פנו אלינו ישירות.');
+            }
+        } catch {
+            setError('לא ניתן להתחבר לשרת. נסו שוב מאוחר יותר.');
+        } finally {
+            setSending(false);
+        }
     };
 
     const updateField = (field, value) => setForm(f => ({ ...f, [field]: value }));
@@ -47,65 +67,35 @@ export default function ContactPage() {
 
             <section style={s.contentSection}>
                 <div style={s.layout}>
-                    {/* טופס */}
                     <form onSubmit={handleSubmit} style={s.formCard}>
                         <h3 style={s.formTitle}>שלחו לנו הודעה</h3>
                         <div style={s.field}>
                             <label style={s.label}>שם *</label>
                             <input style={s.input} required placeholder="השם שלכם"
-                                value={form.name} onChange={e => updateField('name', e.target.value)} />
+                                value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
                         </div>
                         <div style={s.row}>
                             <div style={s.field}>
                                 <label style={s.label}>טלפון</label>
                                 <input style={s.input} type="tel" placeholder="050-1234567"
-                                    value={form.phone} onChange={e => updateField('phone', e.target.value)} />
+                                    value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
                             </div>
                             <div style={s.field}>
                                 <label style={s.label}>אימייל</label>
                                 <input style={s.input} type="email" placeholder="email@example.com"
-                                    value={form.email} onChange={e => updateField('email', e.target.value)} />
+                                    value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
                             </div>
                         </div>
                         <div style={s.field}>
                             <label style={s.label}>הודעה *</label>
                             <textarea style={s.textarea} rows={5} required placeholder="מה תרצו לספר לנו?"
-                                value={form.message} onChange={e => updateField('message', e.target.value)} />
+                                value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} />
                         </div>
-                        <button type="submit" style={s.submitBtn}>📨 שלחו</button>
+                        {error && <p style={s.errorMsg}>{error}</p>}
+                        <button type="submit" style={s.submitBtn} disabled={sending}>
+                            {sending ? 'שולח...' : '📨 שלחו'}
+                        </button>
                     </form>
-
-                    {/* פרטי קשר */}
-                    <div style={s.infoCard}>
-                        <h3 style={s.infoTitle}>דרכים נוספות ליצור קשר</h3>
-                        <div style={s.infoItem}>
-                            <span style={s.infoIcon}>📧</span>
-                            <div>
-                                <strong style={s.infoLabel}>אימייל</strong>
-                                <span style={s.infoValue}>chasdehamelech@gmail.com</span>
-                            </div>
-                        </div>
-                        <div style={s.infoItem}>
-                            <span style={s.infoIcon}>📱</span>
-                            <div>
-                                <strong style={s.infoLabel}>WhatsApp</strong>
-                                {/* TODO: מספר טלפון אמיתי */}
-                                <span style={s.infoValue}>05X-XXXXXXX</span>
-                            </div>
-                        </div>
-                        <div style={s.infoItem}>
-                            <span style={s.infoIcon}>⏰</span>
-                            <div>
-                                <strong style={s.infoLabel}>זמני מענה</strong>
-                                <span style={s.infoValue}>אנחנו מתנדבים — נחזור בהקדם!</span>
-                            </div>
-                        </div>
-
-                        <div style={s.mapPlaceholder}>
-                            <span style={{ fontSize: '2rem' }}>🗺️</span>
-                            <span style={s.mapText}>פעילים ברחבי הארץ</span>
-                        </div>
-                    </div>
                 </div>
             </section>
         </div>
@@ -126,8 +116,7 @@ const s = {
     subtitle: { color: 'rgba(255,255,255,0.8)', fontSize: '1.05rem', lineHeight: 1.7 },
     contentSection: { padding: '40px 20px 60px', background: 'var(--bg-light)' },
     layout: {
-        maxWidth: '1000px', margin: '0 auto', display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '28px', alignItems: 'start',
+        maxWidth: '600px', margin: '0 auto',
     },
     formCard: {
         background: 'var(--bg-card)', borderRadius: '20px', padding: '32px',
@@ -149,7 +138,9 @@ const s = {
     submitBtn: {
         background: 'linear-gradient(135deg, #0f2044, #1a3460)', color: '#fff', border: 'none',
         padding: '16px', borderRadius: '14px', fontWeight: 700, fontSize: '1.05rem', cursor: 'pointer',
+        opacity: 1, transition: 'opacity 0.2s', fontFamily: "'Heebo', sans-serif",
     },
+    errorMsg: { color: '#dc2626', fontSize: '0.9rem', margin: 0, textAlign: 'center' },
     infoCard: {
         background: 'var(--bg-card)', borderRadius: '20px', padding: '32px',
         boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', gap: '20px',

@@ -1,23 +1,43 @@
-﻿// TODO: להחליף בעדויות אמיתיות
-const TESTIMONIALS = [
+﻿import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3002' : '');
+
+const FALLBACK = [
     {
+        id: 'f1',
         name: 'אמא ממחלקת ילדים',
-        text: 'הבן שלי היה מאושפז שבועיים. ביום שהגיעו עם המשחק והספר — זו הייתה הפעם הראשונה שהוא חייך מאז שהגענו.',
+        message: 'הבן שלי היה מאושפז שבועיים. ביום שהגיעו עם המשחק והספר — זו הייתה הפעם הראשונה שהוא חייך מאז שהגענו.',
         hospital: 'בית חולים שניידר',
     },
     {
+        id: 'f2',
         name: 'אבא ממחלקה כירורגית',
-        text: 'אתם לא מבינים מה עשיתם לנו. ילדה בת 6 שבכתה כל הלילה — פתאום שכחה שהיא בבית חולים בגלל משחק קופסה.',
+        message: 'אתם לא מבינים מה עשיתם לנו. ילדה בת 6 שבכתה כל הלילה — פתאום שכחה שהיא בבית חולים בגלל משחק קופסה.',
         hospital: 'בית חולים וולפסון',
     },
     {
+        id: 'f3',
         name: 'אחות בכירה',
-        text: 'אני כבר 15 שנה במקצוע. מעט מאוד אנשים באים ופשוט מחלקים אהבה בלי לבקש כלום בחזרה. תודה.',
+        message: 'אני כבר 15 שנה במקצוע. מעט מאוד אנשים באים ופשוט מחלקים אהבה בלי לבקש כלום בחזרה. תודה.',
         hospital: 'בית חולים רמב"ם',
     },
 ];
 
 export default function Testimonials() {
+    const [items, setItems] = useState(FALLBACK);
+
+    useEffect(() => {
+        fetch(`${API_BASE}/api/thank-you?limit=3`)
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (data && Array.isArray(data) && data.length > 0) {
+                    setItems(data);
+                }
+            })
+            .catch(() => {});
+    }, []);
+
     return (
         <section style={s.section}>
             <div style={s.inner}>
@@ -28,21 +48,26 @@ export default function Testimonials() {
                 <p style={s.subtitle}>המילים שמחממות לנו את הלב</p>
 
                 <div style={s.grid}>
-                    {TESTIMONIALS.map((t, i) => (
-                        <div key={i} style={s.card}>
+                    {items.slice(0, 3).map((t) => (
+                        <div key={t.id} style={s.card}>
                             <div style={s.quoteIcon}>&ldquo;</div>
-                            <p style={s.text}>{t.text}</p>
+                            <p style={s.text}>{t.message || t.text}</p>
                             <div style={s.footer}>
                                 <div style={s.avatar}>
-                                    {t.name.charAt(0)}
+                                    {(t.name || '?').charAt(0)}
                                 </div>
                                 <div>
                                     <strong style={s.name}>{t.name}</strong>
-                                    <span style={s.hospital}>{t.hospital}</span>
+                                    {t.hospital && <span style={s.hospital}>{t.hospital}</span>}
                                 </div>
                             </div>
                         </div>
                     ))}
+                </div>
+
+                <div style={s.ctas}>
+                    <Link to="/thank-you" style={s.ctaPrimary}>💬 לקרוא עוד</Link>
+                    <Link to="/thank-you#write" style={s.ctaSecondary}>✍️ כתבו גם אתם</Link>
                 </div>
             </div>
         </section>
@@ -141,5 +166,30 @@ const s = {
         display: 'block',
         color: 'var(--text-muted)',
         fontSize: '0.82rem',
+    },
+    ctas: {
+        marginTop: '40px',
+        display: 'flex',
+        gap: '14px',
+        justifyContent: 'center',
+        flexWrap: 'wrap',
+    },
+    ctaPrimary: {
+        background: 'linear-gradient(135deg, #0f2044, #1a3460)',
+        color: '#fff',
+        textDecoration: 'none',
+        padding: '12px 30px',
+        borderRadius: '12px',
+        fontWeight: 700,
+        fontSize: '0.95rem',
+    },
+    ctaSecondary: {
+        background: 'var(--royal-pale)',
+        color: 'var(--royal)',
+        textDecoration: 'none',
+        padding: '12px 30px',
+        borderRadius: '12px',
+        fontWeight: 700,
+        fontSize: '0.95rem',
     },
 };

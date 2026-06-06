@@ -76,3 +76,47 @@ CREATE TABLE IF NOT EXISTS donations (
     note        TEXT DEFAULT '',
     created_at  TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- פוסטים לגלריה
+CREATE TABLE IF NOT EXISTS gallery_posts (
+    id          SERIAL PRIMARY KEY,
+    title       TEXT NOT NULL DEFAULT '',
+    body        TEXT DEFAULT '',
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- קישור מדיה לפוסט
+ALTER TABLE media ADD COLUMN IF NOT EXISTS post_id INTEGER REFERENCES gallery_posts(id) ON DELETE SET NULL;
+
+-- עלוני שבת
+CREATE TABLE IF NOT EXISTS newsletters (
+    id            SERIAL PRIMARY KEY,
+    title         TEXT NOT NULL DEFAULT '',
+    parasha_name  TEXT DEFAULT '',
+    filename      TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    file_type     TEXT DEFAULT 'application/pdf',
+    week_of       DATE,
+    created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- רשימת קניות
+CREATE TABLE IF NOT EXISTS shopping_list (
+    id          SERIAL PRIMARY KEY,
+    name        TEXT NOT NULL,
+    quantity    TEXT DEFAULT '',
+    done        BOOLEAN DEFAULT FALSE,
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- הוספת עמודות לקיר תודות
+ALTER TABLE thank_you_notes ADD COLUMN IF NOT EXISTS email TEXT DEFAULT '';
+ALTER TABLE thank_you_notes ADD COLUMN IF NOT EXISTS photo_filename TEXT DEFAULT '';
+
+-- יומן פעילות
+CREATE TABLE IF NOT EXISTS activity_log (
+    id          SERIAL PRIMARY KEY,
+    action      TEXT NOT NULL,
+    details     TEXT DEFAULT '',
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);

@@ -9,6 +9,7 @@ const NAV_LINKS = [
     { to: '/gallery',   label: 'גלריה',      icon: '📸' },
     { to: '/thank-you', label: 'קיר תודה',   icon: '💬' },
     { to: '/help',      label: 'איך עוזרים', icon: '💝' },
+    { to: '/parasha',   label: 'עלון השבוע', icon: '📖' },
     { to: '/volunteer', label: 'מתנדבים',    icon: '🤝' },
     { to: '/contact',   label: 'צור קשר',    icon: '📩' },
 ];
@@ -64,6 +65,8 @@ export default function Navbar() {
 
     return (
         <>
+            {/* בס"ד */}
+            <div style={s.bsd} aria-hidden="true">בס&quot;ד</div>
             <nav style={{
                 ...s.nav,
                 background: scrolled
@@ -144,15 +147,28 @@ export default function Navbar() {
             )}
 
             {/* spacer כדי שהתוכן לא יתחבא מתחת לנאב */}
-            <div style={{ height: '64px' }} />
+            <div style={{ height: '86px' }} />
         </>
     );
 }
 
 const s = {
-    nav: {
+    bsd: {
         position: 'fixed',
         top: 0, right: 0, left: 0,
+        zIndex: 1001,
+        textAlign: 'left',
+        padding: '2px 16px',
+        fontSize: '0.7rem',
+        color: 'rgba(255,255,255,0.35)',
+        background: '#0a1830',
+        fontFamily: "'Heebo', sans-serif",
+        letterSpacing: '1px',
+        direction: 'rtl',
+    },
+    nav: {
+        position: 'fixed',
+        top: '22px', right: 0, left: 0,
         zIndex: 1000,
         direction: 'rtl',
         fontFamily: "'Heebo', sans-serif",
