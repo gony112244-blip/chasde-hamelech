@@ -11,9 +11,8 @@ export default function GalleryPreview() {
         fetch(`${API_BASE}/api/media?limit=12`)
             .then(r => r.ok ? r.json() : [])
             .then(data => {
-                const photos = (Array.isArray(data) ? data : data.items || [])
-                    .filter(m => m.type === 'image' || m.media_type === 'image');
-                if (photos.length > 0) setItems(photos);
+                const all = Array.isArray(data) ? data : data.items || [];
+                if (all.length > 0) setItems(all);
             })
             .catch(() => {});
     }, []);
@@ -50,12 +49,24 @@ export default function GalleryPreview() {
 
                 {/* מסך ראשי */}
                 <div style={s.slideshowWrap}>
-                    <img
-                        src={src}
-                        alt={current.caption || current.description || 'תמונה מהגלריה'}
-                        style={s.mainImg}
-                        key={src}
-                    />
+                    {current.type === 'video' ? (
+                        <video
+                            src={src}
+                            style={s.mainImg}
+                            key={src}
+                            controls
+                            muted
+                            playsInline
+                            preload="metadata"
+                        />
+                    ) : (
+                        <img
+                            src={src}
+                            alt={current.caption || current.description || 'תמונה מהגלריה'}
+                            style={s.mainImg}
+                            key={src}
+                        />
+                    )}
                     {(current.caption || current.description) && (
                         <div style={s.caption}>{current.caption || current.description}</div>
                     )}

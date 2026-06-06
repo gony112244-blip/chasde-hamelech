@@ -112,6 +112,7 @@ CREATE TABLE IF NOT EXISTS shopping_list (
 -- הוספת עמודות לקיר תודות
 ALTER TABLE thank_you_notes ADD COLUMN IF NOT EXISTS email TEXT DEFAULT '';
 ALTER TABLE thank_you_notes ADD COLUMN IF NOT EXISTS photo_filename TEXT DEFAULT '';
+ALTER TABLE thank_you_notes ADD COLUMN IF NOT EXISTS hospital TEXT DEFAULT '';
 
 -- יומן פעילות
 CREATE TABLE IF NOT EXISTS activity_log (

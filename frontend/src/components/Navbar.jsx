@@ -16,7 +16,6 @@ const NAV_LINKS = [
 
 export default function Navbar() {
     const [menuOpen, setMenuOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
     const [isMobile, setIsMobile] = useState(
         typeof window !== 'undefined' ? window.innerWidth <= MOBILE_BREAKPOINT : false
     );
@@ -37,18 +36,11 @@ export default function Navbar() {
     }
 
     useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 10);
         const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
         const onMQ = (e) => setIsMobile(e.matches);
-
-        window.addEventListener('scroll', onScroll, { passive: true });
         mq.addEventListener('change', onMQ);
         setIsMobile(mq.matches);
-
-        return () => {
-            window.removeEventListener('scroll', onScroll);
-            mq.removeEventListener('change', onMQ);
-        };
+        return () => mq.removeEventListener('change', onMQ);
     }, []);
 
     // סגירת תפריט בניווט
@@ -65,18 +57,7 @@ export default function Navbar() {
 
     return (
         <>
-            {/* בס"ד */}
-            <div style={s.bsd} aria-hidden="true">בס&quot;ד</div>
-            <nav style={{
-                ...s.nav,
-                background: scrolled
-                    ? 'rgba(15, 32, 68, 0.97)'
-                    : 'linear-gradient(135deg, #0f2044 0%, #1a3460 100%)',
-                boxShadow: scrolled
-                    ? '0 4px 30px rgba(15, 32, 68, 0.3)'
-                    : '0 1px 0 rgba(255,255,255,0.08)',
-                backdropFilter: scrolled ? 'blur(12px)' : 'none',
-            }} role="navigation" aria-label="ניווט ראשי">
+            <nav style={s.nav} role="navigation" aria-label="ניווט ראשי">
                 <div style={s.inner}>
                     {/* לוגו */}
                     <Link to="/" style={s.logoLink} aria-label="חסדי המלך — דף הבית" onClick={handleLogoTap}>
@@ -146,33 +127,17 @@ export default function Navbar() {
                 />
             )}
 
-            {/* spacer כדי שהתוכן לא יתחבא מתחת לנאב */}
-            <div style={{ height: '86px' }} />
+        
         </>
     );
 }
 
 const s = {
-    bsd: {
-        position: 'fixed',
-        top: 0, right: 0, left: 0,
-        zIndex: 1001,
-        textAlign: 'left',
-        padding: '2px 16px',
-        fontSize: '0.7rem',
-        color: 'rgba(255,255,255,0.35)',
-        background: '#0a1830',
-        fontFamily: "'Heebo', sans-serif",
-        letterSpacing: '1px',
-        direction: 'rtl',
-    },
     nav: {
-        position: 'fixed',
-        top: '22px', right: 0, left: 0,
+        background: 'linear-gradient(135deg, #0f2044 0%, #1a3460 100%)',
         zIndex: 1000,
         direction: 'rtl',
         fontFamily: "'Heebo', sans-serif",
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     },
     inner: {
         maxWidth: '1100px',
