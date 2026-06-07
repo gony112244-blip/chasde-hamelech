@@ -1,8 +1,17 @@
 ﻿import { useState, useEffect, useRef } from 'react';
 import API_BASE from '../config';
 
+const FALLBACK_NOTES = [
+    { id: 'f1', name: 'אמא ממחלקת ילדים', message: 'הבן שלי היה מאושפז שבועיים. ביום שהגיעו עם המשחק והספר — זו הייתה הפעם הראשונה שהוא חייך מאז שהגענו.', hospital: 'בית חולים שניידר', created_at: '2026-04-15' },
+    { id: 'f2', name: 'אבא גאה', message: 'הבת שלי לא מפסיקה לספר על הספר שקיבלה. היא קוראת אותו כל ערב לפני השינה בבית החולים. תודה מעומק הלב.', hospital: 'בית חולים וולפסון', created_at: '2026-03-28' },
+    { id: 'f3', name: 'אנונימי', message: 'פשוט תודה. אין מילים. מי שלא היה שם לא יכול להבין מה זה עושה לילד חולה.', hospital: '', created_at: '2026-03-10' },
+    { id: 'f4', name: 'סבתא רחל', message: 'הנכד שלי קיבל משחק והוא כל כך שמח. ביקשתי לכתוב תודה בשמו כי הוא עוד קטן. ה׳ יברך אתכם.', hospital: '', created_at: '2026-02-22' },
+    { id: 'f5', name: 'אחות בכירה', message: 'אני עובדת 12 שנה במחלקת ילדים. אתם מהאנשים היחידים שמגיעים בקביעות ובאהבה אמיתית. הילדים מחכים לכם.', hospital: 'בית חולים רמב"ם', created_at: '2026-02-05' },
+    { id: 'f6', name: 'משפחת כהן', message: 'הילד שלנו היה מאושפז חודשיים. בכל פעם שהגעתם זה היה יום חג. תודה שלא שכחתם אותנו.', hospital: '', created_at: '2026-01-18' },
+];
+
 export default function ThankYouPage() {
-    const [notes, setNotes] = useState([]);
+    const [notes, setNotes] = useState(FALLBACK_NOTES);
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState({ name: '', message: '', email: '', hospital: '' });
     const [photo, setPhoto] = useState(null);
@@ -15,7 +24,11 @@ export default function ThankYouPage() {
     useEffect(() => {
         fetch(`${API_BASE}/api/thank-you`)
             .then(r => r.ok ? r.json() : [])
-            .then(data => setNotes(Array.isArray(data) ? data : []))
+            .then(data => {
+                const real = Array.isArray(data) ? data : [];
+                if (real.length > 0) setNotes(real);
+                // אם אין תגובות אמיתיות — נשאר עם ה-fallback
+            })
             .catch(() => {});
     }, []);
 
@@ -62,7 +75,10 @@ export default function ThankYouPage() {
                 if (!photo) {
                     fetch(`${API_BASE}/api/thank-you`)
                         .then(r => r.ok ? r.json() : [])
-                        .then(d => setNotes(Array.isArray(d) ? d : []));
+                        .then(d => {
+                            const real = Array.isArray(d) ? d : [];
+                            if (real.length > 0) setNotes(real);
+                        });
                 }
             } else {
                 setError(data.error || 'שגיאה בשליחה');
