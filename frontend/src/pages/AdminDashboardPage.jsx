@@ -42,6 +42,14 @@ function ContactsTab({ token }) {
     const [sending, setSending] = useState(false);
     const [msg, setMsg] = useState('');
 
+    async function deleteContact(id) {
+        if (!window.confirm('למחוק את הפנייה?')) return;
+        await fetch(`${API_BASE}/api/admin/contacts/${id}`, {
+            method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+        });
+        reload();
+    }
+
     async function sendReply(id) {
         if (!replyText.trim()) return;
         setSending(true);
@@ -124,6 +132,7 @@ function ContactsTab({ token }) {
                                 💬 WhatsApp
                             </a>
                         )}
+                        <button style={s.rejectBtn} onClick={() => deleteContact(c.id)}>🗑️ מחק</button>
                     </div>
                 </div>
             ))}
@@ -137,6 +146,14 @@ function VolunteersTab({ token }) {
     const [editNotes, setEditNotes] = useState(null);
     const [noteText, setNoteText] = useState('');
     const [savingNote, setSavingNote] = useState(false);
+
+    async function deleteVolunteer(id) {
+        if (!window.confirm('למחוק את המתנדב?')) return;
+        await fetch(`${API_BASE}/api/admin/volunteers/${id}`, {
+            method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+        });
+        reload();
+    }
 
     async function saveNote(id) {
         setSavingNote(true);
@@ -194,6 +211,7 @@ function VolunteersTab({ token }) {
                                     target="_blank" rel="noopener noreferrer" style={s.waBtn}>
                                     💬 WhatsApp
                                 </a>
+                                <button style={s.rejectBtn} onClick={() => deleteVolunteer(v.id)}>🗑️ מחק</button>
                             </div>
                         </>
                     )}
@@ -265,10 +283,15 @@ function ThankYouTab({ token }) {
                     <div style={s.list}>
                         {approved.map(n => (
                             <div key={n.id} style={{ ...s.card, borderRight: '4px solid #10b981' }}>
+                                {n.photo_filename && (
+                                    <img src={`${API_BASE}/uploads/${n.photo_filename}`}
+                                        alt="תמונה" style={s.notePhoto} />
+                                )}
                                 <div style={s.cardTop}>
                                     <strong style={s.name}>{n.display_name}</strong>
                                     <span style={s.date}>{fmt(n.created_at)}</span>
                                 </div>
+                                {n.hospital && <div style={s.meta}><span>🏥 {n.hospital}</span></div>}
                                 <p style={s.msg}>{n.message}</p>
                                 <div style={s.actions}>
                                     <button style={s.rejectBtn} onClick={() => setStatus(n.id, 'rejected')}>↩️ בטל אישור</button>
@@ -507,6 +530,11 @@ function StatsTab({ token }) {
                                     <span style={s.badge}>{methodLabel[d.method] || d.method}</span>
                                     {d.note && <span>{d.note}</span>}
                                 </div>
+                                <button style={{ ...s.rejectBtn, marginTop: '8px' }} onClick={async () => {
+                                    if (!window.confirm('למחוק תרומה זו?')) return;
+                                    await fetch(`${API_BASE}/api/admin/donations/${d.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+                                    reloadDonations();
+                                }}>🗑️ מחק</button>
                             </div>
                         ))}
                     </div>
@@ -892,7 +920,12 @@ function MediaTab({ token }) {
                                 {data.map(item => (
                                     <div key={item.id} style={s.mediaCard}>
                                         {item.type === 'video'
-                                            ? <video src={`${API_BASE}/uploads/${item.filename}`} style={s.mediaThumbnail} />
+                                            ? (
+                                                <div style={{ ...s.mediaThumbnail, background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '4px' }}>
+                                                    <span style={{ fontSize: '2rem' }}>🎬</span>
+                                                    <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.72rem' }}>סרטון</span>
+                                                </div>
+                                            )
                                             : <img src={`${API_BASE}/uploads/${item.filename}`} alt={item.title} style={s.mediaThumbnail} />
                                         }
                                         <div style={s.mediaInfo}>

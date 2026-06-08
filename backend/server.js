@@ -198,7 +198,7 @@ app.post('/api/contact', async (req, res) => {
             'INSERT INTO contacts (name, phone, email, message) VALUES ($1, $2, $3, $4)',
             [name.trim(), phone?.trim() || '', email?.trim() || '', message.trim()]
         );
-        res.status(201).json({ ok: true, message: 'ההודעה נשלחה! נחזור אליכם בהקדם.' });
+    res.status(201).json({ ok: true, message: 'ההודעה נשלחה! נחזור אליכם בהקדם.' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'שגיאת שרת' });
@@ -216,7 +216,7 @@ app.post('/api/volunteer', async (req, res) => {
             'INSERT INTO volunteers (name, phone, email, city, has_car, notes) VALUES ($1, $2, $3, $4, $5, $6)',
             [name.trim(), phone.trim(), email?.trim() || '', city.trim(), !!hasCar, message?.trim() || '']
         );
-        res.status(201).json({ ok: true, message: 'ברוכים הבאים למשפחת חסדי המלך! ניצור קשר בהקדם.' });
+    res.status(201).json({ ok: true, message: 'ברוכים הבאים למשפחת חסדי המלך! ניצור קשר בהקדם.' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'שגיאת שרת' });
@@ -732,6 +732,42 @@ app.post('/api/admin/activity-log', adminAuth, async (req, res) => {
             [action.trim(), details?.trim() || '']
         );
         res.status(201).json({ ok: true, entry: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'שגיאת שרת' });
+    }
+});
+
+// מחיקת פנייה (Admin)
+app.delete('/api/admin/contacts/:id', adminAuth, async (req, res) => {
+    try {
+        const result = await pool.query('DELETE FROM contacts WHERE id=$1 RETURNING id', [req.params.id]);
+        if (!result.rows.length) return res.status(404).json({ error: 'לא נמצא' });
+        res.json({ ok: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'שגיאת שרת' });
+    }
+});
+
+// מחיקת מתנדב (Admin)
+app.delete('/api/admin/volunteers/:id', adminAuth, async (req, res) => {
+    try {
+        const result = await pool.query('DELETE FROM volunteers WHERE id=$1 RETURNING id', [req.params.id]);
+        if (!result.rows.length) return res.status(404).json({ error: 'לא נמצא' });
+        res.json({ ok: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'שגיאת שרת' });
+    }
+});
+
+// מחיקת תרומה (Admin)
+app.delete('/api/admin/donations/:id', adminAuth, async (req, res) => {
+    try {
+        const result = await pool.query('DELETE FROM donations WHERE id=$1 RETURNING id', [req.params.id]);
+        if (!result.rows.length) return res.status(404).json({ error: 'לא נמצא' });
+        res.json({ ok: true });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'שגיאת שרת' });
