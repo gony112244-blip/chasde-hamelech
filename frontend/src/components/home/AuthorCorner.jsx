@@ -20,7 +20,10 @@ function FounderBlock({ imgSrc, imgAlt, imgPosition, borderColor, name, children
         <div style={{ ...s.founderRow, flexDirection: isMobile ? 'column' : 'row' }}>
             <div style={s.imageWrap}>
                 <div style={{ ...s.imageFrame, borderColor }}>
-                    <img src={imgSrc} alt={imgAlt} style={{ ...s.profileImg, objectPosition: imgPosition }} />
+                    {imgSrc
+                        ? <img src={imgSrc} alt={imgAlt} style={{ ...s.profileImg, objectPosition: imgPosition }} />
+                        : <div style={s.photoPlaceholder}><span style={{ fontSize: '2.5rem' }}>🤝</span></div>
+                    }
                 </div>
                 <p style={s.personName}>{name}</p>
             </div>
@@ -64,6 +67,30 @@ export default function AuthorCorner() {
                     <div style={{ ...s.quote, borderColor: 'rgba(147,197,253,0.25)', background: 'rgba(147,197,253,0.08)' }}>
                         <span style={{ ...s.quoteIcon, color: '#93c5fd' }}>&ldquo;</span>
                         <p style={{ ...s.quoteText, color: '#93c5fd' }}>ילד אחד שמחייך — שווה הכל</p>
+                    </div>
+                </FounderBlock>
+
+                <div style={{ ...s.divider, margin: '40px 0' }} />
+
+                {/* ── אביתר — שני ── */}
+                <FounderBlock
+                    imgSrc={null}
+                    imgAlt="אביתר"
+                    imgPosition="center top"
+                    borderColor="#fbbf24"
+                    name="אביתר"
+                >
+                    <p style={s.text}>
+                        לפני כ-7 שנים, ביום פורים, חשבתי על כל הילדים המאושפזים שלא יחגגו כמו כולם —
+                        וזה ציער אותי מאוד. התארגנתי עם כמה חברים, קנינו ממתקים וצעצועים ויצאנו לשמח אותם.
+                    </p>
+                    <p style={s.text}>
+                        ראיתי כמה זה מנתק אותם מהכאב, כמה זה משמח את ההורים ואפילו את הצוות הרפואי —
+                        וקיבלתי על עצמי שכל עוד אוכל, אצא לשמח את הילדים, לא רק בפורים.
+                    </p>
+                    <div style={s.quote}>
+                        <span style={s.quoteIcon}>&ldquo;</span>
+                        <p style={s.quoteText}>ברוך ה׳, זכיתי מאז לצאת כמעט כל שבוע — תודה על הזכות</p>
                     </div>
                 </FounderBlock>
 
