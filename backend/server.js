@@ -97,6 +97,25 @@ const transporter = nodemailer.createTransport({
 });
 
 // =====================
+// שליחת מייל פנימי למנהל
+// =====================
+const ADMIN_EMAIL = process.env.EMAIL_USER || '';
+
+async function notifyAdmin(subject, html) {
+    if (!ADMIN_EMAIL || !process.env.EMAIL_PASS) return;
+    try {
+        await transporter.sendMail({
+            from: `"חסדי המלך" <${ADMIN_EMAIL}>`,
+            to: ADMIN_EMAIL,
+            subject,
+            html,
+        });
+    } catch (e) {
+        console.error('notifyAdmin error:', e.message);
+    }
+}
+
+// =====================
 // Middleware — מעקב ביקורים
 // =====================
 async function logVisit(req, res, next) {
@@ -198,6 +217,17 @@ app.post('/api/contact', async (req, res) => {
             'INSERT INTO contacts (name, phone, email, message) VALUES ($1, $2, $3, $4)',
             [name.trim(), phone?.trim() || '', email?.trim() || '', message.trim()]
         );
+        notifyAdmin('📩 פנייה חדשה באתר חסדי המלך', `
+            <div dir="rtl" style="font-family:Arial;padding:20px">
+                <h2 style="color:#0f2044">📩 פנייה חדשה!</h2>
+                <p><strong>שם:</strong> ${name.trim()}</p>
+                ${phone ? `<p><strong>טלפון:</strong> ${phone}</p>` : ''}
+                ${email ? `<p><strong>מייל:</strong> ${email}</p>` : ''}
+                <p><strong>הודעה:</strong></p>
+                <blockquote style="border-right:4px solid #0f2044;padding:12px;background:#f8fafe">${message.trim()}</blockquote>
+                <a href="https://chasde-hamelech.org.il/admin/dashboard" style="background:#0f2044;color:#fbbf24;padding:10px 20px;border-radius:8px;text-decoration:none">כנס ללוח הניהול →</a>
+            </div>
+        `);
     res.status(201).json({ ok: true, message: 'ההודעה נשלחה! נחזור אליכם בהקדם.' });
     } catch (err) {
         console.error(err);
@@ -216,6 +246,18 @@ app.post('/api/volunteer', async (req, res) => {
             'INSERT INTO volunteers (name, phone, email, city, has_car, notes) VALUES ($1, $2, $3, $4, $5, $6)',
             [name.trim(), phone.trim(), email?.trim() || '', city.trim(), !!hasCar, message?.trim() || '']
         );
+        notifyAdmin('🤝 מתנדב חדש נרשם באתר חסדי המלך', `
+            <div dir="rtl" style="font-family:Arial;padding:20px">
+                <h2 style="color:#0f2044">🤝 מתנדב חדש נרשם!</h2>
+                <p><strong>שם:</strong> ${name.trim()}</p>
+                <p><strong>טלפון:</strong> ${phone.trim()}</p>
+                <p><strong>עיר:</strong> ${city.trim()}</p>
+                ${email ? `<p><strong>מייל:</strong> ${email}</p>` : ''}
+                <p><strong>יש רכב:</strong> ${hasCar ? 'כן' : 'לא'}</p>
+                ${message ? `<p><strong>הערה:</strong> ${message}</p>` : ''}
+                <a href="https://chasde-hamelech.org.il/admin/dashboard" style="background:#0f2044;color:#fbbf24;padding:10px 20px;border-radius:8px;text-decoration:none">כנס ללוח הניהול →</a>
+            </div>
+        `);
     res.status(201).json({ ok: true, message: 'ברוכים הבאים למשפחת חסדי המלך! ניצור קשר בהקדם.' });
     } catch (err) {
         console.error(err);

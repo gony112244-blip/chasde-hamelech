@@ -1,5 +1,6 @@
 ﻿import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import PageMeta from '../components/PageMeta';
 
 const PAYBOX_LINK = 'https://payboxapp.page.link/WXV7'; // יש לעדכן בקישור אמיתי
 
@@ -37,6 +38,7 @@ export default function HelpPage() {
 
     return (
         <div style={s.page}>
+            <PageMeta title="איך עוזרים" description="תרמו כסף, משחקים או ספרים לילדים מאושפזים. כל תרומה — גדולה או קטנה — עושה את ההבדל." path="/help" />
             {/* Header */}
             <section style={s.header}>
                 <div style={s.headerOrb} />

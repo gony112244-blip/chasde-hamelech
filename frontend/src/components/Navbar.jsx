@@ -19,6 +19,8 @@ export default function Navbar() {
     const [isMobile, setIsMobile] = useState(
         typeof window !== 'undefined' ? window.innerWidth <= MOBILE_BREAKPOINT : false
     );
+    const [visible, setVisible] = useState(true);
+    const lastScrollY = useRef(0);
     const location = useLocation();
     const navigate = useNavigate();
     const tapCount = useRef(0);
@@ -43,6 +45,19 @@ export default function Navbar() {
         return () => mq.removeEventListener('change', onMQ);
     }, []);
 
+    // smart hide/show on scroll
+    useEffect(() => {
+        function onScroll() {
+            const y = window.scrollY;
+            if (y < 60) { setVisible(true); }
+            else if (y > lastScrollY.current + 8) { setVisible(false); setMenuOpen(false); }
+            else if (y < lastScrollY.current - 4) { setVisible(true); }
+            lastScrollY.current = y;
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+
     // סגירת תפריט בניווט
     useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
@@ -57,7 +72,13 @@ export default function Navbar() {
 
     return (
         <>
-            <nav style={s.nav} role="navigation" aria-label="ניווט ראשי">
+            <nav style={{
+                ...s.nav,
+                position: 'sticky',
+                top: 0,
+                transform: visible ? 'translateY(0)' : 'translateY(-100%)',
+                transition: 'transform 0.3s ease',
+            }} role="navigation" aria-label="ניווט ראשי">
                 <div style={s.inner}>
                     {/* לוגו */}
                     <Link to="/" style={s.logoLink} aria-label="חסדי המלך — דף הבית" onClick={handleLogoTap}>

@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect, useRef } from 'react';
 import API_BASE from '../config';
+import PageMeta from '../components/PageMeta';
 
 const FALLBACK_NOTES = [
     { id: 'f1', name: 'אמא ממחלקת ילדים', message: 'הבן שלי היה מאושפז שבועיים. ביום שהגיעו עם המשחק והספר — זו הייתה הפעם הראשונה שהוא חייך מאז שהגענו.', hospital: 'בית חולים שניידר', created_at: '2026-04-15' },
@@ -92,6 +93,7 @@ export default function ThankYouPage() {
 
     return (
         <div style={s.page}>
+            <PageMeta title="קיר התודה" description="הודעות תודה מהורים וילדים שפגשנו בבתי החולים. קראו את הסיפורים המרגשים וכתבו גם אתם." path="/thank-you" />
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={s.headerContent}>

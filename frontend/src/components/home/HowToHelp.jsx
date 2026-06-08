@@ -1,4 +1,5 @@
 ﻿import { Link } from 'react-router-dom';
+import { useReveal } from '../../hooks/useReveal';
 
 async function handleShare() {
     const shareData = {
@@ -19,8 +20,9 @@ async function handleShare() {
 }
 
 export default function HowToHelp() {
+    const ref = useReveal();
     return (
-        <section style={s.section}>
+        <section ref={ref} className="reveal" style={s.section}>
             <div style={s.inner}>
                 <h2 style={s.title}>
                     <span>💝</span>

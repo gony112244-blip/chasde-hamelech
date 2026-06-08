@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import API_BASE from '../config';
+import PageMeta from '../components/PageMeta';
 
 export default function ParashaPage() {
     const [latest, setLatest] = useState(null);
@@ -26,6 +27,7 @@ export default function ParashaPage() {
 
     return (
         <div style={s.page}>
+            <PageMeta title="עלון השבוע" description="עלון פרשת שבוע מחסדי המלך — לקרוא, להדפיס ולשים בבית חולים. מתעדכן מרביעי אחר הצהריים." path="/parasha" />
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={{ position: 'relative', zIndex: 2 }}>

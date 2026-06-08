@@ -1,4 +1,5 @@
 ﻿import { useState } from 'react';
+import PageMeta from '../components/PageMeta';
 
 export default function VolunteerPage() {
     const [form, setForm] = useState({
@@ -37,6 +38,7 @@ export default function VolunteerPage() {
 
     return (
         <div style={s.page}>
+            <PageMeta title="הצטרפו כמתנדבים" description="רוצים לחלק שמחה לילדים מאושפזים? הצטרפו לצוות המתנדבים של חסדי המלך ועשו את ההבדל." path="/volunteer" />
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={{ position: 'relative', zIndex: 2 }}>

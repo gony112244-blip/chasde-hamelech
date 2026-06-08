@@ -1,4 +1,5 @@
 ﻿import { useState } from 'react';
+import PageMeta from '../components/PageMeta';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3002' : '');
 
@@ -54,6 +55,7 @@ export default function ContactPage() {
 
     return (
         <div style={s.page}>
+            <PageMeta title="צור קשר" description="יש לכם שאלה, הצעה או רצון לשתף פעולה? אנחנו כאן. כתבו לנו ונחזור אליכם בהקדם." path="/contact" />
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={{ position: 'relative', zIndex: 2 }}>
