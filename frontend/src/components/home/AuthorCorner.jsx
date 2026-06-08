@@ -67,30 +67,6 @@ export default function AuthorCorner() {
                     </div>
                 </FounderBlock>
 
-                <div style={{ ...s.divider, margin: '40px 0' }} />
-
-                {/* ── אביתר — שני ── */}
-                <FounderBlock
-                    imgSrc="/avitar.png"
-                    imgAlt="אביתר"
-                    imgPosition="center top"
-                    borderColor="#fbbf24"
-                    name="אביתר"
-                >
-                    <p style={s.text}>
-                        לפני כ-7 שנים, ביום פורים, חשבתי על כל הילדים המאושפזים שלא יחגגו כמו כולם —
-                        וזה ציער אותי מאוד. התארגנתי עם כמה חברים, קנינו ממתקים וצעצועים ויצאנו לשמח אותם.
-                    </p>
-                    <p style={s.text}>
-                        ראיתי כמה זה מנתק אותם מהכאב, כמה זה משמח את ההורים ואפילו את הצוות הרפואי —
-                        וקיבלתי על עצמי שכל עוד אוכל, אצא לשמח את הילדים, לא רק בפורים.
-                    </p>
-                    <div style={s.quote}>
-                        <span style={s.quoteIcon}>&ldquo;</span>
-                        <p style={s.quoteText}>ברוך ה׳, זכיתי מאז לצאת כמעט כל שבוע — תודה על הזכות</p>
-                    </div>
-                </FounderBlock>
-
                 {/* ── מפריד ── */}
                 <div style={s.divider} />
 

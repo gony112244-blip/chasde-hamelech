@@ -1,37 +1,81 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import API_BASE from '../../config';
+
+const INTERVAL = 4000;
+const FADE_MS = 600;
 
 export default function GalleryPreview() {
     const [items, setItems] = useState([]);
     const [active, setActive] = useState(0);
+    const [fade, setFade] = useState(true);
+    const [musicOn, setMusicOn] = useState(false);
     const timerRef = useRef(null);
+    const audioRef = useRef(null);
 
     useEffect(() => {
-        fetch(`${API_BASE}/api/media?limit=12`)
+        fetch(`${API_BASE}/api/media?limit=20`)
             .then(r => r.ok ? r.json() : [])
             .then(data => {
                 const all = Array.isArray(data) ? data : data.items || [];
-                if (all.length > 0) setItems(all);
+                const photos = all.filter(m => m.type === 'photo');
+                if (photos.length > 0) setItems(photos);
             })
             .catch(() => {});
     }, []);
 
-    // החלפה אוטומטית כל 3 שניות
+    // preload images
+    useEffect(() => {
+        items.forEach(item => {
+            const img = new Image();
+            img.src = item.url || `${API_BASE}/uploads/${item.filename}`;
+        });
+    }, [items]);
+
+    const goTo = useCallback((idx) => {
+        setFade(false);
+        setTimeout(() => {
+            setActive(idx);
+            setFade(true);
+        }, FADE_MS / 2);
+    }, []);
+
+    const next = useCallback(() => {
+        goTo(items.length > 0 ? (active + 1) % items.length : 0);
+    }, [active, items.length, goTo]);
+
+    const prev = useCallback(() => {
+        goTo(items.length > 0 ? (active - 1 + items.length) % items.length : 0);
+    }, [active, items.length, goTo]);
+
+    // auto-advance
     useEffect(() => {
         if (items.length <= 1) return;
-        timerRef.current = setInterval(() => {
-            setActive(a => (a + 1) % items.length);
-        }, 3000);
+        timerRef.current = setInterval(next, INTERVAL);
         return () => clearInterval(timerRef.current);
-    }, [items.length]);
+    }, [items.length, next]);
 
-    function goTo(idx) {
-        setActive(idx);
+    function resetTimer() {
         clearInterval(timerRef.current);
-        timerRef.current = setInterval(() => {
-            setActive(a => (a + 1) % items.length);
-        }, 3000);
+        timerRef.current = setInterval(next, INTERVAL);
+    }
+
+    function handlePrev() { prev(); resetTimer(); }
+    function handleNext() { next(); resetTimer(); }
+    function handleDot(i) { goTo(i); resetTimer(); }
+
+    function toggleMusic() {
+        if (!audioRef.current) {
+            audioRef.current = new Audio('https://cdn.pixabay.com/audio/2024/11/28/audio_3a59e4e02a.mp3');
+            audioRef.current.loop = true;
+            audioRef.current.volume = 0.25;
+        }
+        if (musicOn) {
+            audioRef.current.pause();
+        } else {
+            audioRef.current.play().catch(() => {});
+        }
+        setMusicOn(!musicOn);
     }
 
     if (items.length === 0) return null;
@@ -47,51 +91,52 @@ export default function GalleryPreview() {
                 </h2>
                 <p style={s.subtitle}>הצצה לחיוכים שאנחנו מצליחים לייצר</p>
 
-                {/* מסך ראשי */}
                 <div style={s.slideshowWrap}>
-                    {current.type === 'video' ? (
-                        <video
-                            src={src}
-                            style={s.mainImg}
-                            key={src}
-                            controls
-                            muted
-                            playsInline
-                            preload="metadata"
-                        />
-                    ) : (
-                        <img
-                            src={src}
-                            alt={current.caption || current.description || 'תמונה מהגלריה'}
-                            style={s.mainImg}
-                            key={src}
-                        />
-                    )}
-                    {(current.caption || current.description) && (
-                        <div style={s.caption}>{current.caption || current.description}</div>
+                    <img
+                        src={src}
+                        alt={current.title || current.caption || 'תמונה מהגלריה'}
+                        style={{
+                            ...s.mainImg,
+                            opacity: fade ? 1 : 0,
+                            transition: `opacity ${FADE_MS}ms ease`,
+                        }}
+                    />
+
+                    {current.title && (
+                        <div style={{
+                            ...s.caption,
+                            opacity: fade ? 1 : 0,
+                            transition: `opacity ${FADE_MS}ms ease`,
+                        }}>
+                            {current.title}
+                        </div>
                     )}
 
-                    {/* חצים */}
+                    {/* counter */}
+                    <div style={s.counter}>
+                        {active + 1} / {items.length}
+                    </div>
+
+                    {/* music toggle */}
+                    <button style={s.musicBtn} onClick={toggleMusic} aria-label={musicOn ? 'השתק' : 'הפעל מוזיקה'}>
+                        {musicOn ? '🔊' : '🔇'}
+                    </button>
+
                     {items.length > 1 && (
                         <>
-                            <button style={{ ...s.arrow, ...s.arrowRight }}
-                                onClick={() => goTo((active - 1 + items.length) % items.length)}
-                                aria-label="הקודם">›</button>
-                            <button style={{ ...s.arrow, ...s.arrowLeft }}
-                                onClick={() => goTo((active + 1) % items.length)}
-                                aria-label="הבא">‹</button>
+                            <button style={{ ...s.arrow, ...s.arrowRight }} onClick={handlePrev} aria-label="הקודם">›</button>
+                            <button style={{ ...s.arrow, ...s.arrowLeft }} onClick={handleNext} aria-label="הבא">‹</button>
                         </>
                     )}
                 </div>
 
-                {/* נקודות */}
                 {items.length > 1 && (
                     <div style={s.dots}>
                         {items.map((_, i) => (
                             <button
                                 key={i}
                                 style={{ ...s.dot, ...(i === active ? s.dotActive : {}) }}
-                                onClick={() => goTo(i)}
+                                onClick={() => handleDot(i)}
                                 aria-label={`מעבר לתמונה ${i + 1}`}
                             />
                         ))}
@@ -138,15 +183,17 @@ const s = {
         borderRadius: '20px',
         overflow: 'hidden',
         boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-        maxHeight: '480px',
+        aspectRatio: '16/10',
         background: '#071530',
     },
     mainImg: {
         width: '100%',
-        maxHeight: '480px',
+        height: '100%',
         objectFit: 'cover',
         display: 'block',
-        transition: 'opacity 0.4s ease',
+        position: 'absolute',
+        top: 0,
+        left: 0,
     },
     caption: {
         position: 'absolute',
@@ -155,9 +202,39 @@ const s = {
         left: 0,
         background: 'linear-gradient(transparent, rgba(0,0,0,0.75))',
         color: '#fff',
-        padding: '24px 16px 16px',
-        fontSize: '0.92rem',
+        padding: '32px 16px 16px',
+        fontSize: '0.95rem',
+        fontWeight: 600,
         textAlign: 'right',
+    },
+    counter: {
+        position: 'absolute',
+        top: '12px',
+        left: '14px',
+        background: 'rgba(0,0,0,0.5)',
+        color: '#fff',
+        padding: '4px 12px',
+        borderRadius: '20px',
+        fontSize: '0.8rem',
+        fontWeight: 600,
+        backdropFilter: 'blur(4px)',
+    },
+    musicBtn: {
+        position: 'absolute',
+        top: '12px',
+        right: '14px',
+        background: 'rgba(0,0,0,0.5)',
+        border: 'none',
+        color: '#fff',
+        width: '38px',
+        height: '38px',
+        borderRadius: '50%',
+        cursor: 'pointer',
+        fontSize: '1.1rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backdropFilter: 'blur(4px)',
     },
     arrow: {
         position: 'absolute',
@@ -176,6 +253,7 @@ const s = {
         justifyContent: 'center',
         zIndex: 2,
         backdropFilter: 'blur(4px)',
+        transition: 'background 0.2s',
     },
     arrowRight: { right: '12px' },
     arrowLeft: { left: '12px' },
@@ -184,6 +262,7 @@ const s = {
         justifyContent: 'center',
         gap: '8px',
         marginTop: '16px',
+        flexWrap: 'wrap',
     },
     dot: {
         width: '8px',
@@ -193,11 +272,11 @@ const s = {
         border: 'none',
         cursor: 'pointer',
         padding: 0,
-        transition: 'background 0.2s, transform 0.2s',
+        transition: 'background 0.3s, transform 0.3s',
     },
     dotActive: {
         background: '#fbbf24',
-        transform: 'scale(1.3)',
+        transform: 'scale(1.4)',
     },
     galleryBtn: {
         display: 'inline-block',
