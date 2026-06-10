@@ -1,30 +1,23 @@
-﻿import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useT } from '../hooks/useT';
 
 export default function NotFoundPage() {
+    const t = useT();
     return (
         <main style={s.container}>
             <div style={s.content}>
-                {/* מספר 404 גדול */}
                 <div style={s.numberContainer}>
                     <span style={s.number}>4</span>
                     <span style={s.crown}>👑</span>
                     <span style={s.number}>4</span>
                 </div>
 
-                <h1 style={s.title}>הדף לא נמצא</h1>
-                <p style={s.text}>
-                    נראה שהגעת לדף שלא קיים. אולי הקישור השתנה,
-                    <br />
-                    או שפשוט הלכת לאיבוד — אבל אנחנו כאן בשבילך! 🤗
-                </p>
+                <h1 style={s.title}>{t('notfound_subtitle')}</h1>
+                <p style={s.text}>{t('notfound_desc')}</p>
 
                 <div style={s.buttons}>
-                    <Link to="/" style={s.primaryBtn}>
-                        🏠 חזרה לדף הבית
-                    </Link>
-                    <Link to="/contact" style={s.secondaryBtn}>
-                        📩 צור קשר
-                    </Link>
+                    <Link to="/" style={s.primaryBtn}>{t('notfound_home')}</Link>
+                    <Link to="/contact" style={s.secondaryBtn}>{t('nav_contact')}</Link>
                 </div>
             </div>
 

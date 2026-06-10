@@ -5,6 +5,7 @@ import ScrollToTop from './components/ScrollToTop';
 import SecretAdminTrigger from './components/SecretAdminTrigger';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import { LangProvider } from './contexts/LangContext';
 
 // דפים
 import HomePage from './pages/HomePage';
@@ -57,12 +58,14 @@ function Layout() {
 function App() {
     return (
         <ErrorBoundary>
-            <ToastProvider>
-                <Router>
-                    <ScrollToTop />
-                    <Layout />
-                </Router>
-            </ToastProvider>
+            <LangProvider>
+                <ToastProvider>
+                    <Router>
+                        <ScrollToTop />
+                        <Layout />
+                    </Router>
+                </ToastProvider>
+            </LangProvider>
         </ErrorBoundary>
     );
 }

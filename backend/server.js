@@ -824,6 +824,67 @@ app.delete('/api/admin/thank-you/:id', adminAuth, async (req, res) => {
 });
 
 // =====================
+// תרגום אוטומטי — DeepL + מטמון DB
+// =====================
+
+// POST /api/translate  { text, lang }
+app.post('/api/translate', async (req, res) => {
+    const { text, lang } = req.body;
+    if (!text || !lang || lang === 'he') return res.json({ translated: text });
+
+    try {
+        // בדוק מטמון
+        const cached = await pool.query(
+            'SELECT translated_text FROM translations WHERE source_text=$1 AND lang=$2',
+            [text, lang]
+        );
+        if (cached.rows.length > 0) {
+            return res.json({ translated: cached.rows[0].translated_text, cached: true });
+        }
+
+        // שלח ל-DeepL (Free tier)
+        const DEEPL_KEY = process.env.DEEPL_API_KEY;
+        if (!DEEPL_KEY) {
+            return res.json({ translated: text, note: 'no deepl key' });
+        }
+
+        const targetLang = lang === 'fr' ? 'FR' : 'EN';
+        const response = await fetch('https://api-free.deepl.com/v2/translate', {
+            method: 'POST',
+            headers: {
+                'Authorization': `DeepL-Auth-Key ${DEEPL_KEY}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                text,
+                source_lang: 'HE',
+                target_lang: targetLang,
+            }),
+        });
+
+        if (!response.ok) {
+            return res.json({ translated: text, error: 'deepl error' });
+        }
+
+        const data = await response.json();
+        const translated = data.translations?.[0]?.text || text;
+
+        // שמור במטמון
+        await pool.query(
+            `INSERT INTO translations (source_text, lang, translated_text)
+             VALUES ($1, $2, $3)
+             ON CONFLICT (source_text, lang) DO UPDATE SET translated_text=$3`,
+            [text, lang, translated]
+        ).catch(() => {}); // לא קריטי
+
+        res.json({ translated });
+    } catch (err) {
+        console.error('translate error:', err.message);
+        res.json({ translated: text });
+    }
+});
+
+// =====================
 // הפעלת השרת
 // =====================
 const PORT = process.env.PORT || 3001;

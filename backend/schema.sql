@@ -121,3 +121,13 @@ CREATE TABLE IF NOT EXISTS activity_log (
     details     TEXT DEFAULT '',
     created_at  TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- מטמון תרגומים (DeepL)
+CREATE TABLE IF NOT EXISTS translations (
+    id              SERIAL PRIMARY KEY,
+    source_text     TEXT NOT NULL,
+    lang            CHAR(2) NOT NULL,
+    translated_text TEXT NOT NULL,
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(source_text, lang)
+);

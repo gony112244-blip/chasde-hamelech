@@ -1,5 +1,6 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useT } from '../../hooks/useT';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3002' : '');
 
@@ -26,6 +27,7 @@ const FALLBACK = [
 
 export default function Testimonials() {
     const [items, setItems] = useState(FALLBACK);
+    const t = useT();
 
     useEffect(() => {
         fetch(`${API_BASE}/api/thank-you?limit=3`)
@@ -43,9 +45,9 @@ export default function Testimonials() {
             <div style={s.inner}>
                 <h2 style={s.title}>
                     <span>💬</span>
-                    מה אומרים עלינו
+                    {t('testimonials_title')}
                 </h2>
-                <p style={s.subtitle}>המילים שמחממות לנו את הלב</p>
+                <p style={s.subtitle}>{t('testimonials_subtitle')}</p>
 
                 <div style={s.grid}>
                     {items.slice(0, 3).map((t) => (
@@ -66,8 +68,8 @@ export default function Testimonials() {
                 </div>
 
                 <div style={s.ctas}>
-                    <Link to="/thank-you" style={s.ctaPrimary}>💬 לקרוא עוד</Link>
-                    <Link to="/thank-you#write" style={s.ctaSecondary}>✍️ כתבו גם אתם</Link>
+                    <Link to="/thank-you" style={s.ctaPrimary}>{t('testimonials_more')}</Link>
+                    <Link to="/thank-you#write" style={s.ctaSecondary}>{t('testimonials_write')}</Link>
                 </div>
             </div>
         </section>

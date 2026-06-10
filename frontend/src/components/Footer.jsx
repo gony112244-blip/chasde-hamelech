@@ -1,48 +1,41 @@
 import { Link } from 'react-router-dom';
 import Logo from './Logo';
+import { useT } from '../hooks/useT';
 
 export default function Footer() {
     const year = new Date().getFullYear();
+    const t = useT();
 
     return (
         <footer style={s.footer}>
             <div style={s.inner}>
-                {/* לוגו ותיאור */}
                 <div style={s.col}>
                     <Logo size={32} showText={true} />
-                    <p style={s.desc}>
-                        מחלקים משחקים וספרים לילדים מאושפזים<br />
-                        ומחזירים להם את הזכות לחייך ולחלום.
-                    </p>
+                    <p style={s.desc}>{t('footer_about')}</p>
                 </div>
 
-                {/* קישורים מהירים */}
                 <div style={s.col}>
-                    <h4 style={s.colTitle}>ניווט מהיר</h4>
+                    <h4 style={s.colTitle}>{t('footer_links')}</h4>
                     <nav style={s.links}>
-                        <Link to="/gallery" style={s.link}>גלריית רגעים</Link>
-                        <Link to="/thank-you" style={s.link}>קיר תודה</Link>
-                        <Link to="/parasha" style={s.link}>עלון השבוע</Link>
-                        <Link to="/volunteer" style={s.link}>הצטרפו כמתנדבים</Link>
-                        <Link to="/contact" style={s.link}>צור קשר</Link>
+                        <Link to="/gallery" style={s.link}>{t('nav_gallery')}</Link>
+                        <Link to="/thank-you" style={s.link}>{t('nav_thankyou')}</Link>
+                        <Link to="/parasha" style={s.link}>{t('nav_parasha')}</Link>
+                        <Link to="/volunteer" style={s.link}>{t('nav_volunteer')}</Link>
+                        <Link to="/contact" style={s.link}>{t('nav_contact')}</Link>
                     </nav>
                 </div>
 
-                {/* מידע משפטי */}
                 <div style={s.col}>
-                    <h4 style={s.colTitle}>מידע</h4>
+                    <h4 style={s.colTitle}>{t('footer_contact')}</h4>
                     <nav style={s.links}>
-                        <Link to="/privacy" style={s.link}>מדיניות פרטיות</Link>
-                        <Link to="/accessibility" style={s.link}>הצהרת נגישות</Link>
+                        <Link to="/privacy" style={s.link}>{t('footer_privacy')}</Link>
+                        <Link to="/accessibility" style={s.link}>{t('footer_accessibility')}</Link>
                     </nav>
-                    <span style={{ fontSize: '0.82rem', opacity: 0.55, marginTop: '6px' }}>
-                        פועלים מתוך אהבה ואמונה
-                    </span>
                 </div>
             </div>
 
             <div style={s.bottom}>
-                <span>© {year} חסדי המלך. כל הזכויות שמורות.</span>
+                <span>© {year} חסדי המלך. {t('footer_rights')}.</span>
                 <span style={s.credit}>נבנה באהבה ובהתנדבות</span>
             </div>
             <div style={s.authorCredit}>

@@ -1,45 +1,39 @@
-﻿import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useT } from '../../hooks/useT';
 
 function scrollDown() {
     window.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
 }
 
 export default function HeroSection() {
+    const t = useT();
     return (
         <section style={s.hero}>
-            {/* אורבים דקורטיביים */}
             <div style={s.orb1} />
             <div style={s.orb2} />
             <div style={s.orb3} />
 
             <div style={s.content}>
-                <div style={s.badge}>👑 מחלקים אהבה מאז 2019</div>
+                <div style={s.badge}>{t('hero_badge')}</div>
 
-                <h1 style={s.title}>חסדי המלך</h1>
+                <h1 style={s.title}>{t('hero_title')}</h1>
 
-                <p style={s.slogan}>
-                    מחזירים את החיוך לגיבורים הקטנים
-                </p>
+                <p style={s.slogan}>{t('hero_slogan')}</p>
 
-                <p style={s.desc}>
-                    מחלקים משחקים, ספרים ואהבה לילדים מאושפזים
-                    <br />
-                    בבתי חולים בכל רחבי הארץ
-                </p>
+                <p style={s.desc}>{t('hero_desc')}</p>
 
                 <div style={s.ctaRow}>
                     <Link to="/help" style={s.ctaPrimary}>
-                        💝 אני רוצה לעזור
+                        {t('hero_cta_help')}
                     </Link>
                     <Link to="/volunteer" style={s.ctaSecondary}>
-                        🤝 הצטרפו כמתנדבים
+                        {t('hero_cta_volunteer')}
                     </Link>
                 </div>
 
-                {/* פס פעילות */}
                 <div style={s.activityBadge} onClick={scrollDown} role="button" tabIndex={0} aria-label="גלול למטה">
                     <span style={s.activityPulse} />
-                    <span>פעילים מדי שבוע · בבתי חולים ברחבי הארץ</span>
+                    <span>{t('hero_activity')}</span>
                     <span style={s.activityArrow}>↓</span>
                 </div>
             </div>

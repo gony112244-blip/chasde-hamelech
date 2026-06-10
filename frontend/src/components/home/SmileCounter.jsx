@@ -1,12 +1,5 @@
-﻿import { useEffect, useState, useRef } from 'react';
-
-// TODO: להחליף במספרים אמיתיים מהמשתמש
-const STATS = [
-    { icon: '😊', value: 350, label: 'ילדים שמחו', suffix: '+' },
-    { icon: '🏥', value: 5, label: 'בתי חולים', suffix: '' },
-    { icon: '📚', value: 200, label: 'ספרים חולקו', suffix: '+' },
-    { icon: '🎮', value: 500, label: 'משחקים חולקו', suffix: '+' },
-];
+import { useEffect, useState, useRef } from 'react';
+import { useT } from '../../hooks/useT';
 
 function AnimatedNumber({ target, suffix = '' }) {
     const [count, setCount] = useState(0);
@@ -52,21 +45,29 @@ function AnimatedNumber({ target, suffix = '' }) {
 }
 
 export default function SmileCounter() {
+    const t = useT();
+
+    const STATS = [
+        { icon: '😊', value: 350, labelKey: 'smile_children', suffix: '+' },
+        { icon: '🏥', value: 5,   labelKey: 'smile_hospitals', suffix: '' },
+        { icon: '📚', value: 200, labelKey: 'smile_books',     suffix: '+' },
+        { icon: '🎮', value: 500, labelKey: 'smile_games',     suffix: '+' },
+    ];
+
     return (
         <section style={s.section}>
             <div style={s.inner}>
                 <h2 style={s.title}>
                     <span style={s.titleIcon}>📊</span>
-                    מדד החיוכים
+                    {t('smile_title')}
                 </h2>
-                <p style={s.subtitle}>המספרים שמספרים את הסיפור</p>
 
                 <div style={s.grid}>
                     {STATS.map((stat, i) => (
                         <div key={i} style={s.card}>
                             <span style={s.cardIcon}>{stat.icon}</span>
                             <AnimatedNumber target={stat.value} suffix={stat.suffix} />
-                            <span style={s.label}>{stat.label}</span>
+                            <span style={s.label}>{t(stat.labelKey)}</span>
                         </div>
                     ))}
                 </div>

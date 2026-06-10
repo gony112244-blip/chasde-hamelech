@@ -1,9 +1,11 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import PageMeta from '../components/PageMeta';
+import { useT } from '../hooks/useT';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3002' : '');
 
 export default function VolunteerPage() {
+    const t = useT();
     const [form, setForm] = useState({
         name: '', phone: '', email: '', city: '', hasCar: false, message: ''
     });
@@ -40,17 +42,13 @@ export default function VolunteerPage() {
         return (
             <div style={s.page}>
                 <section style={s.header}>
-                    <h1 style={s.title}>🤝 הצטרפו כמתנדבים</h1>
+                    <h1 style={s.title}>{t('volunteer_title')}</h1>
                 </section>
                 <div style={s.successWrap}>
                     <div style={s.successCard}>
                         <span style={{ fontSize: '3rem' }}>🎉</span>
-                        <h2 style={{ color: 'var(--royal)', margin: 0 }}>ברוכים הבאים למשפחה!</h2>
-                        <p style={{ color: 'var(--text-soft)', lineHeight: 1.7, margin: 0 }}>
-                            תודה שהצטרפתם! ניצור איתכם קשר בהקדם
-                            <br />עם פרטים על הפעילות הקרובה.
-                        </p>
-                        <a href="/" style={s.backBtn}>🏠 חזרה לדף הבית</a>
+                        <h2 style={{ color: 'var(--royal)', margin: 0 }}>{t('volunteer_success')}</h2>
+                        <a href="/" style={s.backBtn}>{t('notfound_home')}</a>
                     </div>
                 </div>
             </div>
@@ -63,11 +61,8 @@ export default function VolunteerPage() {
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={{ position: 'relative', zIndex: 2 }}>
-                    <h1 style={s.title}>🤝 הצטרפו כמתנדבים</h1>
-                    <p style={s.subtitle}>
-                        גם שעה אחת בחודש יכולה לשנות את היום של ילד מאושפז.
-                        <br />השאירו פרטים ונחזור אליכם!
-                    </p>
+                    <h1 style={s.title}>{t('volunteer_title')}</h1>
+                    <p style={s.subtitle}>{t('volunteer_subtitle')}</p>
                 </div>
             </section>
 
@@ -75,12 +70,12 @@ export default function VolunteerPage() {
                 <form onSubmit={handleSubmit} style={s.formCard}>
                     <div style={s.row}>
                         <div style={s.field}>
-                            <label style={s.label}>שם מלא *</label>
+                            <label style={s.label}>{t('volunteer_name')}</label>
                             <input style={s.input} required placeholder="ישראל ישראלי"
                                 value={form.name} onChange={e => updateField('name', e.target.value)} />
                         </div>
                         <div style={s.field}>
-                            <label style={s.label}>טלפון *</label>
+                            <label style={s.label}>{t('volunteer_phone')}</label>
                             <input style={s.input} required type="tel" placeholder="050-1234567"
                                 value={form.phone} onChange={e => updateField('phone', e.target.value)} />
                         </div>
@@ -88,12 +83,12 @@ export default function VolunteerPage() {
 
                     <div style={s.row}>
                         <div style={s.field}>
-                            <label style={s.label}>אימייל</label>
+                            <label style={s.label}>{t('volunteer_email')}</label>
                             <input style={s.input} type="email" placeholder="email@example.com"
                                 value={form.email} onChange={e => updateField('email', e.target.value)} />
                         </div>
                         <div style={s.field}>
-                            <label style={s.label}>עיר *</label>
+                            <label style={s.label}>{t('volunteer_city')}</label>
                             <input style={s.input} required placeholder="תל אביב"
                                 value={form.city} onChange={e => updateField('city', e.target.value)} />
                         </div>
@@ -104,19 +99,19 @@ export default function VolunteerPage() {
                             <input type="checkbox" checked={form.hasCar}
                                 onChange={e => updateField('hasCar', e.target.checked)}
                                 style={s.checkbox} />
-                            <span>🚗 יש לי רכב ואני יכול/ה להגיע לבתי חולים</span>
+                            <span>{t('volunteer_car')}</span>
                         </label>
                     </div>
 
                     <div style={s.field}>
-                        <label style={s.label}>הודעה (אופציונלי)</label>
+                        <label style={s.label}>{t('volunteer_message')}</label>
                         <textarea style={s.textarea} rows={3} placeholder="ספרו לנו קצת על עצמכם..."
                             value={form.message} onChange={e => updateField('message', e.target.value)} />
                     </div>
 
                     {error && <p style={{ color: '#dc2626', textAlign: 'center', margin: 0, fontWeight: 600 }}>{error}</p>}
                     <button type="submit" style={{ ...s.submitBtn, opacity: sending ? 0.7 : 1 }} disabled={sending}>
-                        {sending ? 'שולח...' : '📨 שלחו את הפרטים'}
+                        {sending ? t('loading') : t('volunteer_submit')}
                     </button>
                     <p style={s.note}>* שדות חובה</p>
                 </form>

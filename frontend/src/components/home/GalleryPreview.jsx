@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import API_BASE from '../../config';
+import { useT } from '../../hooks/useT';
 
 const INTERVAL = 4000;
 const FADE_MS = 600;
@@ -66,17 +67,21 @@ export default function GalleryPreview() {
 
     function toggleMusic() {
         if (!audioRef.current) {
-            audioRef.current = new Audio('https://cdn.pixabay.com/audio/2024/11/28/audio_3a59e4e02a.mp3');
+            audioRef.current = new Audio('/music.mp3');
             audioRef.current.loop = true;
-            audioRef.current.volume = 0.25;
+            audioRef.current.volume = 0.2;
         }
         if (musicOn) {
             audioRef.current.pause();
+            setMusicOn(false);
         } else {
-            audioRef.current.play().catch(() => {});
+            audioRef.current.play()
+                .then(() => setMusicOn(true))
+                .catch(() => setMusicOn(false));
         }
-        setMusicOn(!musicOn);
     }
+
+    const t = useT();
 
     if (items.length === 0) return null;
 
@@ -87,9 +92,9 @@ export default function GalleryPreview() {
         <section style={s.section}>
             <div style={s.inner}>
                 <h2 style={s.title}>
-                    <span>📸</span> גלריית הרגעים
+                    <span>📸</span> {t('gallery_preview_title')}
                 </h2>
-                <p style={s.subtitle}>הצצה לחיוכים שאנחנו מצליחים לייצר</p>
+                <p style={s.subtitle}>{t('gallery_preview_subtitle')}</p>
 
                 <div style={s.slideshowWrap}>
                     <img
@@ -144,7 +149,7 @@ export default function GalleryPreview() {
                 )}
 
                 <Link to="/gallery" style={s.galleryBtn}>
-                    🖼️ לגלריה המלאה
+                    {t('gallery_preview_btn')}
                 </Link>
             </div>
         </section>

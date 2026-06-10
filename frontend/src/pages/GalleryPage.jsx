@@ -1,6 +1,9 @@
-﻿import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import API_BASE from '../config';
 import PageMeta from '../components/PageMeta';
+import { useT } from '../hooks/useT';
+import { useLang } from '../contexts/LangContext';
+import { translateBatch } from '../hooks/useTranslate';
 
 const CATEGORIES = [
     { id: 'all',         label: 'הכל',     icon: '🌟' },
@@ -81,6 +84,8 @@ function PhotoCard({ item, onClick }) {
 }
 
 export default function GalleryPage() {
+    const t = useT();
+    const { lang } = useLang();
     const [activeCategory, setActiveCategory] = useState('all');
     const [items, setItems] = useState([]);
     const [page, setPage] = useState(1);
@@ -91,13 +96,17 @@ export default function GalleryPage() {
     const [lightbox, setLightbox] = useState(null);
     const [posts, setPosts] = useState([]);
 
-    // טעינת פוסטים
+    // טעינת פוסטים + תרגום אם צריך
     useEffect(() => {
         fetch(`${API_BASE}/api/gallery-posts`)
             .then(r => r.ok ? r.json() : [])
-            .then(data => setPosts(Array.isArray(data) ? data : []))
+            .then(async data => {
+                const list = Array.isArray(data) ? data : [];
+                const translated = await translateBatch(list, ['title', 'body'], lang);
+                setPosts(translated);
+            })
             .catch(() => {});
-    }, []);
+    }, [lang]);
 
     const loadItems = useCallback(async (cat, pg, append = false) => {
         if (append) setLoadingMore(true);
@@ -157,11 +166,8 @@ export default function GalleryPage() {
             <section style={s.hero}>
                 <div style={s.heroOrb} />
                 <div style={{ position: 'relative', zIndex: 2 }}>
-                    <h1 style={s.heroTitle}>📸 גלריית רגעים</h1>
-                    <p style={s.heroSub}>
-                        כל תמונה וסרטון מספרים סיפור של חיוך.
-                        <br />הנה כמה רגעים מהשטח — ישירות מבתי החולים.
-                    </p>
+                    <h1 style={s.heroTitle}>{t('gallery_title')}</h1>
+                    <p style={s.heroSub}>{t('gallery_subtitle')}</p>
                     {total > 0 && (
                         <span style={s.totalBadge}>{total} פריטים בגלריה</span>
                     )}
@@ -174,7 +180,7 @@ export default function GalleryPage() {
                     {/* פוסטים עדכניים */}
                     {posts.length > 0 && (
                         <div style={s.postsSection}>
-                            <h2 style={s.postsSectionTitle}>📋 עדכונים מהשטח</h2>
+                            <h2 style={s.postsSectionTitle}>📋 {t('gallery_posts_title')}</h2>
                             <div style={s.postsList}>
                                 {posts.map(post => (
                                     <div key={post.id} style={s.postCard}>

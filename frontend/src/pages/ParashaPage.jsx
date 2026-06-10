@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import API_BASE from '../config';
 import PageMeta from '../components/PageMeta';
+import { useT } from '../hooks/useT';
 
 export default function ParashaPage() {
+    const t = useT();
     const [latest, setLatest] = useState(null);
     const [archive, setArchive] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -31,18 +33,18 @@ export default function ParashaPage() {
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={{ position: 'relative', zIndex: 2 }}>
-                    <h1 style={s.title}>📖 עלון השבוע</h1>
+                    <h1 style={s.title}>{t('parasha_title')}</h1>
                     <p style={s.subtitle}>
-                        עלון פרשת שבוע לכבוד השבת — לקרוא, להדפיס, ולשתף
+                        {t('parasha_subtitle')}
                         <br />
-                        <span style={s.updateNote}>מתעדכן מרביעי אחר הצהריים</span>
+                        <span style={s.updateNote}>{t('parasha_update')}</span>
                     </p>
                 </div>
             </section>
 
             <section style={s.contentSection}>
                 <div style={s.inner}>
-                    {loading && <p style={s.msg}>טוען...</p>}
+                    {loading && <p style={s.msg}>{t('loading')}</p>}
 
                     {!loading && !latest && (
                         <div style={s.emptyCard}>
@@ -84,14 +86,14 @@ export default function ParashaPage() {
 
                             <a href={fileUrl(latest)} download style={s.downloadBtn}
                                 target="_blank" rel="noopener noreferrer">
-                                ⬇️ הורידו להדפסה
+                                {t('parasha_download')}
                             </a>
                         </div>
                     )}
 
                     {archive.length > 0 && (
                         <div style={s.archiveSection}>
-                            <h3 style={s.archiveTitle}>📚 ארכיון עלונים קודמים</h3>
+                            <h3 style={s.archiveTitle}>📚 {t('parasha_archive')}</h3>
                             <div style={s.archiveList}>
                                 {archive.map((item) => (
                                     <a
@@ -120,8 +122,8 @@ export default function ParashaPage() {
                     )}
 
                     <div style={s.ctaRow}>
-                        <Link to="/" style={s.backBtn}>🏠 חזרה לדף הבית</Link>
-                        <Link to="/contact" style={s.contactBtn}>📩 יש לכם מה לשאול?</Link>
+                        <Link to="/" style={s.backBtn}>{t('notfound_home')}</Link>
+                        <Link to="/contact" style={s.contactBtn}>{t('contact_title')}</Link>
                     </div>
                 </div>
             </section>

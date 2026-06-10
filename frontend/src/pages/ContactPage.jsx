@@ -1,9 +1,11 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import PageMeta from '../components/PageMeta';
+import { useT } from '../hooks/useT';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3002' : '');
 
 export default function ContactPage() {
+    const t = useT();
     const [form, setForm] = useState({ name: '', phone: '', email: '', message: '' });
     const [submitted, setSubmitted] = useState(false);
     const [sending, setSending] = useState(false);
@@ -37,16 +39,13 @@ export default function ContactPage() {
         return (
             <div style={s.page}>
                 <section style={s.header}>
-                    <h1 style={s.title}>📩 צור קשר</h1>
+                    <h1 style={s.title}>{t('contact_title')}</h1>
                 </section>
                 <div style={s.successWrap}>
                     <div style={s.successCard}>
                         <span style={{ fontSize: '3rem' }}>✅</span>
-                        <h2 style={{ color: 'var(--royal)', margin: 0 }}>ההודעה נשלחה!</h2>
-                        <p style={{ color: 'var(--text-soft)', lineHeight: 1.7, margin: 0 }}>
-                            תודה שפניתם אלינו. נחזור אליכם בהקדם האפשרי.
-                        </p>
-                        <a href="/" style={s.backBtn}>🏠 חזרה לדף הבית</a>
+                        <h2 style={{ color: 'var(--royal)', margin: 0 }}>{t('contact_success')}</h2>
+                        <a href="/" style={s.backBtn}>{t('notfound_home')}</a>
                     </div>
                 </div>
             </div>
@@ -59,43 +58,39 @@ export default function ContactPage() {
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={{ position: 'relative', zIndex: 2 }}>
-                    <h1 style={s.title}>📩 צור קשר</h1>
-                    <p style={s.subtitle}>
-                        שאלות, רעיונות, או סתם רוצים לומר שלום?
-                        <br />נשמח לשמוע מכם!
-                    </p>
+                    <h1 style={s.title}>{t('contact_title')}</h1>
+                    <p style={s.subtitle}>{t('contact_subtitle')}</p>
                 </div>
             </section>
 
             <section style={s.contentSection}>
                 <div style={s.layout}>
                     <form onSubmit={handleSubmit} style={s.formCard}>
-                        <h3 style={s.formTitle}>שלחו לנו הודעה</h3>
                         <div style={s.field}>
-                            <label style={s.label}>שם *</label>
+                            <label style={s.label}>{t('contact_name')}</label>
                             <input style={s.input} required placeholder="השם שלכם"
                                 value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
                         </div>
                         <div style={s.row}>
                             <div style={s.field}>
-                                <label style={s.label}>טלפון</label>
+                                <label style={s.label}>{t('contact_phone')}</label>
                                 <input style={s.input} type="tel" placeholder="050-1234567"
                                     value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
                             </div>
                             <div style={s.field}>
-                                <label style={s.label}>אימייל</label>
+                                <label style={s.label}>{t('contact_email')}</label>
                                 <input style={s.input} type="email" placeholder="email@example.com"
                                     value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
                             </div>
                         </div>
                         <div style={s.field}>
-                            <label style={s.label}>הודעה *</label>
+                            <label style={s.label}>{t('contact_message')}</label>
                             <textarea style={s.textarea} rows={5} required placeholder="מה תרצו לספר לנו?"
                                 value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} />
                         </div>
                         {error && <p style={s.errorMsg}>{error}</p>}
                         <button type="submit" style={s.submitBtn} disabled={sending}>
-                            {sending ? 'שולח...' : '📨 שלחו'}
+                            {sending ? t('loading') : t('contact_submit')}
                         </button>
                     </form>
                 </div>

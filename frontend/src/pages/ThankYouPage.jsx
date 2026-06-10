@@ -1,6 +1,9 @@
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import API_BASE from '../config';
 import PageMeta from '../components/PageMeta';
+import { useT } from '../hooks/useT';
+import { useLang } from '../contexts/LangContext';
+import { translateBatch } from '../hooks/useTranslate';
 
 const FALLBACK_NOTES = [
     { id: 'f1', name: 'אמא ממחלקת ילדים', message: 'הבן שלי היה מאושפז שבועיים. ביום שהגיעו עם המשחק והספר — זו הייתה הפעם הראשונה שהוא חייך מאז שהגענו.', hospital: 'בית חולים שניידר', created_at: '2026-04-15' },
@@ -12,6 +15,8 @@ const FALLBACK_NOTES = [
 ];
 
 export default function ThankYouPage() {
+    const t = useT();
+    const { lang } = useLang();
     const [notes, setNotes] = useState(FALLBACK_NOTES);
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState({ name: '', message: '', email: '', hospital: '' });
@@ -25,13 +30,15 @@ export default function ThankYouPage() {
     useEffect(() => {
         fetch(`${API_BASE}/api/thank-you`)
             .then(r => r.ok ? r.json() : [])
-            .then(data => {
+            .then(async data => {
                 const real = Array.isArray(data) ? data : [];
-                if (real.length > 0) setNotes(real);
-                // אם אין תגובות אמיתיות — נשאר עם ה-fallback
+                if (real.length > 0) {
+                    const translated = await translateBatch(real, ['message', 'name'], lang);
+                    setNotes(translated);
+                }
             })
             .catch(() => {});
-    }, []);
+    }, [lang]);
 
     // גלילה לטופס אם מגיעים עם #write
     useEffect(() => {
@@ -97,16 +104,13 @@ export default function ThankYouPage() {
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={s.headerContent}>
-                    <h1 style={s.title}>💬 קיר התודה</h1>
-                    <p style={s.subtitle}>
-                        המילים שלכם נותנות לנו כוח להמשיך.
-                        <br />כאן אנחנו שומרים את הרגעים הכי יפים.
-                    </p>
+                    <h1 style={s.title}>{t('thankyou_title')}</h1>
+                    <p style={s.subtitle}>{t('thankyou_subtitle')}</p>
                     <button style={s.addBtn} onClick={() => {
                         setShowForm(true);
                         setTimeout(() => writeRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
                     }}>
-                        ✏️ כתבו תודה
+                        {t('thankyou_write_btn')}
                     </button>
                 </div>
             </section>
@@ -117,7 +121,7 @@ export default function ThankYouPage() {
                         {submitted ? (
                             <div style={s.successMsg}>
                                 <span style={{ fontSize: '2.5rem' }}>✅</span>
-                                <h3 style={{ color: 'var(--royal)', margin: 0 }}>תודה רבה!</h3>
+                                <h3 style={{ color: 'var(--royal)', margin: 0 }}>{t('thankyou_success_title')}</h3>
                                 <p style={{ color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>
                                     {photo
                                         ? 'ההודעה עם התמונה נשלחה ותפורסם לאחר אישור המנהל.'
@@ -132,20 +136,20 @@ export default function ThankYouPage() {
                                 </p>
                                 <input
                                     type="text"
-                                    placeholder='שם או כינוי (למשל "אמא ממחלקת ילדים")'
+                                    placeholder={t('thankyou_form_name')}
                                     value={form.name}
                                     onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                                     style={s.input}
                                 />
                                 <input
                                     type="text"
-                                    placeholder="בית החולים (אופציונלי)"
+                                    placeholder={t('thankyou_form_hospital')}
                                     value={form.hospital}
                                     onChange={e => setForm(f => ({ ...f, hospital: e.target.value }))}
                                     style={s.input}
                                 />
                                 <textarea
-                                    placeholder="כתבו את ההודעה שלכם... (חובה)"
+                                    placeholder={t('thankyou_form_message')}
                                     value={form.message}
                                     onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
                                     style={s.textarea}
@@ -154,7 +158,7 @@ export default function ThankYouPage() {
                                 />
                                 <input
                                     type="email"
-                                    placeholder="אימייל (אופציונלי — לא יוצג בציבור)"
+                                    placeholder={t('thankyou_form_email')}
                                     value={form.email}
                                     onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                                     style={s.input}
