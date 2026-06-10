@@ -93,7 +93,7 @@ export default function ThankYouPage() {
 
     return (
         <div style={s.page}>
-            <PageMeta title="קיר התודה" description="הודעות תודה מהורים וילדים שפגשנו בבתי החולים. קראו את הסיפורים המרגשים וכתבו גם אתם." path="/thank-you" />
+            <PageMeta title="קיר התודה" description="מילות תודה ממשפחות וילדים שפגשנו. קראו את הרגעים המרגשים או שתפו את הסיפור שלכם." path="/thank-you" />
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={s.headerContent}>

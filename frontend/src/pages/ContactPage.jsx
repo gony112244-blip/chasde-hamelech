@@ -55,7 +55,7 @@ export default function ContactPage() {
 
     return (
         <div style={s.page}>
-            <PageMeta title="צור קשר" description="יש לכם שאלה, הצעה או רצון לשתף פעולה? אנחנו כאן. כתבו לנו ונחזור אליכם בהקדם." path="/contact" />
+            <PageMeta title="צור קשר" description="יש לכם שאלה או רצון לעזור? צרו קשר עם חסדי המלך ונחזור אליכם בהקדם." path="/contact" />
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={{ position: 'relative', zIndex: 2 }}>

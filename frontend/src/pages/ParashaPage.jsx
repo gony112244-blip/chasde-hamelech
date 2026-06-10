@@ -27,7 +27,7 @@ export default function ParashaPage() {
 
     return (
         <div style={s.page}>
-            <PageMeta title="עלון השבוע" description="עלון פרשת שבוע מחסדי המלך — לקרוא, להדפיס ולשים בבית חולים. מתעדכן מרביעי אחר הצהריים." path="/parasha" />
+            <PageMeta title="עלון השבוע" description="עלון פרשת שבוע לכבוד השבת — לקרוא, להדפיס ולשתף. מתעדכן מדי שבוע." path="/parasha" />
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={{ position: 'relative', zIndex: 2 }}>

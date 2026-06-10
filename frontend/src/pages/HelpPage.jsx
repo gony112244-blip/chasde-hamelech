@@ -38,7 +38,7 @@ export default function HelpPage() {
 
     return (
         <div style={s.page}>
-            <PageMeta title="איך עוזרים" description="תרמו כסף, משחקים או ספרים לילדים מאושפזים. כל תרומה — גדולה או קטנה — עושה את ההבדל." path="/help" />
+            <PageMeta title="איך עוזרים" description="תרומה כספית, תרומת משחקים וספרים, או התנדבות — כל דרך לעזור לילדים מאושפזים. הצטרפו אלינו." path="/help" />
             {/* Header */}
             <section style={s.header}>
                 <div style={s.headerOrb} />

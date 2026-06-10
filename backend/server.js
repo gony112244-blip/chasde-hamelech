@@ -96,23 +96,29 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// =====================
-// שליחת מייל פנימי למנהל
-// =====================
-const ADMIN_EMAIL = process.env.EMAIL_USER || '';
-
-async function notifyAdmin(subject, html) {
-    if (!ADMIN_EMAIL || !process.env.EMAIL_PASS) return;
+// התראה למנהל על פעילות חדשה — לא חוסם את הבקשה אם נכשל
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+async function notifyAdmin(subject, rowsHtml) {
+    if (!process.env.EMAIL_USER || !ADMIN_EMAIL) return;
     try {
         await transporter.sendMail({
-            from: `"חסדי המלך" <${ADMIN_EMAIL}>`,
+            from: `"חסדי המלך — מערכת" <${process.env.EMAIL_USER}>`,
             to: ADMIN_EMAIL,
             subject,
-            html,
+            html: `<div dir="rtl" style="font-family:Arial,sans-serif;font-size:15px;color:#1f2937;">
+                <h2 style="color:#0f2044;">${subject}</h2>
+                <table style="border-collapse:collapse;">${rowsHtml}</table>
+                <hr>
+                <p style="color:#888;font-size:12px;">הודעה אוטומטית מאתר חסדי המלך</p>
+            </div>`,
         });
-    } catch (e) {
-        console.error('notifyAdmin error:', e.message);
+    } catch (err) {
+        console.error('notifyAdmin failed:', err.message);
     }
+}
+function row(label, value) {
+    if (!value) return '';
+    return `<tr><td style="padding:4px 12px;font-weight:bold;">${label}:</td><td style="padding:4px 12px;">${value}</td></tr>`;
 }
 
 // =====================
@@ -217,17 +223,9 @@ app.post('/api/contact', async (req, res) => {
             'INSERT INTO contacts (name, phone, email, message) VALUES ($1, $2, $3, $4)',
             [name.trim(), phone?.trim() || '', email?.trim() || '', message.trim()]
         );
-        notifyAdmin('📩 פנייה חדשה באתר חסדי המלך', `
-            <div dir="rtl" style="font-family:Arial;padding:20px">
-                <h2 style="color:#0f2044">📩 פנייה חדשה!</h2>
-                <p><strong>שם:</strong> ${name.trim()}</p>
-                ${phone ? `<p><strong>טלפון:</strong> ${phone}</p>` : ''}
-                ${email ? `<p><strong>מייל:</strong> ${email}</p>` : ''}
-                <p><strong>הודעה:</strong></p>
-                <blockquote style="border-right:4px solid #0f2044;padding:12px;background:#f8fafe">${message.trim()}</blockquote>
-                <a href="https://chasde-hamelech.org.il/admin/dashboard" style="background:#0f2044;color:#fbbf24;padding:10px 20px;border-radius:8px;text-decoration:none">כנס ללוח הניהול →</a>
-            </div>
-        `);
+        notifyAdmin('📩 פנייה חדשה באתר',
+            row('שם', name.trim()) + row('טלפון', phone?.trim()) +
+            row('מייל', email?.trim()) + row('הודעה', message.trim()));
     res.status(201).json({ ok: true, message: 'ההודעה נשלחה! נחזור אליכם בהקדם.' });
     } catch (err) {
         console.error(err);
@@ -246,18 +244,10 @@ app.post('/api/volunteer', async (req, res) => {
             'INSERT INTO volunteers (name, phone, email, city, has_car, notes) VALUES ($1, $2, $3, $4, $5, $6)',
             [name.trim(), phone.trim(), email?.trim() || '', city.trim(), !!hasCar, message?.trim() || '']
         );
-        notifyAdmin('🤝 מתנדב חדש נרשם באתר חסדי המלך', `
-            <div dir="rtl" style="font-family:Arial;padding:20px">
-                <h2 style="color:#0f2044">🤝 מתנדב חדש נרשם!</h2>
-                <p><strong>שם:</strong> ${name.trim()}</p>
-                <p><strong>טלפון:</strong> ${phone.trim()}</p>
-                <p><strong>עיר:</strong> ${city.trim()}</p>
-                ${email ? `<p><strong>מייל:</strong> ${email}</p>` : ''}
-                <p><strong>יש רכב:</strong> ${hasCar ? 'כן' : 'לא'}</p>
-                ${message ? `<p><strong>הערה:</strong> ${message}</p>` : ''}
-                <a href="https://chasde-hamelech.org.il/admin/dashboard" style="background:#0f2044;color:#fbbf24;padding:10px 20px;border-radius:8px;text-decoration:none">כנס ללוח הניהול →</a>
-            </div>
-        `);
+        notifyAdmin('🤝 מתנדב חדש נרשם',
+            row('שם', name.trim()) + row('טלפון', phone.trim()) +
+            row('מייל', email?.trim()) + row('עיר', city.trim()) +
+            row('רכב', hasCar ? 'כן' : 'לא') + row('הערה', message?.trim()));
     res.status(201).json({ ok: true, message: 'ברוכים הבאים למשפחת חסדי המלך! ניצור קשר בהקדם.' });
     } catch (err) {
         console.error(err);

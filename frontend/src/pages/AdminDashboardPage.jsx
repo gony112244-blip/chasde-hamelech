@@ -703,8 +703,27 @@ function MediaTab({ token }) {
     const [addingPost, setAddingPost] = useState(false);
     const [postMsg, setPostMsg] = useState('');
     const [selectedPostId, setSelectedPostId] = useState(null);
+    const [editPostId, setEditPostId] = useState(null);
+    const [editPostForm, setEditPostForm] = useState({ title: '', body: '' });
+    const [savingEdit, setSavingEdit] = useState(false);
 
-    const [editingPost, setEditingPost] = useState(null);
+    async function saveEditPost(id) {
+        if (!editPostForm.title.trim()) return;
+        setSavingEdit(true);
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/gallery-posts/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(editPostForm),
+            });
+            if (res.ok) {
+                setEditPostId(null);
+                reloadPosts();
+            }
+        } finally {
+            setSavingEdit(false);
+        }
+    }
 
     async function createPost(e) {
         e.preventDefault();
@@ -712,21 +731,16 @@ function MediaTab({ token }) {
         setAddingPost(true);
         setPostMsg('');
         try {
-            const isEdit = !!editingPost;
-            const url = isEdit
-                ? `${API_BASE}/api/admin/gallery-posts/${editingPost}`
-                : `${API_BASE}/api/admin/gallery-posts`;
-            const res = await fetch(url, {
-                method: isEdit ? 'PUT' : 'POST',
+            const res = await fetch(`${API_BASE}/api/admin/gallery-posts`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify(postForm),
             });
             const json = await res.json();
             if (res.ok) {
-                setPostMsg(isEdit ? '✅ הפוסט עודכן!' : '✅ הפוסט נוצר! עכשיו ניתן להעלות תמונות אליו');
-                if (!isEdit) setSelectedPostId(json.post.id);
+                setPostMsg('✅ הפוסט נוצר! עכשיו ניתן להעלות תמונות אליו');
+                setSelectedPostId(json.post.id);
                 setPostForm({ title: '', body: '' });
-                setEditingPost(null);
                 reloadPosts();
                 setTimeout(() => setPostMsg(''), 4000);
             } else setPostMsg('❌ ' + json.error);
@@ -741,12 +755,6 @@ function MediaTab({ token }) {
             headers: { Authorization: `Bearer ${token}` },
         });
         reloadPosts();
-    }
-
-    function startEditPost(p) {
-        setEditingPost(p.id);
-        setPostForm({ title: p.title, body: p.body || '' });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     const [uploading, setUploading] = useState(false);
     const [uploadMsg, setUploadMsg] = useState('');
@@ -829,22 +837,14 @@ function MediaTab({ token }) {
             <section>
                 <h3 style={s.sectionTitle}>📋 ניהול פוסטים לגלריה</h3>
                 <form onSubmit={createPost} style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '500px', marginBottom: '16px' }}>
-                    {editingPost && <div style={{ ...s.flashMsg, background: '#fef3c7', color: '#92400e' }}>✏️ מצב עריכה — שינויים יישמרו לפוסט הקיים</div>}
                     <input style={s.uploadInput} placeholder='כותרת (למשל: "השבוע חילקנו ב-3 בתי חולים")' required
                         value={postForm.title} onChange={e => setPostForm(p => ({ ...p, title: e.target.value }))} />
                     <textarea style={{ ...s.uploadInput, resize: 'vertical', minHeight: '70px' }} rows={3}
                         placeholder="תיאור אופציונלי..." value={postForm.body}
                         onChange={e => setPostForm(p => ({ ...p, body: e.target.value }))} />
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <button type="submit" style={s.saveBtn} disabled={addingPost}>
-                            {addingPost ? 'שומר...' : editingPost ? '💾 שמור שינויים' : '+ צור פוסט חדש'}
-                        </button>
-                        {editingPost && (
-                            <button type="button" style={s.rejectBtn} onClick={() => { setEditingPost(null); setPostForm({ title: '', body: '' }); }}>
-                                ביטול
-                            </button>
-                        )}
-                    </div>
+                    <button type="submit" style={s.saveBtn} disabled={addingPost}>
+                        {addingPost ? 'יוצר...' : '+ צור פוסט חדש'}
+                    </button>
                     {postMsg && <div style={s.flashMsg}>{postMsg}</div>}
                 </form>
                 {postsLoading ? <Spinner /> : (
@@ -852,26 +852,48 @@ function MediaTab({ token }) {
                         {(!postsData || postsData.length === 0) && <Empty text="אין פוסטים עדיין" />}
                         {postsData?.map(p => (
                             <div key={p.id} style={{ ...s.card, borderRight: `4px solid ${selectedPostId === p.id ? '#10b981' : '#dbeafe'}` }}>
-                                <div style={s.cardTop}>
-                                    <strong style={s.name}>{p.title}</strong>
-                                    <span style={s.date}>{fmt(p.created_at)}</span>
-                                </div>
-                                {p.body && <p style={s.msg}>{p.body}</p>}
-                                {p.media && p.media.length > 0 && (
-                                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
-                                        {p.media.map(m => (
-                                            <img key={m.id} src={`${API_BASE}/uploads/${m.filename}`}
-                                                alt="" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px' }} />
-                                        ))}
+                                {editPostId === p.id ? (
+                                    <div style={s.replyBox}>
+                                        <input style={s.uploadInput} value={editPostForm.title}
+                                            onChange={e => setEditPostForm(f => ({ ...f, title: e.target.value }))}
+                                            placeholder="כותרת" />
+                                        <textarea style={{ ...s.uploadInput, resize: 'vertical', minHeight: '60px' }} rows={3}
+                                            value={editPostForm.body}
+                                            onChange={e => setEditPostForm(f => ({ ...f, body: e.target.value }))}
+                                            placeholder="תיאור" />
+                                        <div style={s.actions}>
+                                            <button style={s.approveBtn} disabled={savingEdit} onClick={() => saveEditPost(p.id)}>
+                                                {savingEdit ? 'שומר...' : '💾 שמור'}
+                                            </button>
+                                            <button style={s.rejectBtn} onClick={() => setEditPostId(null)}>ביטול</button>
+                                        </div>
                                     </div>
+                                ) : (
+                                    <>
+                                        <div style={s.cardTop}>
+                                            <strong style={s.name}>{p.title}</strong>
+                                            <span style={s.date}>{fmt(p.created_at)}</span>
+                                        </div>
+                                        {p.body && <p style={s.msg}>{p.body}</p>}
+                                        {p.media && p.media.length > 0 && (
+                                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                                                {p.media.map(m => (
+                                                    <img key={m.id} src={`${API_BASE}/uploads/${m.filename}`}
+                                                        alt="" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px' }} />
+                                                ))}
+                                            </div>
+                                        )}
+                                        <div style={s.actions}>
+                                            <button style={s.replyBtn} onClick={() => setSelectedPostId(p.id === selectedPostId ? null : p.id)}>
+                                                {selectedPostId === p.id ? '✓ נבחר להעלאה' : '📎 בחר לצירוף תמונה'}
+                                            </button>
+                                            <button style={s.replyBtn} onClick={() => { setEditPostId(p.id); setEditPostForm({ title: p.title, body: p.body || '' }); }}>
+                                                ✏️ ערוך
+                                            </button>
+                                            <button style={s.rejectBtn} onClick={() => deletePost(p.id)}>🗑️</button>
+                                        </div>
+                                    </>
                                 )}
-                                <div style={s.actions}>
-                                    <button style={s.replyBtn} onClick={() => setSelectedPostId(p.id === selectedPostId ? null : p.id)}>
-                                        {selectedPostId === p.id ? '✓ נבחר להעלאה' : '📎 צרף תמונה'}
-                                    </button>
-                                    <button style={s.replyBtn} onClick={() => startEditPost(p)}>✏️ ערוך</button>
-                                    <button style={s.rejectBtn} onClick={() => deletePost(p.id)}>🗑️</button>
-                                </div>
                             </div>
                         ))}
                     </div>

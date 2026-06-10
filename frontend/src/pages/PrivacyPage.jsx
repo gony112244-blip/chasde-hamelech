@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
+import PageMeta from '../components/PageMeta';
 
 export default function PrivacyPage() {
     return (
         <div style={s.page}>
+            <PageMeta title="מדיניות פרטיות" description="מדיניות הפרטיות של אתר חסדי המלך — איך אנו אוספים ושומרים על המידע שלכם." path="/privacy" />
             <section style={s.header}>
                 <h1 style={s.title}>🔒 מדיניות פרטיות</h1>
                 <p style={s.subtitle}>עדכון אחרון: מאי 2026</p>

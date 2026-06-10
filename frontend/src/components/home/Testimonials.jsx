@@ -1,6 +1,5 @@
 ﻿import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useReveal } from '../../hooks/useReveal';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3002' : '');
 
@@ -27,7 +26,6 @@ const FALLBACK = [
 
 export default function Testimonials() {
     const [items, setItems] = useState(FALLBACK);
-    const ref = useReveal();
 
     useEffect(() => {
         fetch(`${API_BASE}/api/thank-you?limit=3`)
@@ -41,7 +39,7 @@ export default function Testimonials() {
     }, []);
 
     return (
-        <section ref={ref} className="reveal" style={s.section}>
+        <section style={s.section}>
             <div style={s.inner}>
                 <h2 style={s.title}>
                     <span>💬</span>

@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
+import PageMeta from '../components/PageMeta';
 
 export default function AccessibilityPage() {
     return (
         <div style={s.page}>
+            <PageMeta title="הצהרת נגישות" description="הצהרת הנגישות של אתר חסדי המלך — אנו שואפים לאפשר שימוש לכלל האוכלוסייה." path="/accessibility" />
             <section style={s.header}>
                 <h1 style={s.title}>♿ הצהרת נגישות</h1>
                 <p style={s.subtitle}>עדכון אחרון: מאי 2026</p>

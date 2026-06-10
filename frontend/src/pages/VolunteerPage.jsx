@@ -1,16 +1,37 @@
 ﻿import { useState } from 'react';
 import PageMeta from '../components/PageMeta';
 
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3002' : '');
+
 export default function VolunteerPage() {
     const [form, setForm] = useState({
         name: '', phone: '', email: '', city: '', hasCar: false, message: ''
     });
     const [submitted, setSubmitted] = useState(false);
+    const [sending, setSending] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // TODO: שליחה ל-API
-        setSubmitted(true);
+        setSending(true);
+        setError('');
+        try {
+            const res = await fetch(`${API_BASE}/api/volunteer`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(form),
+            });
+            if (res.ok) {
+                setSubmitted(true);
+            } else {
+                const json = await res.json().catch(() => ({}));
+                setError(json.error || 'שגיאה בשליחה. נסו שוב.');
+            }
+        } catch {
+            setError('לא ניתן להתחבר לשרת. נסו שוב מאוחר יותר.');
+        } finally {
+            setSending(false);
+        }
     };
 
     const updateField = (field, value) => setForm(f => ({ ...f, [field]: value }));
@@ -93,7 +114,10 @@ export default function VolunteerPage() {
                             value={form.message} onChange={e => updateField('message', e.target.value)} />
                     </div>
 
-                    <button type="submit" style={s.submitBtn}>📨 שלחו את הפרטים</button>
+                    {error && <p style={{ color: '#dc2626', textAlign: 'center', margin: 0, fontWeight: 600 }}>{error}</p>}
+                    <button type="submit" style={{ ...s.submitBtn, opacity: sending ? 0.7 : 1 }} disabled={sending}>
+                        {sending ? 'שולח...' : '📨 שלחו את הפרטים'}
+                    </button>
                     <p style={s.note}>* שדות חובה</p>
                 </form>
             </section>

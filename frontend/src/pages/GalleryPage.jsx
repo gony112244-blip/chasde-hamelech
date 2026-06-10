@@ -136,39 +136,22 @@ export default function GalleryPage() {
 
     return (
         <div style={s.page}>
-            <PageMeta title="גלריית הרגעים" description="תמונות וסרטונים מביקורי חסדי המלך בבתי חולים — רגעים של שמחה ואהבה לילדים מאושפזים." path="/gallery" />
+            <PageMeta title="גלריה" description="רגעים מהשטח — תמונות וסרטונים מהביקורים שלנו בבתי החולים, החיוכים והשמחה שאנחנו מביאים." path="/gallery" />
             <style>{hoverCSS}</style>
 
             {/* Lightbox */}
-            {lightbox && (() => {
-                const photos = items.filter(i => i.type === 'photo');
-                const idx = photos.findIndex(p => p.id === lightbox.id);
-                const goNext = (e) => { e.stopPropagation(); if (idx < photos.length - 1) setLightbox(photos[idx + 1]); };
-                const goPrev = (e) => { e.stopPropagation(); if (idx > 0) setLightbox(photos[idx - 1]); };
-                return (
-                    <div style={s.overlay} onClick={() => setLightbox(null)}>
-                        <button style={s.closeBtn} onClick={() => setLightbox(null)}>✕</button>
-                        {idx > 0 && (
-                            <button style={{ ...s.lbArrow, right: '16px' }} onClick={goPrev}>›</button>
-                        )}
-                        {idx < photos.length - 1 && (
-                            <button style={{ ...s.lbArrow, left: '16px' }} onClick={goNext}>‹</button>
-                        )}
-                        <img
-                            src={lightbox.filename ? `${API_BASE}/uploads/${lightbox.filename}` : lightbox.src}
-                            alt={lightbox.title || ''}
-                            style={s.lightboxImg}
-                            onClick={e => e.stopPropagation()}
-                        />
-                        {lightbox.title && <p style={s.lightboxCaption}>{lightbox.title}</p>}
-                        {photos.length > 1 && (
-                            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', margin: '6px 0 0' }}>
-                                {idx + 1} / {photos.length}
-                            </p>
-                        )}
-                    </div>
-                );
-            })()}
+            {lightbox && (
+                <div style={s.overlay} onClick={() => setLightbox(null)}>
+                    <button style={s.closeBtn} onClick={() => setLightbox(null)}>✕</button>
+                    <img
+                        src={lightbox.filename ? `${API_BASE}/uploads/${lightbox.filename}` : lightbox.src}
+                        alt={lightbox.title || ''}
+                        style={s.lightboxImg}
+                        onClick={e => e.stopPropagation()}
+                    />
+                    {lightbox.title && <p style={s.lightboxCaption}>{lightbox.title}</p>}
+                </div>
+            )}
 
             {/* Hero */}
             <section style={s.hero}>
@@ -440,13 +423,6 @@ const s = {
     },
     lightboxImg: { maxWidth: '90vw', maxHeight: '80vh', borderRadius: '12px', objectFit: 'contain' },
     lightboxCaption: { color: 'rgba(255,255,255,0.85)', fontSize: '0.95rem', marginTop: '14px', textAlign: 'center', maxWidth: '500px' },
-    lbArrow: {
-        position: 'absolute', top: '50%', transform: 'translateY(-50%)',
-        background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff',
-        width: '50px', height: '50px', borderRadius: '50%', fontSize: '2rem',
-        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        backdropFilter: 'blur(4px)', transition: 'background 0.2s',
-    },
 
     spinnerWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0' },
     spinner: {

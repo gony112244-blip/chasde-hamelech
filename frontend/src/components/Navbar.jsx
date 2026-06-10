@@ -16,15 +16,16 @@ const NAV_LINKS = [
 
 export default function Navbar() {
     const [menuOpen, setMenuOpen] = useState(false);
+    const [hidden, setHidden] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
     const [isMobile, setIsMobile] = useState(
         typeof window !== 'undefined' ? window.innerWidth <= MOBILE_BREAKPOINT : false
     );
-    const [visible, setVisible] = useState(true);
-    const lastScrollY = useRef(0);
     const location = useLocation();
     const navigate = useNavigate();
     const tapCount = useRef(0);
     const tapTimer = useRef(null);
+    const lastScroll = useRef(0);
 
     function handleLogoTap(e) {
         tapCount.current += 1;
@@ -45,14 +46,19 @@ export default function Navbar() {
         return () => mq.removeEventListener('change', onMQ);
     }, []);
 
-    // smart hide/show on scroll
+    // ניווט חכם — הסתרה בגלילה למטה, הצגה בגלילה למעלה
     useEffect(() => {
         function onScroll() {
             const y = window.scrollY;
-            if (y < 60) { setVisible(true); }
-            else if (y > lastScrollY.current + 8) { setVisible(false); setMenuOpen(false); }
-            else if (y < lastScrollY.current - 4) { setVisible(true); }
-            lastScrollY.current = y;
+            setScrolled(y > 10);
+            if (y < 80) {
+                setHidden(false);
+            } else if (y > lastScroll.current + 6) {
+                setHidden(true);
+            } else if (y < lastScroll.current - 6) {
+                setHidden(false);
+            }
+            lastScroll.current = y;
         }
         window.addEventListener('scroll', onScroll, { passive: true });
         return () => window.removeEventListener('scroll', onScroll);
@@ -74,10 +80,8 @@ export default function Navbar() {
         <>
             <nav style={{
                 ...s.nav,
-                position: 'sticky',
-                top: 0,
-                transform: visible ? 'translateY(0)' : 'translateY(-100%)',
-                transition: 'transform 0.3s ease',
+                transform: hidden && !menuOpen ? 'translateY(-100%)' : 'translateY(0)',
+                boxShadow: scrolled ? '0 4px 20px rgba(0,0,0,0.25)' : 'none',
             }} role="navigation" aria-label="ניווט ראשי">
                 <div style={s.inner}>
                     {/* לוגו */}
@@ -159,6 +163,10 @@ const s = {
         zIndex: 1000,
         direction: 'rtl',
         fontFamily: "'Heebo', sans-serif",
+        position: 'sticky',
+        top: 0,
+        transition: 'transform 0.35s ease, box-shadow 0.3s ease',
+        willChange: 'transform',
     },
     inner: {
         maxWidth: '1100px',
