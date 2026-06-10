@@ -140,6 +140,58 @@ export default {
     notfound_desc: 'נראה שהדף שחיפשתם הלך לבקר ילדים בבית חולים...',
     notfound_home: '🏠 חזרה לדף הבית',
 
+    // AboutSection
+    about_mission_desc: 'ילדים מאושפזים מפספסים את הילדות. אנחנו באים להחזיר להם רגעים של שמחה — עם משחק, ספר וחיוך.',
+    about_way_title: 'הדרך',
+    about_way_desc: 'כל שבוע מגיעים לבתי חולים ברחבי הארץ, מחלקים חבילות אישיות לילדים במחלקות ילדים ואונקולוגיה.',
+    about_vision_title: 'החזון',
+    about_vision_desc: 'להגיע לכל ילד מאושפז בישראל. לבנות רשת מתנדבים ארצית שמוודאת שאף ילד לא נשכח.',
+    about_tl_2019: 'ביום פורים יצאנו לראשונה לבית חולים עם שקית משחקים — ומאז לא הפסקנו',
+    about_tl_2024: 'ספרו של גוני שמוחה, "שר הצבא", מצטרף לחלוקות — כל ילד מקבל גם סיפור של כוח',
+    about_tl_2026: 'חסדי המלך הופך לפרויקט ארצי — אתר, מתנדבים וגדילה מתמדת',
+
+    // HowToHelp
+    how_title: '💝 איך אפשר לעזור?',
+    how_subtitle: 'כל אחד יכול לעשות הבדל — גם אתם',
+    how_donate_title: 'תרומה כספית',
+    how_donate_desc: 'כל שקל הופך למשחק או ספר ביד ילד מאושפז',
+    how_donate_btn: 'תרמו עכשיו →',
+    how_volunteer_title: 'התנדבות',
+    how_volunteer_desc: 'הצטרפו לצוות המחלקים — גם שעה בחודש עושה הבדל',
+    how_volunteer_btn: 'הצטרפו →',
+    how_toys_title: 'תרומת משחקים',
+    how_toys_desc: 'יש לכם ציוד חדש? נשמח לכל תרומה — חדש בלבד',
+    how_toys_btn: 'לפרטים →',
+    how_share_title: 'הפיצו',
+    how_share_desc: 'ספרו לחברים — כל שיתוף מגדיל את מעגל החיוכים',
+    how_share_btn: 'שתפו →',
+
+    // HelpPage
+    help_paybox_btn: '💳 PayBox — תרמו עכשיו',
+    help_bank_show: '🏦 הצג פרטי העברה בנקאית',
+    help_bank_hide: '🏦 הסתר פרטי העברה בנקאית',
+    help_credit_soon: 'תשלום בכרטיס אשראי — בקרוב',
+    help_items_title: '🎁 תרומת ציוד חדש',
+    help_items_subtitle: 'חדש בלבד — לא יד שנייה',
+    help_contact_arrange: '📦 צרו קשר לתיאום איסוף',
+
+    // AuthorCorner
+    author_friends_title: '👑 החברים מהשטח',
+    author_quote_david: 'ילד אחד שמחייך — שווה הכל',
+    author_quote_avitar: 'ברוך ה׳, זכיתי מאז לצאת כמעט כל שבוע — תודה על הזכות',
+    author_quote_gony: 'כשילד חולה מחייך על ספר שכתבתי — זה הנצחון הכי גדול שיש',
+    author_corner_label: '✍️ פינת הסופר',
+    author_book_label: 'הספר "שר הצבא"',
+
+    // Parasha
+    parasha_for_print: 'להדפסה ולקריאה בבית כנסת',
+    parasha_print: 'פתחו להדפסה',
+    parasha_visits: 'כניסות לעמוד',
+    parasha_downloads: 'הורדות',
+
+    // פוטר
+    footer_dev_contact: 'נתקלתם בבעיה טכנית או רוצים אתר כזה בעצמכם?',
+
     // כללי
     loading: 'טוען...',
     error: 'שגיאה',

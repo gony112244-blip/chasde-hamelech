@@ -1,6 +1,7 @@
 ﻿import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import PageMeta from '../components/PageMeta';
+import { useT } from '../hooks/useT';
 
 const PAYBOX_LINK = 'https://payboxapp.page.link/WXV7'; // יש לעדכן בקישור אמיתי
 
@@ -24,6 +25,7 @@ const ITEMS_NEEDED = [
 ];
 
 export default function HelpPage() {
+    const t = useT();
     const [showBank, setShowBank] = useState(false);
     const itemsRef = useRef(null);
     const location = useLocation();
@@ -43,7 +45,7 @@ export default function HelpPage() {
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={{ position: 'relative', zIndex: 2 }}>
-                    <h1 style={s.title}>💝 איך עוזרים?</h1>
+                    <h1 style={s.title}>{t('helppage_title')}</h1>
                     <p style={s.subtitle}>
                         כל תרומה — גדולה או קטנה — הופכת ליום טוב יותר
                         <br />עבור ילד שנלחם.
@@ -56,7 +58,7 @@ export default function HelpPage() {
                 <div style={s.donateInner}>
                     <div style={s.donateCard}>
                         <span style={{ fontSize: '3rem' }}>💰</span>
-                        <h2 style={s.donateTitle}>תרומה כספית</h2>
+                        <h2 style={s.donateTitle}>{t('helppage_donate_title')}</h2>
                         <p style={s.donateText}>
                             כל שקל הופך למשחק, ספר או חיוך ביד ילד מאושפז.
                         </p>
@@ -64,7 +66,7 @@ export default function HelpPage() {
                         {/* PayBox */}
                         <a href={PAYBOX_LINK} style={s.donateBtnPrimary}
                             target="_blank" rel="noopener noreferrer">
-                            💳 PayBox — תרמו עכשיו
+                            {t('help_paybox_btn')}
                         </a>
 
                         {/* Bit */}
@@ -81,7 +83,7 @@ export default function HelpPage() {
                             style={s.bankToggle}
                             onClick={() => setShowBank(v => !v)}
                         >
-                            🏦 {showBank ? 'הסתר' : 'הצג'} פרטי העברה בנקאית
+                            {showBank ? t('help_bank_hide') : t('help_bank_show')}
                         </button>
                         {showBank && (
                             <div style={s.bankBox}>
@@ -95,7 +97,7 @@ export default function HelpPage() {
                         {/* כרטיס אשראי — בקרוב */}
                         <div style={s.creditPlaceholder}>
                             <span>💳</span>
-                            <span>תשלום בכרטיס אשראי — בקרוב</span>
+                            <span>{t('help_credit_soon')}</span>
                         </div>
 
                         <p style={s.donateNote}>
@@ -109,11 +111,11 @@ export default function HelpPage() {
             <section style={s.itemsSection} ref={itemsRef} id="donate">
                 <div style={s.itemsInner}>
                     <h2 style={s.sectionTitle}>
-                        <span>🎁</span> תרומת ציוד לילדים
+                        {t('help_items_title')}
                     </h2>
                     <p style={s.sectionSubtitle}>
-                        יש לכם ציוד חדש שתרצו לתרום? כל הפריטים חייבים להיות{' '}
-                        <strong>חדשים לגמרי</strong> בשל תקנות בתי החולים.
+                        {t('helppage_toys_items')}{' '}
+                        <strong>{t('help_items_subtitle')}</strong>
                     </p>
 
                     <div style={s.itemsGrid}>
@@ -130,7 +132,7 @@ export default function HelpPage() {
                         <p style={s.contactText}>
                             רוצים לתרום ציוד? צרו איתנו קשר ונתאם!
                         </p>
-                        <Link to="/contact" style={s.contactBtn}>📩 צרו קשר</Link>
+                        <Link to="/contact" style={s.contactBtn}>{t('help_contact_arrange')}</Link>
                     </div>
                 </div>
             </section>

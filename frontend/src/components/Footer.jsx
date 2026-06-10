@@ -39,9 +39,8 @@ export default function Footer() {
                 <span style={s.credit}>נבנה באהבה ובהתנדבות</span>
             </div>
             <div style={s.authorCredit}>
-                ספר הילדים &ldquo;שר הצבא&rdquo; מאת{' '}
-                <a href="mailto:gony112233@gmail.com" style={s.authorLink}>גוני שמוחה</a>
-                {' '}— מחוברים בנשמה לייעוד הזה
+                {t('footer_dev_contact')}{' '}
+                <a href="mailto:gony112244@gmail.com" style={s.authorLink}>gony112244@gmail.com</a>
             </div>
         </footer>
     );

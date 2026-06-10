@@ -1,4 +1,5 @@
 ﻿import { Link } from 'react-router-dom';
+import { useT } from '../../hooks/useT';
 
 async function handleShare() {
     const shareData = {
@@ -19,50 +20,43 @@ async function handleShare() {
 }
 
 export default function HowToHelp() {
+    const t = useT();
     return (
         <section style={s.section}>
             <div style={s.inner}>
                 <h2 style={s.title}>
                     <span>💝</span>
-                    איך אפשר לעזור?
+                    {t('how_title')}
                 </h2>
-                <p style={s.subtitle}>כל אחד יכול לעשות הבדל — גם אתם</p>
+                <p style={s.subtitle}>{t('how_subtitle')}</p>
 
                 <div style={s.grid}>
-                    {/* תרומה כספית */}
                     <div style={{ ...s.card, ...s.cardHighlight }}>
                         <span style={s.cardIcon}>💰</span>
-                        <h3 style={{ ...s.cardTitle, color: '#fbbf24' }}>תרומה כספית</h3>
-                        <p style={{ ...s.cardDesc, color: 'rgba(255,255,255,0.8)' }}>
-                            כל שקל הופך למשחק או ספר ביד ילד מאושפז
-                        </p>
-                        <Link to="/help" style={{ ...s.cardBtn, ...s.cardBtnHighlight }}>
-                            תרמו עכשיו →
-                        </Link>
+                        <h3 style={{ ...s.cardTitle, color: '#fbbf24' }}>{t('how_donate_title')}</h3>
+                        <p style={{ ...s.cardDesc, color: 'rgba(255,255,255,0.8)' }}>{t('how_donate_desc')}</p>
+                        <Link to="/help" style={{ ...s.cardBtn, ...s.cardBtnHighlight }}>{t('how_donate_btn')}</Link>
                     </div>
 
-                    {/* התנדבות */}
                     <div style={s.card}>
                         <span style={s.cardIcon}>🤝</span>
-                        <h3 style={s.cardTitle}>התנדבות</h3>
-                        <p style={s.cardDesc}>הצטרפו לצוות המחלקים — גם שעה בחודש עושה הבדל</p>
-                        <Link to="/volunteer" style={s.cardBtn}>הצטרפו →</Link>
+                        <h3 style={s.cardTitle}>{t('how_volunteer_title')}</h3>
+                        <p style={s.cardDesc}>{t('how_volunteer_desc')}</p>
+                        <Link to="/volunteer" style={s.cardBtn}>{t('how_volunteer_btn')}</Link>
                     </div>
 
-                    {/* תרומת משחקים */}
                     <div style={s.card}>
                         <span style={s.cardIcon}>🎮</span>
-                        <h3 style={s.cardTitle}>תרומת משחקים</h3>
-                        <p style={s.cardDesc}>יש לכם ציוד חדש? נשמח לכל תרומה — חדש בלבד</p>
-                        <Link to="/help#donate" style={s.cardBtn}>לפרטים →</Link>
+                        <h3 style={s.cardTitle}>{t('how_toys_title')}</h3>
+                        <p style={s.cardDesc}>{t('how_toys_desc')}</p>
+                        <Link to="/help#donate" style={s.cardBtn}>{t('how_toys_btn')}</Link>
                     </div>
 
-                    {/* הפיצו */}
                     <div style={s.card}>
                         <span style={s.cardIcon}>📣</span>
-                        <h3 style={s.cardTitle}>הפיצו</h3>
-                        <p style={s.cardDesc}>ספרו לחברים — כל שיתוף מגדיל את מעגל החיוכים</p>
-                        <button style={s.cardBtn} onClick={handleShare}>שתפו →</button>
+                        <h3 style={s.cardTitle}>{t('how_share_title')}</h3>
+                        <p style={s.cardDesc}>{t('how_share_desc')}</p>
+                        <button style={s.cardBtn} onClick={handleShare}>{t('how_share_btn')}</button>
                     </div>
                 </div>
             </div>

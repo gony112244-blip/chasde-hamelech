@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
+import { useT } from '../../hooks/useT';
 
 function useIsMobile() {
     const [isMobile, setIsMobile] = useState(
@@ -36,6 +37,7 @@ function FounderBlock({ imgSrc, imgAlt, imgPosition, borderColor, name, children
 
 export default function AuthorCorner() {
     const isMobile = useIsMobile();
+    const t = useT();
 
     return (
         <section style={s.section}>
@@ -43,7 +45,7 @@ export default function AuthorCorner() {
 
                 {/* ── החברים מהשטח ── */}
                 <h2 style={s.mainTitle}>
-                    <span>👑</span> החברים מהשטח
+                    <span>👑</span> {t('author_friends_title')}
                 </h2>
 
                 {/* ── דוד — ראשון ── */}
@@ -66,7 +68,7 @@ export default function AuthorCorner() {
                     </p>
                     <div style={{ ...s.quote, borderColor: 'rgba(147,197,253,0.25)', background: 'rgba(147,197,253,0.08)' }}>
                         <span style={{ ...s.quoteIcon, color: '#93c5fd' }}>&ldquo;</span>
-                        <p style={{ ...s.quoteText, color: '#93c5fd' }}>ילד אחד שמחייך — שווה הכל</p>
+                        <p style={{ ...s.quoteText, color: '#93c5fd' }}>{t('author_quote_david')}</p>
                     </div>
                 </FounderBlock>
 
@@ -90,7 +92,7 @@ export default function AuthorCorner() {
                     </p>
                     <div style={s.quote}>
                         <span style={s.quoteIcon}>&ldquo;</span>
-                        <p style={s.quoteText}>ברוך ה׳, זכיתי מאז לצאת כמעט כל שבוע — תודה על הזכות</p>
+                        <p style={s.quoteText}>{t('author_quote_avitar')}</p>
                     </div>
                 </FounderBlock>
 
@@ -100,21 +102,22 @@ export default function AuthorCorner() {
                 {/* ── פינת הסופר ── */}
                 <div style={s.block}>
                     <h2 style={s.blockTitle}>
-                        <span>✍️</span> פינת הסופר
+                        <span>✍️</span> {t('author_corner_label')}
                     </h2>
                     <div style={{ ...s.founderRow, flexDirection: isMobile ? 'column' : 'row' }}>
                         <div style={s.imageWrap}>
-                            <div style={{ ...s.imageFrame, borderColor: '#fbbf24' }}>
-                                <div style={s.photoPlaceholder}>
-                                    <span style={{ fontSize: '2.5rem' }}>📸</span>
-                                    <span style={s.placeholderText}>תמונה בקרוב</span>
-                                </div>
+                            <div style={s.bookCoverFrame}>
+                                <img
+                                    src="/book-cover.png"
+                                    alt='כריכת הספר "שר הצבא"'
+                                    style={s.bookCoverImg}
+                                />
                             </div>
                             <p style={s.personName}>גוני שמוחה</p>
-                            <p style={s.personRole}>סופר הספר &ldquo;שר הצבא&rdquo;</p>
+                            <p style={s.personRole}>{t('author_book_label')}</p>
                         </div>
                         <div style={s.textContent}>
-                            <h3 style={s.bookTitle}>הספר &ldquo;שר הצבא&rdquo;</h3>
+                            <h3 style={s.bookTitle}>{t('author_book_label')}</h3>
                             <p style={s.text}>
                                 במשך שנים אני רואה את דוד ואביתר — בחורים טובים שיוצאים שבוע אחרי שבוע,
                                 מארגנים בעצמם ומחלקים לילדים מאושפזים. הרגיש לי שזה אחד הדברים הטהורים
@@ -131,7 +134,7 @@ export default function AuthorCorner() {
                             </p>
                             <div style={s.quote}>
                                 <span style={s.quoteIcon}>&ldquo;</span>
-                                <p style={s.quoteText}>כשילד חולה מחייך על ספר שכתבתי — זה הנצחון הכי גדול שיש</p>
+                                <p style={s.quoteText}>{t('author_quote_gony')}</p>
                             </div>
                         </div>
                     </div>
@@ -213,6 +216,20 @@ const s = {
         gap: '6px',
     },
     placeholderText: { fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' },
+    bookCoverFrame: {
+        width: '130px',
+        height: '185px',
+        borderRadius: '10px',
+        border: '3px solid #fbbf24',
+        overflow: 'hidden',
+        boxShadow: '0 0 0 4px rgba(251,191,36,0.15), 0 8px 24px rgba(0,0,0,0.4)',
+    },
+    bookCoverImg: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        display: 'block',
+    },
     personName: { fontSize: '1.05rem', fontWeight: 700, color: '#fbbf24', margin: 0, textAlign: 'center' },
     personRole: { fontSize: '0.82rem', color: 'rgba(255,255,255,0.5)', margin: 0, textAlign: 'center' },
     textContent: { display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 },

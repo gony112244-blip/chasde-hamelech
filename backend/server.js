@@ -824,6 +824,21 @@ app.delete('/api/admin/thank-you/:id', adminAuth, async (req, res) => {
 });
 
 // =====================
+// מעקב הורדות עלון פרשה
+// =====================
+app.post('/api/newsletters/:id/download', async (req, res) => {
+    try {
+        await pool.query(
+            'UPDATE newsletters SET downloads = COALESCE(downloads,0) + 1 WHERE id=$1',
+            [req.params.id]
+        );
+        res.json({ ok: true });
+    } catch {
+        res.json({ ok: false });
+    }
+});
+
+// =====================
 // תרגום אוטומטי — DeepL + מטמון DB
 // =====================
 

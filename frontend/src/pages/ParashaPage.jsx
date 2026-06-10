@@ -4,11 +4,19 @@ import API_BASE from '../config';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
 
+const API_BASE_LOCAL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3002' : '');
+
 export default function ParashaPage() {
     const t = useT();
     const [latest, setLatest] = useState(null);
     const [archive, setArchive] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    async function trackDownload(id) {
+        try {
+            await fetch(`${API_BASE}/api/newsletters/${id}/download`, { method: 'POST' });
+        } catch (_) {}
+    }
 
     useEffect(() => {
         fetch(`${API_BASE}/api/newsletters`)
@@ -35,7 +43,7 @@ export default function ParashaPage() {
                 <div style={{ position: 'relative', zIndex: 2 }}>
                     <h1 style={s.title}>{t('parasha_title')}</h1>
                     <p style={s.subtitle}>
-                        {t('parasha_subtitle')}
+                        {t('parasha_for_print')}
                         <br />
                         <span style={s.updateNote}>{t('parasha_update')}</span>
                     </p>
@@ -85,8 +93,13 @@ export default function ParashaPage() {
                             )}
 
                             <a href={fileUrl(latest)} download style={s.downloadBtn}
-                                target="_blank" rel="noopener noreferrer">
+                                target="_blank" rel="noopener noreferrer"
+                                onClick={() => trackDownload(latest.id)}>
                                 {t('parasha_download')}
+                            </a>
+                            <a href={fileUrl(latest)} target="_blank" rel="noopener noreferrer" style={s.printBtn}
+                                onClick={() => trackDownload(latest.id)}>
+                                🖨️ {t('parasha_print') || 'פתחו להדפסה'}
                             </a>
                         </div>
                     )}
@@ -167,15 +180,21 @@ const s = {
         borderRadius: '100px', fontSize: '0.85rem', fontWeight: 600,
     },
     pdfFrame: {
-        width: '100%', height: '600px', border: 'none', borderRadius: '12px',
+        width: '100%', height: '800px', border: 'none', borderRadius: '12px',
         background: '#f8f8f8',
     },
     previewImg: {
-        width: '100%', borderRadius: '12px', boxShadow: 'var(--shadow-sm)',
+        width: '100%', maxWidth: '700px', margin: '0 auto', display: 'block',
+        borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
     },
     downloadBtn: {
         background: 'linear-gradient(135deg, #0f2044, #1a3460)', color: '#fff',
-        textDecoration: 'none', padding: '14px 32px', borderRadius: '14px', fontWeight: 700,
+        textDecoration: 'none', padding: '16px 32px', borderRadius: '14px', fontWeight: 700,
+        fontSize: '1.05rem', textAlign: 'center', display: 'block',
+    },
+    printBtn: {
+        background: 'var(--royal-pale)', color: 'var(--royal)',
+        textDecoration: 'none', padding: '14px 32px', borderRadius: '14px', fontWeight: 600,
         fontSize: '1rem', textAlign: 'center', display: 'block',
     },
 

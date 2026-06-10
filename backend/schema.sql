@@ -122,6 +122,9 @@ CREATE TABLE IF NOT EXISTS activity_log (
     created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- מעקב הורדות עלון
+ALTER TABLE newsletters ADD COLUMN IF NOT EXISTS downloads INTEGER DEFAULT 0;
+
 -- מטמון תרגומים (DeepL)
 CREATE TABLE IF NOT EXISTS translations (
     id              SERIAL PRIMARY KEY,

@@ -140,6 +140,58 @@ export default {
     notfound_desc: 'Il semble que la page que vous cherchiez soit allée rendre visite à des enfants à l\'hôpital...',
     notfound_home: '🏠 Retour à l\'accueil',
 
+    // AboutSection
+    about_mission_desc: 'Les enfants hospitalisés ratent leur enfance. Nous venons leur rendre des moments de joie — avec un jeu, un livre et un sourire.',
+    about_way_title: 'Le Chemin',
+    about_way_desc: 'Chaque semaine, nous visitons des hôpitaux à travers Israël, distribuant des colis personnels aux enfants dans les services pédiatriques et oncologiques.',
+    about_vision_title: 'La Vision',
+    about_vision_desc: 'Atteindre chaque enfant hospitalisé en Israël. Construire un réseau national de bénévoles garantissant qu\'aucun enfant ne soit oublié.',
+    about_tl_2019: 'Lors de Pourim, nous sommes allés pour la première fois à l\'hôpital avec un sac de jeux — et nous n\'avons plus arrêté',
+    about_tl_2024: 'Le livre "Sar HaTzava" de Gony Shmucha rejoint les distributions — chaque enfant reçoit aussi une histoire de force',
+    about_tl_2026: 'Chasde HaMelech devient un projet national — site web, bénévoles et croissance constante',
+
+    // HowToHelp
+    how_title: '💝 Comment Pouvez-vous Aider?',
+    how_subtitle: 'Tout le monde peut faire la différence — vous aussi',
+    how_donate_title: 'Don Monétaire',
+    how_donate_desc: 'Chaque shekel devient un jeu ou un livre dans la main d\'un enfant hospitalisé',
+    how_donate_btn: 'Faire un Don →',
+    how_volunteer_title: 'Bénévolat',
+    how_volunteer_desc: 'Rejoignez notre équipe — même une heure par mois fait la différence',
+    how_volunteer_btn: 'Rejoindre →',
+    how_toys_title: 'Don de Jouets',
+    how_toys_desc: 'Vous avez du matériel neuf? Nous accueillons tous les dons — neuf seulement',
+    how_toys_btn: 'Détails →',
+    how_share_title: 'Diffuser',
+    how_share_desc: 'Parlez à vos amis — chaque partage élargit notre cercle de sourires',
+    how_share_btn: 'Partager →',
+
+    // HelpPage
+    help_paybox_btn: '💳 PayBox — Faire un Don',
+    help_bank_show: '🏦 Afficher les Détails du Virement',
+    help_bank_hide: '🏦 Masquer les Détails du Virement',
+    help_credit_soon: 'Paiement par Carte — Bientôt',
+    help_items_title: '🎁 Don de Matériel Neuf',
+    help_items_subtitle: 'Neuf seulement — pas d\'occasion',
+    help_contact_arrange: '📦 Contactez-nous pour organiser la collecte',
+
+    // AuthorCorner
+    author_friends_title: '👑 Amis du Terrain',
+    author_quote_david: 'Un enfant qui sourit — vaut tout',
+    author_quote_avitar: 'Grâce à Dieu, je sors presque chaque semaine depuis — merci pour ce privilège',
+    author_quote_gony: 'Quand un enfant malade sourit à un livre que j\'ai écrit — c\'est la plus grande victoire qui soit',
+    author_corner_label: '✍️ Coin de l\'Auteur',
+    author_book_label: 'Le Livre "Sar HaTzava"',
+
+    // Parasha
+    parasha_for_print: 'Pour imprimer et lire à la synagogue',
+    parasha_print: 'Ouvrir pour imprimer',
+    parasha_visits: 'Visites de la page',
+    parasha_downloads: 'Téléchargements',
+
+    // Footer
+    footer_dev_contact: 'Vous avez rencontré un problème technique ou vous voulez un site comme celui-ci?',
+
     // General
     loading: 'Chargement...',
     error: 'Erreur',

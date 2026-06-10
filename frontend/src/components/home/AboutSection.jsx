@@ -1,70 +1,39 @@
-﻿export default function AboutSection() {
+﻿import { useT } from '../../hooks/useT';
+
+export default function AboutSection() {
+    const t = useT();
     return (
         <section style={s.section}>
             <div style={s.inner}>
                 <h2 style={s.title}>
                     <span style={s.titleIcon}>💜</span>
-                    הסיפור שלנו
+                    {t('about_title')}
                 </h2>
 
                 <div style={s.cards}>
-                    {/* כרטיס 1 — המשימה */}
                     <div style={s.card}>
-                        <div style={s.cardIconWrap}>
-                            <span style={s.cardEmoji}>🎯</span>
-                        </div>
-                        <h3 style={s.cardTitle}>המשימה</h3>
-                        <p style={s.cardText}>
-                            ילדים מאושפזים מפספסים את הילדות. אנחנו באים להחזיר להם רגעים של שמחה —
-                            עם משחק, ספר וחיוך.
-                        </p>
+                        <div style={s.cardIconWrap}><span style={s.cardEmoji}>🎯</span></div>
+                        <h3 style={s.cardTitle}>{t('about_mission_title')}</h3>
+                        <p style={s.cardText}>{t('about_mission_desc')}</p>
                     </div>
-
-                    {/* כרטיס 2 — הדרך */}
                     <div style={s.card}>
-                        <div style={s.cardIconWrap}>
-                            <span style={s.cardEmoji}>🚗</span>
-                        </div>
-                        <h3 style={s.cardTitle}>הדרך</h3>
-                        <p style={s.cardText}>
-                            כל שבוע מגיעים לבתי חולים ברחבי הארץ, מחלקים חבילות אישיות לילדים
-                            במחלקות ילדים ואונקולוגיה.
-                        </p>
+                        <div style={s.cardIconWrap}><span style={s.cardEmoji}>🚗</span></div>
+                        <h3 style={s.cardTitle}>{t('about_way_title')}</h3>
+                        <p style={s.cardText}>{t('about_way_desc')}</p>
                     </div>
-
-                    {/* כרטיס 3 — החזון */}
                     <div style={s.card}>
-                        <div style={s.cardIconWrap}>
-                            <span style={s.cardEmoji}>🌟</span>
-                        </div>
-                        <h3 style={s.cardTitle}>החזון</h3>
-                        <p style={s.cardText}>
-                            להגיע לכל ילד מאושפז בישראל. לבנות רשת מתנדבים ארצית
-                            שמוודאת שאף ילד לא נשכח.
-                        </p>
+                        <div style={s.cardIconWrap}><span style={s.cardEmoji}>🌟</span></div>
+                        <h3 style={s.cardTitle}>{t('about_vision_title')}</h3>
+                        <p style={s.cardText}>{t('about_vision_desc')}</p>
                     </div>
                 </div>
 
-                {/* Timeline */}
                 <div style={s.timeline}>
-                    <h3 style={s.timelineTitle}>ציר הזמן שלנו</h3>
+                    <h3 style={s.timelineTitle}>{t('about_timeline_title')}</h3>
                     <div style={s.timelineItems}>
-                        <TimelineItem
-                            year="2019"
-                            title="ההתחלה"
-                            desc="ביום פורים יצאנו לראשונה לבית חולים עם שקית משחקים — ומאז לא הפסקנו"
-                        />
-                        <TimelineItem
-                            year="2024"
-                            title="הספר מצטרף"
-                            desc="ספרו של גוני שמוחה, 'שר הצבא', מצטרף לחלוקות — כל ילד מקבל גם סיפור של כוח"
-                        />
-                        <TimelineItem
-                            year="2026"
-                            title="האתר עולה"
-                            desc="חסדי המלך הופך לפרויקט ארצי — אתר, מתנדבים וגדילה מתמדת"
-                            active
-                        />
+                        <TimelineItem year="2019" title={t('about_start')} desc={t('about_tl_2019')} />
+                        <TimelineItem year="2024" title={t('about_book')}  desc={t('about_tl_2024')} />
+                        <TimelineItem year="2026" title={t('about_website')} desc={t('about_tl_2026')} active />
                     </div>
                 </div>
             </div>
