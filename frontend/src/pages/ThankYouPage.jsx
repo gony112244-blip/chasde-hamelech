@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import API_BASE from '../config';
+﻿import { useState, useEffect, useRef } from 'react';
+import API_BASE, { UPLOADS_BASE } from '../config';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
 import { useLang } from '../contexts/LangContext';
@@ -225,7 +225,7 @@ export default function ThankYouPage() {
                             }}>
                                 {note.photo_filename && (
                                     <img
-                                        src={`${API_BASE}/uploads/${note.photo_filename}`}
+                                        src={`${UPLOADS_BASE}/${note.photo_filename}`}
                                         alt="מכתב תודה"
                                         style={s.notePhoto}
                                     />

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import API_BASE from '../config';
+import API_BASE, { UPLOADS_BASE } from '../config';
 
 const TABS = [
     { id: 'contacts',    label: 'פניות',        icon: '✉️' },
@@ -259,7 +259,7 @@ function ThankYouTab({ token }) {
                         {pending.map(n => (
                             <div key={n.id} style={{ ...s.card, borderRight: '4px solid #f59e0b' }}>
                                 {n.photo_filename && (
-                                    <img src={`${API_BASE}/uploads/${n.photo_filename}`}
+                                    <img src={`${UPLOADS_BASE}/${n.photo_filename}`}
                                         alt="מכתב תודה" style={s.notePhoto} />
                                 )}
                                 <div style={s.cardTop}>
@@ -284,7 +284,7 @@ function ThankYouTab({ token }) {
                         {approved.map(n => (
                             <div key={n.id} style={{ ...s.card, borderRight: '4px solid #10b981' }}>
                                 {n.photo_filename && (
-                                    <img src={`${API_BASE}/uploads/${n.photo_filename}`}
+                                    <img src={`${UPLOADS_BASE}/${n.photo_filename}`}
                                         alt="תמונה" style={s.notePhoto} />
                                 )}
                                 <div style={s.cardTop}>
@@ -681,7 +681,7 @@ function NewsletterTab({ token }) {
                                     <span style={s.badge}>{n.file_type?.includes('pdf') ? 'PDF' : 'תמונה'}</span>
                                 </div>
                                 <div style={s.actions}>
-                                    <a href={`${API_BASE}/uploads/${n.filename}`} target="_blank" rel="noopener noreferrer" style={s.replyBtn}>
+                                    <a href={`${UPLOADS_BASE}/${n.filename}`} target="_blank" rel="noopener noreferrer" style={s.replyBtn}>
                                         👁️ צפה
                                     </a>
                                     <button style={s.rejectBtn} onClick={() => deleteNewsletter(n.id)}>🗑️ מחק</button>
@@ -878,7 +878,7 @@ function MediaTab({ token }) {
                                         {p.media && p.media.length > 0 && (
                                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
                                                 {p.media.map(m => (
-                                                    <img key={m.id} src={`${API_BASE}/uploads/${m.filename}`}
+                                                    <img key={m.id} src={`${UPLOADS_BASE}/${m.filename}`}
                                                         alt="" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px' }} />
                                                 ))}
                                             </div>
@@ -970,7 +970,7 @@ function MediaTab({ token }) {
                                                     <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.72rem' }}>סרטון</span>
                                                 </div>
                                             )
-                                            : <img src={`${API_BASE}/uploads/${item.filename}`} alt={item.title} style={s.mediaThumbnail} />
+                                            : <img src={`${UPLOADS_BASE}/${item.filename}`} alt={item.title} style={s.mediaThumbnail} />
                                         }
                                         <div style={s.mediaInfo}>
                                             <p style={s.mediaTitle}>{item.title || item.original_name}</p>

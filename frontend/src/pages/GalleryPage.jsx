@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import API_BASE from '../config';
+﻿import { useState, useEffect, useRef, useCallback } from 'react';
+import API_BASE, { UPLOADS_BASE } from '../config';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
 import { useLang } from '../contexts/LangContext';
@@ -35,7 +35,7 @@ function VideoCard({ item }) {
     }
 
     const src = item.filename
-        ? `${API_BASE}/uploads/${item.filename}`
+        ? `${UPLOADS_BASE}/${item.filename}`
         : item.src;
 
     return (
@@ -66,7 +66,7 @@ function VideoCard({ item }) {
 
 function PhotoCard({ item, onClick }) {
     const src = item.filename
-        ? `${API_BASE}/uploads/${item.filename}`
+        ? `${UPLOADS_BASE}/${item.filename}`
         : item.src;
 
     return (
@@ -153,7 +153,7 @@ export default function GalleryPage() {
                 <div style={s.overlay} onClick={() => setLightbox(null)}>
                     <button style={s.closeBtn} onClick={() => setLightbox(null)}>✕</button>
                     <img
-                        src={lightbox.filename ? `${API_BASE}/uploads/${lightbox.filename}` : lightbox.src}
+                        src={lightbox.filename ? `${UPLOADS_BASE}/${lightbox.filename}` : lightbox.src}
                         alt={lightbox.title || ''}
                         style={s.lightboxImg}
                         onClick={e => e.stopPropagation()}
@@ -195,7 +195,7 @@ export default function GalleryPage() {
                                                     <button key={m.id} style={s.postThumb}
                                                         onClick={() => setLightbox(m)}>
                                                         <img
-                                                            src={`${API_BASE}/uploads/${m.filename}`}
+                                                            src={`${UPLOADS_BASE}/${m.filename}`}
                                                             alt={m.title || ''}
                                                             style={s.postThumbImg}
                                                             loading="lazy"

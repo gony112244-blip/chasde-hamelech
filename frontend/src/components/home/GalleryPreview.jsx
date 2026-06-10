@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import API_BASE from '../../config';
+import API_BASE, { UPLOADS_BASE } from '../../config';
 import { useT } from '../../hooks/useT';
 
 const INTERVAL = 4000;
@@ -29,7 +29,7 @@ export default function GalleryPreview() {
     useEffect(() => {
         items.forEach(item => {
             const img = new Image();
-            img.src = item.url || `${API_BASE}/uploads/${item.filename}`;
+            img.src = item.url || `${UPLOADS_BASE}/${item.filename}`;
         });
     }, [items]);
 
@@ -86,7 +86,7 @@ export default function GalleryPreview() {
     if (items.length === 0) return null;
 
     const current = items[active];
-    const src = current.url || `${API_BASE}/uploads/${current.filename}`;
+    const src = current.url || `${UPLOADS_BASE}/${current.filename}`;
 
     return (
         <section style={s.section}>

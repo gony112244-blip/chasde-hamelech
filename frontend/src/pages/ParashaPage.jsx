@@ -1,16 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import API_BASE from '../config';
+import API_BASE, { UPLOADS_BASE } from '../config';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
-
-const API_BASE_LOCAL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3002' : '');
 
 export default function ParashaPage() {
     const t = useT();
     const [latest, setLatest] = useState(null);
     const [archive, setArchive] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [imgError, setImgError] = useState(false);
 
     async function trackDownload(id) {
         try {
@@ -33,7 +32,7 @@ export default function ParashaPage() {
     }, []);
 
     const fileUrl = (item) =>
-        item.url || `${API_BASE}/uploads/${item.filename}`;
+        item.url || `${UPLOADS_BASE}/${item.filename}`;
 
     return (
         <div style={s.page}>
@@ -78,17 +77,28 @@ export default function ParashaPage() {
                             </div>
 
                             {/* הצגת קובץ */}
-                            {latest.file_type === 'application/pdf' ? (
+                            {imgError ? (
+                                <a href={fileUrl(latest)} target="_blank" rel="noopener noreferrer"
+                                    style={s.fallbackBox} onClick={() => trackDownload(latest.id)}>
+                                    <span style={{ fontSize: '2.5rem' }}>📄</span>
+                                    <strong style={{ color: 'var(--royal)' }}>לחצו לפתיחת העלון</strong>
+                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                        התצוגה המקדימה לא נטענה — אפשר לפתוח את הקובץ ישירות
+                                    </span>
+                                </a>
+                            ) : latest.file_type === 'application/pdf' ? (
                                 <iframe
                                     src={`${fileUrl(latest)}#toolbar=0`}
                                     style={s.pdfFrame}
                                     title="עלון השבוע"
+                                    onError={() => setImgError(true)}
                                 />
                             ) : (
                                 <img
                                     src={fileUrl(latest)}
                                     alt="עלון השבוע"
                                     style={s.previewImg}
+                                    onError={() => setImgError(true)}
                                 />
                             )}
 
@@ -186,6 +196,13 @@ const s = {
     previewImg: {
         width: '100%', maxWidth: '700px', margin: '0 auto', display: 'block',
         borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+        minHeight: '120px', background: '#f1f5fb',
+    },
+    fallbackBox: {
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+        textAlign: 'center', textDecoration: 'none',
+        background: 'var(--royal-pale)', borderRadius: '16px',
+        padding: '40px 24px', border: '2px dashed rgba(15,32,68,0.2)',
     },
     downloadBtn: {
         background: 'linear-gradient(135deg, #0f2044, #1a3460)', color: '#fff',
