@@ -22,6 +22,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import ParashaPage from './pages/ParashaPage';
 import PrivacyPage from './pages/PrivacyPage';
 import AccessibilityPage from './pages/AccessibilityPage';
+import TermsPage from './pages/TermsPage';
 
 function Layout() {
     const location = useLocation();
@@ -47,6 +48,7 @@ function Layout() {
                     <Route path="/parasha"            element={<ParashaPage />} />
                     <Route path="/privacy"            element={<PrivacyPage />} />
                     <Route path="/accessibility"      element={<AccessibilityPage />} />
+                    <Route path="/terms"              element={<TermsPage />} />
                     <Route path="/qr"                 element={<QRLandingPage />} />
                     <Route path="/qr/:id"             element={<QRLandingPage />} />
                     <Route path="*"                   element={<NotFoundPage />} />

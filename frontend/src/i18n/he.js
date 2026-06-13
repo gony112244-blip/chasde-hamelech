@@ -154,6 +154,7 @@ export default {
     footer_links: 'קישורים מהירים',
     footer_contact: 'יצירת קשר',
     footer_rights: 'כל הזכויות שמורות',
+    footer_terms: 'תקנון האתר',
     footer_privacy: 'מדיניות פרטיות',
     footer_accessibility: 'הצהרת נגישות',
 

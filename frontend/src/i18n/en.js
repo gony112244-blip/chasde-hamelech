@@ -154,6 +154,7 @@ export default {
     footer_links: 'Quick Links',
     footer_contact: 'Contact',
     footer_rights: 'All rights reserved',
+    footer_terms: 'Terms of Use',
     footer_privacy: 'Privacy Policy',
     footer_accessibility: 'Accessibility Statement',
 

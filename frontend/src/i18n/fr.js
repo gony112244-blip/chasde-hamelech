@@ -154,6 +154,7 @@ export default {
     footer_links: 'Liens Rapides',
     footer_contact: 'Contact',
     footer_rights: 'Tous droits réservés',
+    footer_terms: "Conditions d'utilisation",
     footer_privacy: 'Politique de confidentialité',
     footer_accessibility: 'Déclaration d\'accessibilité',
 

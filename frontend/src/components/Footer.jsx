@@ -28,6 +28,7 @@ export default function Footer() {
                 <div style={s.col}>
                     <h4 style={s.colTitle}>{t('footer_contact')}</h4>
                     <nav style={s.links}>
+                        <Link to="/terms" style={s.link}>{t('footer_terms')}</Link>
                         <Link to="/privacy" style={s.link}>{t('footer_privacy')}</Link>
                         <Link to="/accessibility" style={s.link}>{t('footer_accessibility')}</Link>
                     </nav>
