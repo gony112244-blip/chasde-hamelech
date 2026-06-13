@@ -6,6 +6,19 @@ import { useT } from '../../hooks/useT';
 const INTERVAL = 5500;   // ms between slides
 const CROSS_MS  = 1100;  // cross-fade duration
 
+function getSrc(item) {
+    return item.url || `${UPLOADS_BASE}/${item.filename}`;
+}
+
+function preloadImage(src) {
+    return new Promise((resolve) => {
+        const img = new window.Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = src;
+    });
+}
+
 // Ken Burns variants — zoom/pan direction changes per slide for variety
 const KB = [
     `kbZoomInLeft  ${INTERVAL + CROSS_MS}ms ease-out forwards`,
@@ -15,12 +28,14 @@ const KB = [
 ];
 
 const CSS = `
-    @keyframes kbZoomInLeft  { from { transform: scale(1.00) translate( 0%,  0%); } to { transform: scale(1.18) translate(-3%, -2%); } }
-    @keyframes kbZoomInRight { from { transform: scale(1.05) translate( 0%,  0%); } to { transform: scale(1.18) translate( 3%, -2%); } }
-    @keyframes kbZoomOut     { from { transform: scale(1.20) translate( 0%,  0%); } to { transform: scale(1.04) translate( 0%,  2%); } }
-    @keyframes kbPanLeft     { from { transform: scale(1.12) translate(-4%,  0%); } to { transform: scale(1.12) translate( 4%,  0%); } }
+    @keyframes kbZoomInLeft  { from { transform: scale(1.04) translate( 0%,  0%); } to { transform: scale(1.14) translate(-3%, -2%); } }
+    @keyframes kbZoomInRight { from { transform: scale(1.05) translate( 0%,  0%); } to { transform: scale(1.14) translate( 3%, -2%); } }
+    @keyframes kbZoomOut     { from { transform: scale(1.16) translate( 0%,  0%); } to { transform: scale(1.05) translate( 0%,  2%); } }
+    @keyframes kbPanLeft     { from { transform: scale(1.10) translate(-4%,  0%); } to { transform: scale(1.10) translate( 4%,  0%); } }
     @keyframes progressFill  { from { width: 0%; } to { width: 100%; } }
-    .gp-slide { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; transform-origin:center center; }
+    .gp-layer { position:absolute; inset:0; overflow:hidden; background:#020810; }
+    .gp-backdrop { position:absolute; inset:-18px; width:calc(100% + 36px); height:calc(100% + 36px); object-fit:cover; display:block; filter:blur(18px) brightness(0.62) saturate(1.08); transform-origin:center center; }
+    .gp-photo { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block; transform-origin:center center; }
     .gp-fade-in  { animation: gpFadeIn  ${CROSS_MS}ms ease-out forwards; }
     .gp-fade-out { animation: gpFadeOut ${CROSS_MS}ms ease-out forwards; }
     @keyframes gpFadeIn  { from { opacity: 0; } to { opacity: 1; } }
@@ -36,6 +51,7 @@ export default function GalleryPreview() {
     const [progKey, setProgKey]     = useState(0);       // restarts progress bar
     const [musicOn, setMusicOn]     = useState(false);
     const timerRef  = useRef(null);
+    const clearPrevRef = useRef(null);
     const audioRef  = useRef(null);
     const t = useT();
 
@@ -53,12 +69,12 @@ export default function GalleryPreview() {
     // preload
     useEffect(() => {
         items.forEach(item => {
-            const img = new window.Image();
-            img.src = item.url || `${UPLOADS_BASE}/${item.filename}`;
+            preloadImage(getSrc(item));
         });
     }, [items]);
 
-    const goTo = useCallback((nextIdx) => {
+    const commitSlide = useCallback((nextIdx) => {
+        clearTimeout(clearPrevRef.current);
         setActive(cur => {
             setPrev(cur);
             return nextIdx;
@@ -66,36 +82,36 @@ export default function GalleryPreview() {
         setKbKey(k => k + 1);
         setProgKey(k => k + 1);
         // clear outgoing after cross-fade
-        setTimeout(() => setPrev(null), CROSS_MS + 50);
+        clearPrevRef.current = setTimeout(() => setPrev(null), CROSS_MS + 50);
     }, []);
 
-    const next = useCallback(() => {
-        setActive(cur => {
-            const n = items.length > 0 ? (cur + 1) % items.length : 0;
-            setPrev(cur);
-            setKbKey(k => k + 1);
-            setProgKey(k => k + 1);
-            setTimeout(() => setPrev(null), CROSS_MS + 50);
-            return n;
-        });
-    }, [items.length]);
+    const goTo = useCallback(async (nextIdx) => {
+        if (nextIdx < 0 || nextIdx >= items.length) return;
+        const loaded = await preloadImage(getSrc(items[nextIdx]));
+        if (loaded) commitSlide(nextIdx);
+    }, [commitSlide, items]);
 
-    const prevSlide = useCallback(() => {
-        setActive(cur => {
-            const n = items.length > 0 ? (cur - 1 + items.length) % items.length : 0;
-            setPrev(cur);
-            setKbKey(k => k + 1);
-            setProgKey(k => k + 1);
-            setTimeout(() => setPrev(null), CROSS_MS + 50);
-            return n;
-        });
-    }, [items.length]);
+    const next = useCallback(async () => {
+        if (items.length <= 1) return;
+        const n = (active + 1) % items.length;
+        await goTo(n);
+    }, [active, goTo, items.length]);
+
+    const prevSlide = useCallback(async () => {
+        if (items.length <= 1) return;
+        const n = (active - 1 + items.length) % items.length;
+        await goTo(n);
+    }, [active, goTo, items.length]);
 
     useEffect(() => {
         if (items.length <= 1) return;
         timerRef.current = setInterval(next, INTERVAL);
         return () => clearInterval(timerRef.current);
     }, [items.length, next]);
+
+    useEffect(() => {
+        return () => clearTimeout(clearPrevRef.current);
+    }, []);
 
     function resetTimer() {
         clearInterval(timerRef.current);
@@ -123,9 +139,9 @@ export default function GalleryPreview() {
     if (items.length === 0) return null;
 
     const cur  = items[active];
-    const curSrc  = cur.url  || `${UPLOADS_BASE}/${cur.filename}`;
+    const curSrc  = getSrc(cur);
     const prevItem = prev !== null ? items[prev] : null;
-    const prevSrc  = prevItem ? (prevItem.url || `${UPLOADS_BASE}/${prevItem.filename}`) : null;
+    const prevSrc  = prevItem ? getSrc(prevItem) : null;
     const kbAnim   = KB[kbKey % KB.length];
 
     return (
@@ -139,23 +155,25 @@ export default function GalleryPreview() {
 
                     {/* ── outgoing image (fade-out) ── */}
                     {prevSrc && (
-                        <img
-                            src={prevSrc}
-                            alt=""
-                            aria-hidden="true"
-                            className="gp-slide gp-fade-out"
-                            style={{ zIndex: 1 }}
-                        />
+                        <div className="gp-layer gp-fade-out" style={{ zIndex: 1 }} aria-hidden="true">
+                            <img src={prevSrc} alt="" className="gp-backdrop" />
+                            <img src={prevSrc} alt="" className="gp-photo" />
+                        </div>
                     )}
 
                     {/* ── incoming image (Ken Burns + fade-in) ── */}
-                    <img
+                    <div
                         key={kbKey}
-                        src={curSrc}
-                        alt={cur.title || t('gallery_preview_title')}
-                        className="gp-slide gp-fade-in"
+                        className="gp-layer gp-fade-in"
                         style={{ zIndex: 2, animation: `gpFadeIn ${CROSS_MS}ms ease-out forwards, ${kbAnim}` }}
-                    />
+                    >
+                        <img src={curSrc} alt="" className="gp-backdrop" aria-hidden="true" />
+                        <img
+                            src={curSrc}
+                            alt={cur.title || t('gallery_preview_title')}
+                            className="gp-photo"
+                        />
+                    </div>
 
                     {/* ── vignette overlay ── */}
                     <div style={s.vignette} />
