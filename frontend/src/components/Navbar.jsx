@@ -17,9 +17,9 @@ const NAV_LINKS = [
 ];
 
 const LANGS = [
-    { code: 'he', label: 'עב', flag: '🇮🇱' },
-    { code: 'en', label: 'EN', flag: '🇬🇧' },
-    { code: 'fr', label: 'FR', flag: '🇫🇷' },
+    { code: 'he', label: 'עברית', short: 'עב' },
+    { code: 'en', label: 'English', short: 'EN' },
+    { code: 'fr', label: 'Français', short: 'FR' },
 ];
 
 export default function Navbar() {
@@ -136,9 +136,9 @@ export default function Navbar() {
                                 aria-label="בחרו שפה"
                                 title="Language / שפה"
                             >
-                                <span>{currentLang.flag}</span>
-                                <span style={{ fontSize: '0.78rem', fontWeight: 600 }}>{currentLang.label}</span>
-                                <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>▾</span>
+                                <span style={{ fontSize: '1rem' }}>🌐</span>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>{currentLang.short}</span>
+                                <span style={{ fontSize: '0.55rem', opacity: 0.7 }}>▾</span>
                             </button>
                             {langOpen && (
                                 <div style={s.langDropdown}>
@@ -151,7 +151,7 @@ export default function Navbar() {
                                             }}
                                             onClick={() => { setLang(l.code); setLangOpen(false); }}
                                         >
-                                            <span>{l.flag}</span>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.6, minWidth: '20px' }}>{l.short}</span>
                                             <span>{l.label}</span>
                                         </button>
                                     ))}
@@ -274,42 +274,42 @@ const s = {
         flexShrink: 0,
     },
 
-    // בורר שפה
     langWrapper: {
         position: 'relative',
     },
     langBtn: {
         display: 'flex',
         alignItems: 'center',
-        gap: '4px',
-        background: 'rgba(255,255,255,0.12)',
-        border: '1px solid rgba(255,255,255,0.2)',
+        gap: '5px',
+        background: 'rgba(255,255,255,0.1)',
+        border: '1px solid rgba(255,255,255,0.18)',
         color: '#fff',
-        borderRadius: '10px',
-        padding: '6px 10px',
+        borderRadius: '20px',
+        padding: '6px 12px',
         cursor: 'pointer',
         fontSize: '0.85rem',
         transition: 'background 0.2s',
         fontFamily: "'Heebo', sans-serif",
+        whiteSpace: 'nowrap',
     },
     langDropdown: {
         position: 'absolute',
-        top: 'calc(100% + 6px)',
+        top: 'calc(100% + 8px)',
         right: 0,
         background: '#0f2044',
         border: '1px solid rgba(255,255,255,0.15)',
-        borderRadius: '12px',
+        borderRadius: '14px',
         overflow: 'hidden',
-        minWidth: '90px',
+        minWidth: '120px',
         boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
         zIndex: 1100,
     },
     langOption: {
         display: 'flex',
         alignItems: 'center',
-        gap: '8px',
+        gap: '10px',
         width: '100%',
-        padding: '10px 14px',
+        padding: '11px 16px',
         background: 'none',
         border: 'none',
         color: 'rgba(255,255,255,0.8)',
@@ -317,6 +317,7 @@ const s = {
         fontSize: '0.9rem',
         fontFamily: "'Heebo', sans-serif",
         transition: 'background 0.15s',
+        textAlign: 'right',
     },
     langOptionActive: {
         background: 'rgba(251, 191, 36, 0.15)',
