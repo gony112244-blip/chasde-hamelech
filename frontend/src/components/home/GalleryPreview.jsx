@@ -13,7 +13,14 @@ function getSrc(item) {
 function preloadImage(src) {
     return new Promise((resolve) => {
         const img = new window.Image();
-        img.onload = () => resolve(true);
+        img.onload = async () => {
+            try {
+                if (img.decode) await img.decode();
+                resolve(true);
+            } catch {
+                resolve(false);
+            }
+        };
         img.onerror = () => resolve(false);
         img.src = src;
     });
@@ -52,29 +59,33 @@ export default function GalleryPreview() {
     const [musicOn, setMusicOn]     = useState(false);
     const timerRef  = useRef(null);
     const clearPrevRef = useRef(null);
+    const transitioningRef = useRef(false);
     const audioRef  = useRef(null);
     const t = useT();
 
     useEffect(() => {
+        let cancelled = false;
         fetch(`${API_BASE}/api/media?limit=20`)
             .then(r => r.ok ? r.json() : [])
-            .then(data => {
+            .then(async data => {
                 const all    = Array.isArray(data) ? data : (data.items || []);
                 const photos = all.filter(m => m.type === 'photo');
-                if (photos.length > 0) setItems(photos);
+                const checked = await Promise.all(
+                    photos.map(async (photo) => {
+                        const ok = await preloadImage(getSrc(photo));
+                        return ok ? photo : null;
+                    })
+                );
+                const safePhotos = checked.filter(Boolean);
+                if (!cancelled && safePhotos.length > 0) setItems(safePhotos);
             })
             .catch(() => {});
+        return () => { cancelled = true; };
     }, []);
-
-    // preload
-    useEffect(() => {
-        items.forEach(item => {
-            preloadImage(getSrc(item));
-        });
-    }, [items]);
 
     const commitSlide = useCallback((nextIdx) => {
         clearTimeout(clearPrevRef.current);
+        transitioningRef.current = true;
         setActive(cur => {
             setPrev(cur);
             return nextIdx;
@@ -82,14 +93,19 @@ export default function GalleryPreview() {
         setKbKey(k => k + 1);
         setProgKey(k => k + 1);
         // clear outgoing after cross-fade
-        clearPrevRef.current = setTimeout(() => setPrev(null), CROSS_MS + 50);
+        clearPrevRef.current = setTimeout(() => {
+            setPrev(null);
+            transitioningRef.current = false;
+        }, CROSS_MS + 50);
     }, []);
 
     const goTo = useCallback(async (nextIdx) => {
+        if (transitioningRef.current) return;
         if (nextIdx < 0 || nextIdx >= items.length) return;
+        if (nextIdx === active) return;
         const loaded = await preloadImage(getSrc(items[nextIdx]));
         if (loaded) commitSlide(nextIdx);
-    }, [commitSlide, items]);
+    }, [active, commitSlide, items]);
 
     const next = useCallback(async () => {
         if (items.length <= 1) return;
@@ -105,17 +121,21 @@ export default function GalleryPreview() {
 
     useEffect(() => {
         if (items.length <= 1) return;
-        timerRef.current = setInterval(next, INTERVAL);
-        return () => clearInterval(timerRef.current);
-    }, [items.length, next]);
+        clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(next, INTERVAL);
+        return () => clearTimeout(timerRef.current);
+    }, [active, items.length, next]);
 
     useEffect(() => {
-        return () => clearTimeout(clearPrevRef.current);
+        return () => {
+            clearTimeout(clearPrevRef.current);
+            clearTimeout(timerRef.current);
+        };
     }, []);
 
     function resetTimer() {
-        clearInterval(timerRef.current);
-        timerRef.current = setInterval(next, INTERVAL);
+        clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(next, INTERVAL);
     }
 
     function handlePrev() { prevSlide(); resetTimer(); }
