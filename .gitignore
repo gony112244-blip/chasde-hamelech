@@ -6,3 +6,6 @@ backend/.env
 *.log
 dist/
 backend/uploads/
+
+# מדריך פנימי עם סיסמאות — לא בגיטהאב
+מדריך-אתר-חסדי-המלך.md
