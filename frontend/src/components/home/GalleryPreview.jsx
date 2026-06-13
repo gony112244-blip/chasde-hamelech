@@ -3,53 +3,94 @@ import { Link } from 'react-router-dom';
 import API_BASE, { UPLOADS_BASE } from '../../config';
 import { useT } from '../../hooks/useT';
 
-const INTERVAL = 4000;
-const FADE_MS = 600;
+const INTERVAL = 5500;   // ms between slides
+const CROSS_MS  = 1100;  // cross-fade duration
+
+// Ken Burns variants — zoom/pan direction changes per slide for variety
+const KB = [
+    `kbZoomInLeft  ${INTERVAL + CROSS_MS}ms ease-out forwards`,
+    `kbZoomInRight ${INTERVAL + CROSS_MS}ms ease-out forwards`,
+    `kbZoomOut     ${INTERVAL + CROSS_MS}ms ease-out forwards`,
+    `kbPanLeft     ${INTERVAL + CROSS_MS}ms ease-out forwards`,
+];
+
+const CSS = `
+    @keyframes kbZoomInLeft  { from { transform: scale(1.00) translate( 0%,  0%); } to { transform: scale(1.18) translate(-3%, -2%); } }
+    @keyframes kbZoomInRight { from { transform: scale(1.05) translate( 0%,  0%); } to { transform: scale(1.18) translate( 3%, -2%); } }
+    @keyframes kbZoomOut     { from { transform: scale(1.20) translate( 0%,  0%); } to { transform: scale(1.04) translate( 0%,  2%); } }
+    @keyframes kbPanLeft     { from { transform: scale(1.12) translate(-4%,  0%); } to { transform: scale(1.12) translate( 4%,  0%); } }
+    @keyframes progressFill  { from { width: 0%; } to { width: 100%; } }
+    .gp-slide { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; transform-origin:center center; }
+    .gp-fade-in  { animation: gpFadeIn  ${CROSS_MS}ms ease-out forwards; }
+    .gp-fade-out { animation: gpFadeOut ${CROSS_MS}ms ease-out forwards; }
+    @keyframes gpFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes gpFadeOut { from { opacity: 1; } to { opacity: 0; } }
+    .gp-wrap:hover .gp-arrows { opacity: 1 !important; }
+`;
 
 export default function GalleryPreview() {
-    const [items, setItems] = useState([]);
-    const [active, setActive] = useState(0);
-    const [fade, setFade] = useState(true);
-    const [musicOn, setMusicOn] = useState(false);
-    const timerRef = useRef(null);
-    const audioRef = useRef(null);
+    const [items, setItems]         = useState([]);
+    const [active, setActive]       = useState(0);
+    const [prev,   setPrev]         = useState(null);    // index of outgoing slide
+    const [kbKey,  setKbKey]        = useState(0);       // restarts KB animation on each slide
+    const [progKey, setProgKey]     = useState(0);       // restarts progress bar
+    const [musicOn, setMusicOn]     = useState(false);
+    const timerRef  = useRef(null);
+    const audioRef  = useRef(null);
+    const t = useT();
 
     useEffect(() => {
         fetch(`${API_BASE}/api/media?limit=20`)
             .then(r => r.ok ? r.json() : [])
             .then(data => {
-                const all = Array.isArray(data) ? data : data.items || [];
+                const all    = Array.isArray(data) ? data : (data.items || []);
                 const photos = all.filter(m => m.type === 'photo');
                 if (photos.length > 0) setItems(photos);
             })
             .catch(() => {});
     }, []);
 
-    // preload images
+    // preload
     useEffect(() => {
         items.forEach(item => {
-            const img = new Image();
+            const img = new window.Image();
             img.src = item.url || `${UPLOADS_BASE}/${item.filename}`;
         });
     }, [items]);
 
-    const goTo = useCallback((idx) => {
-        setFade(false);
-        setTimeout(() => {
-            setActive(idx);
-            setFade(true);
-        }, FADE_MS / 2);
+    const goTo = useCallback((nextIdx) => {
+        setActive(cur => {
+            setPrev(cur);
+            return nextIdx;
+        });
+        setKbKey(k => k + 1);
+        setProgKey(k => k + 1);
+        // clear outgoing after cross-fade
+        setTimeout(() => setPrev(null), CROSS_MS + 50);
     }, []);
 
     const next = useCallback(() => {
-        goTo(items.length > 0 ? (active + 1) % items.length : 0);
-    }, [active, items.length, goTo]);
+        setActive(cur => {
+            const n = items.length > 0 ? (cur + 1) % items.length : 0;
+            setPrev(cur);
+            setKbKey(k => k + 1);
+            setProgKey(k => k + 1);
+            setTimeout(() => setPrev(null), CROSS_MS + 50);
+            return n;
+        });
+    }, [items.length]);
 
-    const prev = useCallback(() => {
-        goTo(items.length > 0 ? (active - 1 + items.length) % items.length : 0);
-    }, [active, items.length, goTo]);
+    const prevSlide = useCallback(() => {
+        setActive(cur => {
+            const n = items.length > 0 ? (cur - 1 + items.length) % items.length : 0;
+            setPrev(cur);
+            setKbKey(k => k + 1);
+            setProgKey(k => k + 1);
+            setTimeout(() => setPrev(null), CROSS_MS + 50);
+            return n;
+        });
+    }, [items.length]);
 
-    // auto-advance
     useEffect(() => {
         if (items.length <= 1) return;
         timerRef.current = setInterval(next, INTERVAL);
@@ -61,9 +102,9 @@ export default function GalleryPreview() {
         timerRef.current = setInterval(next, INTERVAL);
     }
 
-    function handlePrev() { prev(); resetTimer(); }
-    function handleNext() { next(); resetTimer(); }
-    function handleDot(i) { goTo(i); resetTimer(); }
+    function handlePrev() { prevSlide(); resetTimer(); }
+    function handleNext() { next();      resetTimer(); }
+    function handleDot(i) { if (i !== active) { goTo(i); resetTimer(); } }
 
     function toggleMusic() {
         if (!audioRef.current) {
@@ -71,77 +112,95 @@ export default function GalleryPreview() {
             audioRef.current.loop = true;
             audioRef.current.volume = 0.2;
         }
-        if (musicOn) {
-            audioRef.current.pause();
-            setMusicOn(false);
-        } else {
+        if (musicOn) { audioRef.current.pause(); setMusicOn(false); }
+        else {
             audioRef.current.play()
                 .then(() => setMusicOn(true))
                 .catch(() => setMusicOn(false));
         }
     }
 
-    const t = useT();
-
     if (items.length === 0) return null;
 
-    const current = items[active];
-    const src = current.url || `${UPLOADS_BASE}/${current.filename}`;
-    const altText = current.title || current.caption || t('gallery_preview_title');
+    const cur  = items[active];
+    const curSrc  = cur.url  || `${UPLOADS_BASE}/${cur.filename}`;
+    const prevItem = prev !== null ? items[prev] : null;
+    const prevSrc  = prevItem ? (prevItem.url || `${UPLOADS_BASE}/${prevItem.filename}`) : null;
+    const kbAnim   = KB[kbKey % KB.length];
 
     return (
         <section style={s.section}>
+            <style>{CSS}</style>
             <div style={s.inner}>
-                <h2 style={s.title}>
-                    <span>📸</span> {t('gallery_preview_title')}
-                </h2>
+                <h2 style={s.title}><span>📸</span> {t('gallery_preview_title')}</h2>
                 <p style={s.subtitle}>{t('gallery_preview_subtitle')}</p>
 
-                <div style={s.slideshowWrap}>
-                    <img
-                        src={src}
-                        alt={altText}
-                        style={{
-                            ...s.mainImg,
-                            opacity: fade ? 1 : 0,
-                            transition: `opacity ${FADE_MS}ms ease`,
-                        }}
-                    />
+                <div style={s.slideshowWrap} className="gp-wrap">
 
-                    {current.title && (
-                        <div style={{
-                            ...s.caption,
-                            opacity: fade ? 1 : 0,
-                            transition: `opacity ${FADE_MS}ms ease`,
-                        }}>
-                            {current.title}
-                        </div>
+                    {/* ── outgoing image (fade-out) ── */}
+                    {prevSrc && (
+                        <img
+                            src={prevSrc}
+                            alt=""
+                            aria-hidden="true"
+                            className="gp-slide gp-fade-out"
+                            style={{ zIndex: 1 }}
+                        />
                     )}
 
-                    {/* counter */}
-                    <div style={s.counter}>
-                        {active + 1} / {items.length}
-                    </div>
+                    {/* ── incoming image (Ken Burns + fade-in) ── */}
+                    <img
+                        key={kbKey}
+                        src={curSrc}
+                        alt={cur.title || t('gallery_preview_title')}
+                        className="gp-slide gp-fade-in"
+                        style={{ zIndex: 2, animation: `gpFadeIn ${CROSS_MS}ms ease-out forwards, ${kbAnim}` }}
+                    />
 
-                    {/* music toggle */}
-                    <button style={s.musicBtn} onClick={toggleMusic} aria-label={musicOn ? t('a11y_mute') : t('a11y_play_music')}>
+                    {/* ── vignette overlay ── */}
+                    <div style={s.vignette} />
+
+                    {/* ── slide counter ── */}
+                    <div style={s.counter}>{active + 1} / {items.length}</div>
+
+                    {/* ── music toggle ── */}
+                    <button style={s.musicBtn} onClick={toggleMusic}
+                        aria-label={musicOn ? t('a11y_mute') : t('a11y_play_music')}>
                         {musicOn ? '🔊' : '🔇'}
                     </button>
 
+                    {/* ── arrows ── */}
                     {items.length > 1 && (
-                        <>
+                        <div className="gp-arrows" style={{ ...s.arrows, opacity: 0, transition: 'opacity 0.25s' }}>
                             <button style={{ ...s.arrow, ...s.arrowRight }} onClick={handlePrev} aria-label={t('a11y_prev')}>›</button>
-                            <button style={{ ...s.arrow, ...s.arrowLeft }} onClick={handleNext} aria-label={t('a11y_next')}>‹</button>
-                        </>
+                            <button style={{ ...s.arrow, ...s.arrowLeft }}  onClick={handleNext} aria-label={t('a11y_next')}>‹</button>
+                        </div>
+                    )}
+
+                    {/* ── progress bar ── */}
+                    {items.length > 1 && (
+                        <div style={s.progressTrack}>
+                            <div
+                                key={progKey}
+                                style={{
+                                    ...s.progressBar,
+                                    animation: `progressFill ${INTERVAL}ms linear forwards`,
+                                }}
+                            />
+                        </div>
                     )}
                 </div>
 
+                {/* ── dots ── */}
                 {items.length > 1 && (
                     <div style={s.dots}>
                         {items.map((_, i) => (
                             <button
                                 key={i}
-                                style={{ ...s.dot, ...(i === active ? s.dotActive : {}) }}
+                                style={{
+                                    ...s.dot,
+                                    ...(i === active ? s.dotActive : {}),
+                                }}
                                 onClick={() => handleDot(i)}
                                 aria-label={`${t('a11y_goto_image')} ${i + 1}`}
                             />
@@ -149,9 +208,7 @@ export default function GalleryPreview() {
                     </div>
                 )}
 
-                <Link to="/gallery" style={s.galleryBtn}>
-                    {t('gallery_preview_btn')}
-                </Link>
+                <Link to="/gallery" style={s.galleryBtn}>{t('gallery_preview_btn')}</Link>
             </div>
         </section>
     );
@@ -164,136 +221,85 @@ const s = {
         fontFamily: "'Heebo', sans-serif",
         direction: 'inherit',
     },
-    inner: {
-        maxWidth: '800px',
-        margin: '0 auto',
-        textAlign: 'center',
-    },
+    inner: { maxWidth: '860px', margin: '0 auto', textAlign: 'center' },
     title: {
-        fontSize: 'clamp(1.6rem, 4vw, 2.2rem)',
-        fontWeight: 800,
-        color: '#fbbf24',
-        marginBottom: '8px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '10px',
+        fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, color: '#fbbf24',
+        marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
     },
-    subtitle: {
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: '1rem',
-        marginBottom: '32px',
-    },
+    subtitle: { color: 'rgba(255,255,255,0.6)', fontSize: '1rem', marginBottom: '32px' },
+
     slideshowWrap: {
         position: 'relative',
-        borderRadius: '20px',
+        borderRadius: '22px',
         overflow: 'hidden',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+        boxShadow: '0 32px 80px rgba(0,0,0,0.65)',
         aspectRatio: '16/10',
-        background: '#071530',
+        background: '#020810',
     },
-    mainImg: {
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-        display: 'block',
-        position: 'absolute',
-        top: 0,
-        left: 0,
+
+    vignette: {
+        position: 'absolute', inset: 0,
+        background: 'radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%)',
+        zIndex: 3, pointerEvents: 'none',
     },
-    caption: {
-        position: 'absolute',
-        bottom: 0,
-        right: 0,
-        left: 0,
-        background: 'linear-gradient(transparent, rgba(0,0,0,0.75))',
-        color: '#fff',
-        padding: '32px 16px 16px',
-        fontSize: '0.95rem',
-        fontWeight: 600,
-        textAlign: 'right',
-    },
+
     counter: {
-        position: 'absolute',
-        top: '12px',
-        left: '14px',
-        background: 'rgba(0,0,0,0.5)',
-        color: '#fff',
-        padding: '4px 12px',
-        borderRadius: '20px',
-        fontSize: '0.8rem',
-        fontWeight: 600,
-        backdropFilter: 'blur(4px)',
+        position: 'absolute', top: '14px', left: '16px',
+        background: 'rgba(0,0,0,0.45)', color: '#fff',
+        padding: '4px 12px', borderRadius: '20px',
+        fontSize: '0.78rem', fontWeight: 700,
+        backdropFilter: 'blur(6px)', zIndex: 5,
+        letterSpacing: '0.5px',
     },
     musicBtn: {
-        position: 'absolute',
-        top: '12px',
-        right: '14px',
-        background: 'rgba(0,0,0,0.5)',
-        border: 'none',
-        color: '#fff',
-        width: '38px',
-        height: '38px',
-        borderRadius: '50%',
-        cursor: 'pointer',
-        fontSize: '1.1rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backdropFilter: 'blur(4px)',
+        position: 'absolute', top: '12px', right: '14px',
+        background: 'rgba(0,0,0,0.45)', border: 'none', color: '#fff',
+        width: '38px', height: '38px', borderRadius: '50%',
+        cursor: 'pointer', fontSize: '1.1rem', display: 'flex',
+        alignItems: 'center', justifyContent: 'center',
+        backdropFilter: 'blur(6px)', zIndex: 5,
     },
+
+    arrows: { position: 'absolute', inset: 0, zIndex: 5, pointerEvents: 'none' },
     arrow: {
-        position: 'absolute',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        background: 'rgba(0,0,0,0.45)',
-        border: 'none',
-        color: '#fff',
-        fontSize: '2rem',
-        width: '42px',
-        height: '42px',
-        borderRadius: '50%',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 2,
-        backdropFilter: 'blur(4px)',
-        transition: 'background 0.2s',
+        position: 'absolute', top: '50%', transform: 'translateY(-50%)',
+        background: 'rgba(0,0,0,0.4)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        color: '#fff', fontSize: '2rem',
+        width: '46px', height: '46px', borderRadius: '50%',
+        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        backdropFilter: 'blur(8px)', transition: 'background 0.2s, transform 0.2s',
+        pointerEvents: 'all',
     },
-    arrowRight: { right: '12px' },
-    arrowLeft: { left: '12px' },
+    arrowRight: { right: '14px' },
+    arrowLeft:  { left:  '14px' },
+
+    progressTrack: {
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        height: '3px', background: 'rgba(255,255,255,0.15)', zIndex: 5,
+    },
+    progressBar: {
+        height: '100%', width: 0,
+        background: 'linear-gradient(90deg, #fbbf24, #f0c040)',
+        borderRadius: '0 2px 2px 0',
+    },
+
     dots: {
-        display: 'flex',
-        justifyContent: 'center',
-        gap: '8px',
-        marginTop: '16px',
-        flexWrap: 'wrap',
+        display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '16px', flexWrap: 'wrap',
     },
     dot: {
-        width: '8px',
-        height: '8px',
-        borderRadius: '50%',
-        background: 'rgba(255,255,255,0.25)',
-        border: 'none',
-        cursor: 'pointer',
-        padding: 0,
-        transition: 'background 0.3s, transform 0.3s',
+        width: '7px', height: '7px', borderRadius: '50%',
+        background: 'rgba(255,255,255,0.22)', border: 'none', cursor: 'pointer',
+        padding: 0, transition: 'background 0.3s, transform 0.3s, width 0.3s',
     },
-    dotActive: {
-        background: '#fbbf24',
-        transform: 'scale(1.4)',
-    },
+    dotActive: { background: '#fbbf24', transform: 'scale(1.5)', width: '20px', borderRadius: '4px' },
+
     galleryBtn: {
-        display: 'inline-block',
-        marginTop: '28px',
+        display: 'inline-block', marginTop: '30px',
         background: 'linear-gradient(135deg, #d4a017, #f0c040)',
-        color: '#3b0764',
-        textDecoration: 'none',
-        padding: '14px 36px',
-        borderRadius: '14px',
-        fontWeight: 700,
-        fontSize: '1rem',
+        color: '#3b0764', textDecoration: 'none',
+        padding: '14px 36px', borderRadius: '14px',
+        fontWeight: 700, fontSize: '1rem',
         boxShadow: '0 4px 20px rgba(212,160,23,0.3)',
     },
 };
