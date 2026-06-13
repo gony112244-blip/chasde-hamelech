@@ -51,7 +51,7 @@ const s = {
         background: 'linear-gradient(180deg, #1e1145 0%, #130b2e 100%)',
         color: 'rgba(255,255,255,0.75)',
         fontFamily: "'Heebo', sans-serif",
-        direction: 'rtl',
+        direction: 'inherit',
         marginTop: 'auto',
         paddingTop: '48px',
     },
@@ -109,7 +109,7 @@ const s = {
         color: 'rgba(255,255,255,0.28)',
         padding: '10px 20px 16px',
         fontFamily: "'Heebo', sans-serif",
-        direction: 'rtl',
+        direction: 'inherit',
     },
     authorLink: {
         color: 'rgba(255,255,255,0.38)',

@@ -67,6 +67,7 @@ export default {
     testimonials_subtitle: 'Thank you notes from families we visited',
     testimonials_more: 'Read more testimonials',
     testimonials_write: 'Write yours too',
+    testimonials_empty: 'No messages yet — be the first to send us a thank-you 💙',
 
     // HelpPage
     helppage_title: '💝 How to Help?',
@@ -95,6 +96,20 @@ export default {
     gallery_posts_title: 'Our Updates',
     gallery_photos_title: 'Photos',
     gallery_videos_title: 'Videos',
+    gallery_items: 'items in the gallery',
+    gallery_error: 'Failed to load the gallery. Please refresh the page.',
+    gallery_empty_all: 'The gallery will be updated soon — new photos on the way!',
+    gallery_empty_cat: 'No items in this category yet.',
+    gallery_play: 'Play',
+    gallery_pause: 'Pause',
+    gallery_privacy_notice: 'All photos and videos are published with parental consent and in accordance with privacy law.',
+    gal_cat_all: 'All',
+    gal_cat_general: 'General',
+    gal_cat_toys: 'Toys',
+    gal_cat_books: 'Books',
+    gal_cat_food: 'Food',
+    gal_cat_preparation: 'Preparation',
+    gal_cat_videos: 'Videos',
 
     // ContactPage
     contact_title: '📩 Contact Us',
@@ -188,6 +203,10 @@ export default {
     parasha_print: 'Open for printing',
     parasha_visits: 'Page visits',
     parasha_downloads: 'Downloads',
+    parasha_open_pdf: 'Tap to open the leaflet (PDF)',
+    parasha_open_pdf_hint: 'The leaflet opens in a new tab — easy to read and print',
+    parasha_coming_title: 'The leaflet is on its way!',
+    parasha_coming_desc: 'This week\u2019s leaflet will be uploaded Wednesday afternoon.',
 
     // Footer
     footer_dev_contact: 'Encountered a technical problem or want a website like this?',
@@ -196,4 +215,13 @@ export default {
     loading: 'Loading...',
     error: 'Error',
     back_home: 'Back to Home',
+
+    // Accessibility (aria-labels)
+    a11y_prev: 'Previous',
+    a11y_next: 'Next',
+    a11y_mute: 'Mute',
+    a11y_play_music: 'Play music',
+    a11y_goto_image: 'Go to image',
+    a11y_close: 'Close',
+    a11y_skip_to_content: 'Skip to main content',
 };

@@ -22,6 +22,7 @@ export default function PageMeta({ title, description, path = '' }) {
         setMeta('twitter:card', 'summary_large_image', true);
         setMeta('twitter:title', fullTitle, true);
         setMeta('twitter:description', desc, true);
+        setMeta('twitter:image', OG_IMAGE, true);
     }, [fullTitle, desc, url]);
 
     return null;

@@ -56,7 +56,7 @@ const s = {
         justifyContent: 'center',
         background: 'linear-gradient(165deg, #0f2044 0%, #071530 50%, #2e0a66 100%)',
         fontFamily: "'Heebo', sans-serif",
-        direction: 'rtl',
+        direction: 'inherit',
         padding: '20px',
     },
     card: {

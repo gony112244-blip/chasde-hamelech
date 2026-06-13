@@ -6,14 +6,16 @@ import { useLang } from '../contexts/LangContext';
 import { translateBatch } from '../hooks/useTranslate';
 
 const CATEGORIES = [
-    { id: 'all',         label: 'הכל',     icon: '🌟' },
-    { id: 'general',     label: 'כללי',    icon: '📸' },
-    { id: 'toys',        label: 'משחקים',  icon: '🧸' },
-    { id: 'books',       label: 'ספרים',   icon: '📚' },
-    { id: 'food',        label: 'אוכל',    icon: '🍰' },
-    { id: 'preparation', label: 'הכנות',   icon: '🎁' },
-    { id: 'videos',      label: 'סרטונים', icon: '🎥' },
+    { id: 'all',         key: 'gal_cat_all',         icon: '🌟' },
+    { id: 'general',     key: 'gal_cat_general',     icon: '📸' },
+    { id: 'toys',        key: 'gal_cat_toys',        icon: '🧸' },
+    { id: 'books',       key: 'gal_cat_books',       icon: '📚' },
+    { id: 'food',        key: 'gal_cat_food',        icon: '🍰' },
+    { id: 'preparation', key: 'gal_cat_preparation', icon: '🎁' },
+    { id: 'videos',      key: 'gal_cat_videos',      icon: '🎥' },
 ];
+
+const DATE_LOCALES = { he: 'he-IL', en: 'en-US', fr: 'fr-FR' };
 
 const PAGE_SIZE = 5;
 
@@ -24,7 +26,8 @@ const hoverCSS = `
   .gal-video:hover { transform: scale(1.01); box-shadow: 0 8px 24px rgba(0,0,0,0.2) !important; }
 `;
 
-function VideoCard({ item }) {
+function VideoCard({ item, locale }) {
+    const t = useT();
     const ref = useRef(null);
     const [playing, setPlaying] = useState(false);
 
@@ -50,21 +53,21 @@ function VideoCard({ item }) {
                     preload="metadata"
                 />
                 {!playing && (
-                    <button style={s.playBtn} onClick={toggle} aria-label="הפעל">
+                    <button style={s.playBtn} onClick={toggle} aria-label={t('gallery_play')}>
                         <span style={s.playIcon}>▶</span>
                     </button>
                 )}
                 {playing && (
-                    <button style={s.pauseBtn} onClick={toggle} aria-label="השהה">⏸</button>
+                    <button style={s.pauseBtn} onClick={toggle} aria-label={t('gallery_pause')}>⏸</button>
                 )}
             </div>
             {item.title && <p style={s.videoCaption}>{item.title}</p>}
-            {item.created_at && <p style={s.itemDate}>{fmtDate(item.created_at)}</p>}
+            {item.created_at && <p style={s.itemDate}>{fmtDate(item.created_at, locale)}</p>}
         </div>
     );
 }
 
-function PhotoCard({ item, onClick }) {
+function PhotoCard({ item, onClick, locale }) {
     const src = item.filename
         ? `${UPLOADS_BASE}/${item.filename}`
         : item.src;
@@ -77,7 +80,7 @@ function PhotoCard({ item, onClick }) {
             </div>
             <div style={s.photoFooter}>
                 {item.title && <p style={s.photoCaption}>{item.title}</p>}
-                {item.created_at && <p style={s.photoDate}>{fmtDate(item.created_at)}</p>}
+                {item.created_at && <p style={s.photoDate}>{fmtDate(item.created_at, locale)}</p>}
             </div>
         </button>
     );
@@ -108,19 +111,28 @@ export default function GalleryPage() {
             .catch(() => {});
     }, [lang]);
 
+    const [error, setError] = useState(false);
+
     const loadItems = useCallback(async (cat, pg, append = false) => {
         if (append) setLoadingMore(true);
         else setLoading(true);
+        setError(false);
 
         try {
-            const catParam = cat === 'all' ? '' : `&category=${cat}`;
-            const res = await fetch(`${API_BASE}/api/media?page=${pg}&limit=${PAGE_SIZE}${catParam}`);
+            // "videos" אינו קטגוריה אלא סוג מדיה — מסננים לפי type
+            let filterParam = '';
+            if (cat === 'videos') filterParam = '&type=video';
+            else if (cat !== 'all') filterParam = `&category=${cat}`;
+
+            const res = await fetch(`${API_BASE}/api/media?page=${pg}&limit=${PAGE_SIZE}${filterParam}`);
+            if (!res.ok) throw new Error('bad response');
             const json = await res.json();
             setTotal(json.total || 0);
             setHasMore(json.hasMore || false);
             if (append) setItems(prev => [...prev, ...(json.items || [])]);
             else setItems(json.items || []);
         } catch {
+            setError(true);
             if (!append) setItems([]);
         } finally {
             setLoading(false);
@@ -133,6 +145,14 @@ export default function GalleryPage() {
         loadItems(activeCategory, 1, false);
     }, [activeCategory, loadItems]);
 
+    // סגירת ה-Lightbox במקש Escape (נגישות מקלדת)
+    useEffect(() => {
+        if (!lightbox) return;
+        const onKey = (e) => { if (e.key === 'Escape') setLightbox(null); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [lightbox]);
+
     function loadMore() {
         const nextPage = page + 1;
         setPage(nextPage);
@@ -142,6 +162,7 @@ export default function GalleryPage() {
     const photos = items.filter(i => i.type === 'photo');
     const videos = items.filter(i => i.type === 'video');
     const showAll = activeCategory === 'all';
+    const locale = DATE_LOCALES[lang] || 'he-IL';
 
     return (
         <div style={s.page}>
@@ -150,8 +171,8 @@ export default function GalleryPage() {
 
             {/* Lightbox */}
             {lightbox && (
-                <div style={s.overlay} onClick={() => setLightbox(null)}>
-                    <button style={s.closeBtn} onClick={() => setLightbox(null)}>✕</button>
+                <div style={s.overlay} onClick={() => setLightbox(null)} role="dialog" aria-modal="true">
+                    <button style={s.closeBtn} onClick={() => setLightbox(null)} aria-label={t('a11y_close')}>✕</button>
                     <img
                         src={lightbox.filename ? `${UPLOADS_BASE}/${lightbox.filename}` : lightbox.src}
                         alt={lightbox.title || ''}
@@ -169,7 +190,7 @@ export default function GalleryPage() {
                     <h1 style={s.heroTitle}>{t('gallery_title')}</h1>
                     <p style={s.heroSub}>{t('gallery_subtitle')}</p>
                     {total > 0 && (
-                        <span style={s.totalBadge}>{total} פריטים בגלריה</span>
+                        <span style={s.totalBadge}>{total} {t('gallery_items')}</span>
                     )}
                 </div>
             </section>
@@ -217,8 +238,9 @@ export default function GalleryPage() {
                                 key={cat.id}
                                 style={{ ...s.filterBtn, ...(activeCategory === cat.id ? s.filterBtnActive : {}) }}
                                 onClick={() => setActiveCategory(cat.id)}
+                                aria-pressed={activeCategory === cat.id}
                             >
-                                {cat.icon} {cat.label}
+                                {cat.icon} {t(cat.key)}
                             </button>
                         ))}
                     </div>
@@ -227,15 +249,20 @@ export default function GalleryPage() {
                     {loading ? (
                         <div style={s.spinnerWrap}>
                             <div style={s.spinner} />
-                            <p style={{ color: '#6478a8', marginTop: '14px' }}>טוען...</p>
+                            <p style={{ color: '#6478a8', marginTop: '14px' }}>{t('loading')}</p>
+                        </div>
+                    ) : error ? (
+                        <div style={s.empty}>
+                            <span style={{ fontSize: '3rem' }}>⚠️</span>
+                            <p style={{ color: '#6478a8', fontSize: '1rem' }}>{t('gallery_error')}</p>
                         </div>
                     ) : items.length === 0 ? (
                         <div style={s.empty}>
                             <span style={{ fontSize: '3rem' }}>🖼️</span>
                             <p style={{ color: '#6478a8', fontSize: '1rem' }}>
                                 {activeCategory === 'all'
-                                    ? 'הגלריה תתעדכן בקרוב — חוזרים עם תמונות חדשות!'
-                                    : 'אין פריטים בקטגוריה זו עדיין.'
+                                    ? t('gallery_empty_all')
+                                    : t('gallery_empty_cat')
                                 }
                             </p>
                         </div>
@@ -247,12 +274,12 @@ export default function GalleryPage() {
                                     {showAll && (
                                         <div style={s.sectionHeader}>
                                             <span style={{ ...s.sectionIcon, background: '#dbeafe' }}>📷</span>
-                                            <h2 style={s.sectionTitle}>תמונות</h2>
+                                            <h2 style={s.sectionTitle}>{t('gallery_photos_title')}</h2>
                                         </div>
                                     )}
                                     <div style={s.photoGrid}>
                                         {(showAll ? photos : items.filter(i => i.type === 'photo')).map(item => (
-                                            <PhotoCard key={item.id} item={item} onClick={setLightbox} />
+                                            <PhotoCard key={item.id} item={item} onClick={setLightbox} locale={locale} />
                                         ))}
                                     </div>
                                 </div>
@@ -264,12 +291,12 @@ export default function GalleryPage() {
                                     {showAll && (
                                         <div style={s.sectionHeader}>
                                             <span style={{ ...s.sectionIcon, background: '#fce7f3' }}>🎥</span>
-                                            <h2 style={s.sectionTitle}>סרטונים</h2>
+                                            <h2 style={s.sectionTitle}>{t('gallery_videos_title')}</h2>
                                         </div>
                                     )}
                                     <div style={s.videoGrid}>
                                         {(showAll ? videos : items.filter(i => i.type === 'video')).map(item => (
-                                            <VideoCard key={item.id} item={item} />
+                                            <VideoCard key={item.id} item={item} locale={locale} />
                                         ))}
                                     </div>
                                 </div>
@@ -283,7 +310,7 @@ export default function GalleryPage() {
                                         onClick={loadMore}
                                         disabled={loadingMore}
                                     >
-                                        {loadingMore ? 'טוען...' : '⬇️ טען עוד'}
+                                        {loadingMore ? t('loading') : `⬇️ ${t('gallery_load_more')}`}
                                     </button>
                                 </div>
                             )}
@@ -292,9 +319,7 @@ export default function GalleryPage() {
 
                     <div style={s.notice}>
                         <span style={{ fontSize: '1.2rem' }}>🔒</span>
-                        <p style={s.noticeText}>
-                            כל התמונות והסרטונים מפורסמים באישור ההורים ובהתאם לחוק הגנת הפרטיות.
-                        </p>
+                        <p style={s.noticeText}>{t('gallery_privacy_notice')}</p>
                     </div>
                 </div>
             </section>
@@ -302,13 +327,13 @@ export default function GalleryPage() {
     );
 }
 
-function fmtDate(iso) {
+function fmtDate(iso, locale = 'he-IL') {
     if (!iso) return '';
-    return new Date(iso).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return new Date(iso).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 const s = {
-    page: { fontFamily: "'Heebo', sans-serif", direction: 'rtl' },
+    page: { fontFamily: "'Heebo', sans-serif", direction: 'inherit' },
 
     hero: {
         background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 50%, #071530 100%)',

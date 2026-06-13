@@ -155,7 +155,7 @@ export default function HelpPage() {
 }
 
 const s = {
-    page: { fontFamily: "'Heebo', sans-serif", direction: 'rtl' },
+    page: { fontFamily: "'Heebo', sans-serif", direction: 'inherit' },
     header: {
         background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 50%, #071530 100%)',
         padding: '60px 20px 50px', textAlign: 'center', position: 'relative', overflow: 'hidden',

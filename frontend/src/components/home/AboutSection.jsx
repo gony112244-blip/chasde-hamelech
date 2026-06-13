@@ -64,7 +64,7 @@ const s = {
     section: {
         background: 'var(--bg-warm)',
         fontFamily: "'Heebo', sans-serif",
-        direction: 'rtl',
+        direction: 'inherit',
         padding: '80px 20px',
     },
     inner: {

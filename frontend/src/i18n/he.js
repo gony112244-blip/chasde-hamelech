@@ -67,6 +67,7 @@ export default {
     testimonials_subtitle: 'מילות תודה ממשפחות שביקרנו',
     testimonials_more: 'לקרוא עוד תגובות',
     testimonials_write: 'כתבו גם אתם',
+    testimonials_empty: 'עוד לא נכתבו תגובות — היו הראשונים לכתוב לנו תודה 💙',
 
     // HelpPage
     helppage_title: '💝 איך עוזרים?',
@@ -95,6 +96,20 @@ export default {
     gallery_posts_title: 'העדכונים שלנו',
     gallery_photos_title: 'תמונות',
     gallery_videos_title: 'סרטונים',
+    gallery_items: 'פריטים בגלריה',
+    gallery_error: 'שגיאה בטעינת הגלריה. נסו לרענן את העמוד.',
+    gallery_empty_all: 'הגלריה תתעדכן בקרוב — חוזרים עם תמונות חדשות!',
+    gallery_empty_cat: 'אין פריטים בקטגוריה זו עדיין.',
+    gallery_play: 'הפעל',
+    gallery_pause: 'השהה',
+    gallery_privacy_notice: 'כל התמונות והסרטונים מפורסמים באישור ההורים ובהתאם לחוק הגנת הפרטיות.',
+    gal_cat_all: 'הכל',
+    gal_cat_general: 'כללי',
+    gal_cat_toys: 'משחקים',
+    gal_cat_books: 'ספרים',
+    gal_cat_food: 'אוכל',
+    gal_cat_preparation: 'הכנות',
+    gal_cat_videos: 'סרטונים',
 
     // ContactPage
     contact_title: '📩 צור קשר',
@@ -188,6 +203,10 @@ export default {
     parasha_print: 'פתחו להדפסה',
     parasha_visits: 'כניסות לעמוד',
     parasha_downloads: 'הורדות',
+    parasha_open_pdf: 'לחצו לפתיחת העלון (PDF)',
+    parasha_open_pdf_hint: 'העלון ייפתח בלשונית חדשה — נוח לקריאה ולהדפסה',
+    parasha_coming_title: 'העלון בדרך!',
+    parasha_coming_desc: 'העלון לשבוע הקרוב יעלה ביום רביעי אחר הצהריים.',
 
     // פוטר
     footer_dev_contact: 'נתקלתם בבעיה טכנית או רוצים אתר כזה בעצמכם?',
@@ -196,4 +215,13 @@ export default {
     loading: 'טוען...',
     error: 'שגיאה',
     back_home: 'חזרה לדף הבית',
+
+    // נגישות (aria-labels)
+    a11y_prev: 'הקודם',
+    a11y_next: 'הבא',
+    a11y_mute: 'השתק',
+    a11y_play_music: 'הפעל מוזיקה',
+    a11y_goto_image: 'מעבר לתמונה',
+    a11y_close: 'סגור',
+    a11y_skip_to_content: 'דלג לתוכן הראשי',
 };

@@ -6,6 +6,7 @@ import SecretAdminTrigger from './components/SecretAdminTrigger';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { LangProvider } from './contexts/LangContext';
+import { useT } from './hooks/useT';
 
 // דפים
 import HomePage from './pages/HomePage';
@@ -24,13 +25,14 @@ import AccessibilityPage from './pages/AccessibilityPage';
 
 function Layout() {
     const location = useLocation();
+    const t = useT();
     const isQR = location.pathname.startsWith('/qr');
     const isAdmin = location.pathname.startsWith('/admin');
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <SecretAdminTrigger />
-            <a href="#main-content" className="skip-to-content">דלג לתוכן הראשי</a>
+            <a href="#main-content" className="skip-to-content">{t('a11y_skip_to_content')}</a>
             {!isQR && !isAdmin && <Navbar />}
             <main id="main-content" style={{ flex: 1 }}>
                 <Routes>

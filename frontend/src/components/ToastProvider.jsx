@@ -90,7 +90,7 @@ const s = {
         borderRadius: '14px',
         boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
         animation: 'slideInLeft 0.3s ease-out',
-        direction: 'rtl',
+        direction: 'inherit',
         fontFamily: "'Heebo', sans-serif",
         color: '#fff',
     },

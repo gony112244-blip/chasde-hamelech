@@ -657,6 +657,9 @@ function NewsletterTab({ token }) {
                         <input ref={fileRef} type="file" accept=".pdf,image/*" style={{ display: 'none' }}
                             onChange={e => setFile(e.target.files[0] || null)} />
                     </div>
+                    <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 4px' }}>
+                        💡 תמונות (JPG/PNG) יומרו אוטומטית ל-PDF — כדי שהעלון ייפתח גם באינטרנט מסונן.
+                    </p>
                     <button type="submit" style={s.saveBtn} disabled={uploading}>
                         {uploading ? 'מעלה...' : '⬆️ העלה עלון'}
                     </button>
@@ -1068,7 +1071,7 @@ const NAVY = '#0f2044';
 const BLUE = '#dbeafe';
 
 const s = {
-    page: { minHeight: '100vh', background: '#f8fafe', fontFamily: "'Heebo', sans-serif", direction: 'rtl' },
+    page: { minHeight: '100vh', background: '#f8fafe', fontFamily: "'Heebo', sans-serif", direction: 'inherit' },
 
     header: { background: 'linear-gradient(135deg, #071530 0%, #0f2044 100%)', padding: '20px' },
     headerInner: { maxWidth: '960px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
@@ -1126,7 +1129,7 @@ const s = {
     replyTextarea: {
         padding: '12px 14px', borderRadius: '12px', border: `2px solid ${BLUE}`,
         fontSize: '0.95rem', fontFamily: "'Heebo', sans-serif", resize: 'vertical',
-        direction: 'rtl', outline: 'none', lineHeight: 1.6,
+        direction: 'inherit', outline: 'none', lineHeight: 1.6,
     },
 
     groupTitle: { color: NAVY, fontSize: '1rem', fontWeight: 700, margin: '0 0 12px' },
@@ -1161,7 +1164,7 @@ const s = {
     donRow: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
     donInput: {
         padding: '10px 12px', borderRadius: '10px', border: `2px solid ${BLUE}`,
-        fontSize: '0.9rem', fontFamily: "'Heebo', sans-serif", flex: 1, outline: 'none', direction: 'rtl',
+        fontSize: '0.9rem', fontFamily: "'Heebo', sans-serif", flex: 1, outline: 'none', direction: 'inherit',
     },
 
     uploadForm: { display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '500px' },
@@ -1175,7 +1178,7 @@ const s = {
     previewMedia: { maxWidth: '100%', maxHeight: '200px', borderRadius: '10px', objectFit: 'cover' },
     uploadInput: {
         padding: '10px 14px', borderRadius: '12px', border: `2px solid ${BLUE}`,
-        fontSize: '0.95rem', fontFamily: "'Heebo', sans-serif", outline: 'none', direction: 'rtl',
+        fontSize: '0.95rem', fontFamily: "'Heebo', sans-serif", outline: 'none', direction: 'inherit',
     },
 
     mediaGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '14px' },

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { useT } from '../../hooks/useT';
 
 function scrollDown() {
@@ -51,7 +51,7 @@ const s = {
         background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 25%, #071530 65%, #2e0a66 100%)',
         color: '#fff',
         fontFamily: "'Heebo', sans-serif",
-        direction: 'rtl',
+        direction: 'inherit',
         padding: '60px 20px 40px',
         textAlign: 'center',
         overflow: 'hidden',

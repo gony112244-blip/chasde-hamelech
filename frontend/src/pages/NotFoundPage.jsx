@@ -1,10 +1,10 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { useT } from '../hooks/useT';
 
 export default function NotFoundPage() {
     const t = useT();
     return (
-        <main style={s.container}>
+        <div style={s.container}>
             <div style={s.content}>
                 <div style={s.numberContainer}>
                     <span style={s.number}>4</span>
@@ -24,7 +24,7 @@ export default function NotFoundPage() {
             {/* אלמנטים דקורטיביים */}
             <div style={s.deco1} />
             <div style={s.deco2} />
-        </main>
+        </div>
     );
 }
 
@@ -37,7 +37,7 @@ const s = {
         minHeight: 'calc(100vh - 64px)',
         background: 'linear-gradient(165deg, var(--bg-light) 0%, var(--bg-warm) 50%, var(--royal-pale) 100%)',
         fontFamily: "'Heebo', sans-serif",
-        direction: 'rtl',
+        direction: 'inherit',
         padding: '40px 20px',
         position: 'relative',
         overflow: 'hidden',

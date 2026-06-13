@@ -10,6 +10,15 @@ export default function ParashaPage() {
     const [archive, setArchive] = useState([]);
     const [loading, setLoading] = useState(true);
     const [imgError, setImgError] = useState(false);
+    const [isMobile, setIsMobile] = useState(
+        typeof window !== 'undefined' && window.innerWidth < 768
+    );
+
+    useEffect(() => {
+        const onResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
 
     async function trackDownload(id) {
         try {
@@ -56,9 +65,9 @@ export default function ParashaPage() {
                     {!loading && !latest && (
                         <div style={s.emptyCard}>
                             <span style={{ fontSize: '3rem' }}>📅</span>
-                            <h2 style={{ color: 'var(--royal)', margin: 0 }}>העלון בדרך!</h2>
+                            <h2 style={{ color: 'var(--royal)', margin: 0 }}>{t('parasha_coming_title')}</h2>
                             <p style={{ color: 'var(--text-soft)', margin: 0 }}>
-                                העלון לשבוע הקרוב יעלה ביום רביעי אחר הצהריים.
+                                {t('parasha_coming_desc')}
                             </p>
                         </div>
                     )}
@@ -87,12 +96,24 @@ export default function ParashaPage() {
                                     </span>
                                 </a>
                             ) : latest.file_type === 'application/pdf' ? (
-                                <iframe
-                                    src={`${fileUrl(latest)}#toolbar=0`}
-                                    style={s.pdfFrame}
-                                    title="עלון השבוע"
-                                    onError={() => setImgError(true)}
-                                />
+                                isMobile ? (
+                                    // בנייד תצוגת PDF בתוך iframe לרוב לא עובדת — מציגים כרטיס פתיחה ברור
+                                    <a href={fileUrl(latest)} target="_blank" rel="noopener noreferrer"
+                                        style={s.fallbackBox} onClick={() => trackDownload(latest.id)}>
+                                        <span style={{ fontSize: '2.5rem' }}>📄</span>
+                                        <strong style={{ color: 'var(--royal)' }}>{t('parasha_open_pdf')}</strong>
+                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                            {t('parasha_open_pdf_hint')}
+                                        </span>
+                                    </a>
+                                ) : (
+                                    <iframe
+                                        src={`${fileUrl(latest)}#toolbar=0`}
+                                        style={s.pdfFrame}
+                                        title="עלון השבוע"
+                                        onError={() => setImgError(true)}
+                                    />
+                                )
                             ) : (
                                 <img
                                     src={fileUrl(latest)}
@@ -155,7 +176,7 @@ export default function ParashaPage() {
 }
 
 const s = {
-    page: { fontFamily: "'Heebo', sans-serif", direction: 'rtl' },
+    page: { fontFamily: "'Heebo', sans-serif", direction: 'inherit' },
     header: {
         background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 50%, #071530 100%)',
         padding: '60px 20px 50px', textAlign: 'center', position: 'relative', overflow: 'hidden',
@@ -190,7 +211,7 @@ const s = {
         borderRadius: '100px', fontSize: '0.85rem', fontWeight: 600,
     },
     pdfFrame: {
-        width: '100%', height: '800px', border: 'none', borderRadius: '12px',
+        width: '100%', height: '80vh', minHeight: '520px', border: 'none', borderRadius: '12px',
         background: '#f8f8f8',
     },
     previewImg: {

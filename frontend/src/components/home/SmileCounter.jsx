@@ -1,7 +1,12 @@
-import { useEffect, useState, useRef } from 'react';
+﻿import { useEffect, useState, useRef } from 'react';
 import { useT } from '../../hooks/useT';
+import { useLang } from '../../contexts/LangContext';
+import API_BASE from '../../config';
+
+const LOCALES = { he: 'he-IL', en: 'en-US', fr: 'fr-FR' };
 
 function AnimatedNumber({ target, suffix = '' }) {
+    const { lang } = useLang();
     const [count, setCount] = useState(0);
     const [started, setStarted] = useState(false);
     const ref = useRef(null);
@@ -39,19 +44,39 @@ function AnimatedNumber({ target, suffix = '' }) {
 
     return (
         <span ref={ref} style={s.number}>
-            {count.toLocaleString('he-IL')}{suffix}
+            {count.toLocaleString(LOCALES[lang] || 'he-IL')}{suffix}
         </span>
     );
 }
 
+// ערכי ברירת מחדל — מוצגים אם השרת לא זמין
+const DEFAULTS = { children_count: 350, hospitals_count: 5, books_count: 200, games_count: 500 };
+
 export default function SmileCounter() {
     const t = useT();
+    const [stats, setStats] = useState(DEFAULTS);
+
+    useEffect(() => {
+        fetch(`${API_BASE}/api/stats`)
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (data && typeof data === 'object') {
+                    setStats(prev => ({
+                        children_count: Number(data.children_count) || prev.children_count,
+                        hospitals_count: Number(data.hospitals_count) || prev.hospitals_count,
+                        books_count: Number(data.books_count) || prev.books_count,
+                        games_count: Number(data.games_count) || prev.games_count,
+                    }));
+                }
+            })
+            .catch(() => {}); // נשארים עם ברירת המחדל
+    }, []);
 
     const STATS = [
-        { icon: '😊', value: 350, labelKey: 'smile_children', suffix: '+' },
-        { icon: '🏥', value: 5,   labelKey: 'smile_hospitals', suffix: '' },
-        { icon: '📚', value: 200, labelKey: 'smile_books',     suffix: '+' },
-        { icon: '🎮', value: 500, labelKey: 'smile_games',     suffix: '+' },
+        { icon: '😊', value: stats.children_count, labelKey: 'smile_children', suffix: '+' },
+        { icon: '🏥', value: stats.hospitals_count, labelKey: 'smile_hospitals', suffix: '' },
+        { icon: '📚', value: stats.books_count, labelKey: 'smile_books',     suffix: '+' },
+        { icon: '🎮', value: stats.games_count, labelKey: 'smile_games',     suffix: '+' },
     ];
 
     return (
@@ -80,7 +105,7 @@ const s = {
     section: {
         background: 'var(--bg-light)',
         fontFamily: "'Heebo', sans-serif",
-        direction: 'rtl',
+        direction: 'inherit',
         padding: '80px 20px',
         position: 'relative',
     },

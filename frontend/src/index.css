@@ -69,7 +69,8 @@ html {
 
 body {
   font-family: 'Heebo', 'Rubik', 'Segoe UI', Tahoma, Arial, sans-serif;
-  direction: rtl;
+  /* כיוון הטקסט נקבע לפי html[dir] שמוגדר ע"י LangContext (he=rtl, en/fr=ltr) */
+  direction: inherit;
   background-color: var(--bg-light);
   color: var(--text);
   -webkit-font-smoothing: antialiased;

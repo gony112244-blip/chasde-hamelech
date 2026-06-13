@@ -67,7 +67,7 @@ const s = {
     page: {
         minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: 'linear-gradient(135deg, #071530 0%, #0f2044 60%, #1a3460 100%)',
-        fontFamily: "'Heebo', sans-serif", direction: 'rtl', padding: '20px',
+        fontFamily: "'Heebo', sans-serif", direction: 'inherit', padding: '20px',
     },
     card: {
         background: '#fff', borderRadius: '24px', padding: '48px 40px',

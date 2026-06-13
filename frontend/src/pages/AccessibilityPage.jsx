@@ -79,7 +79,7 @@ function Block({ title, children }) {
 }
 
 const s = {
-    page: { fontFamily: "'Heebo', sans-serif", direction: 'rtl' },
+    page: { fontFamily: "'Heebo', sans-serif", direction: 'inherit' },
     header: {
         background: 'linear-gradient(165deg, #0f2044, #071530)',
         padding: '50px 20px 40px', textAlign: 'center',

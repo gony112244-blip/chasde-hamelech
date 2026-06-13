@@ -1,32 +1,53 @@
 require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const cors = require('cors');
 const express = require('express');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
+const { PDFDocument } = require('pdf-lib');
+const { sendWhatsApp } = require('./whatsapp');
 const pool = require('./db');
 
 const app = express();
+const IS_PROD = process.env.NODE_ENV === 'production';
 
 // =====================
-// CORS
+// CORS — רשימת מקורות מותרים בלבד
 // =====================
+const ALLOWED_ORIGINS = [
+    'https://chasde-hamelech.org.il',
+    'https://www.chasde-hamelech.org.il',
+    // פיתוח מקומי
+    'http://localhost:5173',
+    'http://localhost:4173',
+    'http://localhost:3000',
+];
+// אפשר להוסיף מקורות נוספים דרך CORS_EXTRA_ORIGINS (מופרדים בפסיק)
+if (process.env.CORS_EXTRA_ORIGINS) {
+    ALLOWED_ORIGINS.push(...process.env.CORS_EXTRA_ORIGINS.split(',').map(s => s.trim()).filter(Boolean));
+}
 app.use(cors({
-    origin: true,
+    origin: (origin, cb) => {
+        // בקשות ללא Origin (כלים, אותו מקור, אפליקציות) — מותרות
+        if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+        return cb(new Error('Origin לא מורשה'));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // =====================
-// אבטחה
+// אבטחה — Helmet
+// CSP מופעל בפרודקשן בלבד (במצב הזה הכל אותו מקור דרך Nginx).
+// HSTS מופעל תמיד — נכנס לתוקף רק מעל HTTPS, אחרת נעלם.
 // =====================
 app.use(helmet({
-    contentSecurityPolicy: false,
-    hsts: false,
+    contentSecurityPolicy: IS_PROD ? undefined : false,
     crossOriginOpenerPolicy: false,
     crossOriginEmbedderPolicy: false,
     originAgentCluster: false
@@ -43,8 +64,8 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-app.use(express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // =====================
 // קבצים סטטיים — uploads
@@ -61,30 +82,86 @@ const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, UPLOADS_DIR),
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname).toLowerCase();
-        const unique = `${Date.now()}-${Math.round(Math.random() * 1e6)}${ext}`;
-        cb(null, unique);
+        // שם קובץ אקראי ולא ניתן לניחוש
+        cb(null, `${crypto.randomUUID()}${ext}`);
     }
 });
-const fileFilter = (req, file, cb) => {
-    const allowed = /\.(jpg|jpeg|png|gif|webp|mp4|mov|webm|avi)$/i;
-    if (allowed.test(file.originalname)) cb(null, true);
-    else cb(new Error('סוג קובץ לא נתמך'), false);
-};
+
+// בדיקה משולבת: גם סיומת וגם סוג MIME חייבים להתאים
+function makeFilter(extRe, mimeRe, errMsg) {
+    return (req, file, cb) => {
+        const okExt = extRe.test(file.originalname);
+        const okMime = mimeRe.test(file.mimetype || '');
+        if (okExt && okMime) cb(null, true);
+        else cb(new Error(errMsg), false);
+    };
+}
+
+const fileFilter = makeFilter(
+    /\.(jpg|jpeg|png|gif|webp|mp4|mov|webm|avi)$/i,
+    /^(image\/(jpeg|png|gif|webp)|video\/(mp4|quicktime|webm|x-msvideo))$/i,
+    'סוג קובץ לא נתמך'
+);
 const upload = multer({ storage, fileFilter, limits: { fileSize: 100 * 1024 * 1024 } });
 
-const newsletterFilter = (req, file, cb) => {
-    const allowed = /\.(jpg|jpeg|png|gif|webp|pdf)$/i;
-    if (allowed.test(file.originalname)) cb(null, true);
-    else cb(new Error('ניתן להעלות PDF או תמונות בלבד'), false);
-};
+const newsletterFilter = makeFilter(
+    /\.(jpg|jpeg|png|gif|webp|pdf)$/i,
+    /^(image\/(jpeg|png|gif|webp)|application\/pdf)$/i,
+    'ניתן להעלות PDF או תמונות בלבד'
+);
 const uploadNewsletter = multer({ storage, fileFilter: newsletterFilter, limits: { fileSize: 20 * 1024 * 1024 } });
 
-const photoFilter = (req, file, cb) => {
-    const allowed = /\.(jpg|jpeg|png|gif|webp)$/i;
-    if (allowed.test(file.originalname)) cb(null, true);
-    else cb(new Error('ניתן להעלות תמונות בלבד'), false);
-};
+const photoFilter = makeFilter(
+    /\.(jpg|jpeg|png|gif|webp)$/i,
+    /^image\/(jpeg|png|gif|webp)$/i,
+    'ניתן להעלות תמונות בלבד'
+);
 const uploadPhoto = multer({ storage, fileFilter: photoFilter, limits: { fileSize: 10 * 1024 * 1024 } });
+
+// טעינת לוגו "חסדי המלך" פעם אחת (לסימן מים על העלונים)
+const LOGO_PATH = path.join(__dirname, 'assets', 'logo.png');
+let LOGO_BYTES = null;
+try { LOGO_BYTES = fs.readFileSync(LOGO_PATH); } catch (_) { /* בלי לוגו — ההמרה עדיין תעבוד */ }
+
+// ממיר תמונה (JPG/PNG) לקובץ PDF בעמוד יחיד, עם סימן מים עדין של הלוגו.
+// נחוץ כי קהל היעד גולש באינטרנט מסונן (Netspark) שחותך תמונות אך מעביר PDF.
+// מחזיר Buffer של ה-PDF, או null אם הסוג לא נתמך להמרה.
+async function imageToPdfBuffer(absImagePath, mimetype) {
+    const bytes = fs.readFileSync(absImagePath);
+    const pdfDoc = await PDFDocument.create();
+    // זיהוי הפורמט לפי חתימת הקובץ (אמין יותר מהסיומת/mimetype)
+    const isPng = bytes.length > 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+    const isJpg = bytes.length > 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    let img;
+    if (isPng) img = await pdfDoc.embedPng(bytes);
+    else if (isJpg) img = await pdfDoc.embedJpg(bytes);
+    else return null; // webp/gif וכו' — לא נתמכים להטמעה ישירה
+
+    const page = pdfDoc.addPage([img.width, img.height]);
+    page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+
+    // סימן מים: לוגו קטן ושקוף, ממורכז בתחתית העמוד — עדין ולא מכסה תוכן
+    if (LOGO_BYTES) {
+        try {
+            const logo = await pdfDoc.embedPng(LOGO_BYTES);
+            const logoW = img.width * 0.14;                 // ~14% מרוחב העמוד
+            const logoH = logoW * (logo.height / logo.width);
+            const margin = img.height * 0.02;
+            page.drawImage(logo, {
+                x: (img.width - logoW) / 2,
+                y: margin,
+                width: logoW,
+                height: logoH,
+                opacity: 0.5,
+            });
+        } catch (e) {
+            console.error('logo watermark failed:', e.message); // לא קריטי
+        }
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    return Buffer.from(pdfBytes);
+}
 
 // =====================
 // Nodemailer
@@ -117,9 +194,39 @@ async function notifyAdmin(subject, rowsHtml) {
         console.error('notifyAdmin failed:', err.message);
     }
 }
+// אימות קלט בסיסי לטפסים ציבוריים
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function isValidEmail(email) {
+    return EMAIL_RE.test(String(email).trim());
+}
+// בודק שהשדות לא ארוכים מדי (מניעת התקפות / זבל). limits = { field: maxLen }
+function tooLong(body, limits) {
+    for (const [field, max] of Object.entries(limits)) {
+        if (body[field] && String(body[field]).length > max) return field;
+    }
+    return null;
+}
+
+// מנקה תווי HTML מסוכנים מתוכן שהמשתמש שלח, לפני הכנסה למייל
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 function row(label, value) {
     if (!value) return '';
-    return `<tr><td style="padding:4px 12px;font-weight:bold;">${label}:</td><td style="padding:4px 12px;">${value}</td></tr>`;
+    return `<tr><td style="padding:4px 12px;font-weight:bold;">${escapeHtml(label)}:</td><td style="padding:4px 12px;">${escapeHtml(value)}</td></tr>`;
+}
+
+// התראה מאוחדת לכל הערוצים (מייל + וואטסאפ) — לא חוסמת את הבקשה.
+// fields = מערך של [תווית, ערך]. כל ערוץ שלא מוגדר פשוט מדולג.
+function notifyChannels(subject, fields = []) {
+    const rowsHtml = fields.map(([label, value]) => row(label, value)).join('');
+    notifyAdmin(subject, rowsHtml);
+    sendWhatsApp(subject, fields);
 }
 
 // =====================
@@ -136,16 +243,55 @@ async function logVisit(req, res, next) {
 }
 
 // =====================
-// Admin Auth
+// Admin Auth — טוקן הפעלה אקראי עם תפוגה (לא הסיסמה עצמה)
 // =====================
-const ADMIN_PASS = process.env.ADMIN_PASSWORD || 'chasde2026';
+const ADMIN_PASS = process.env.ADMIN_PASSWORD;
+if (!ADMIN_PASS || ADMIN_PASS.length < 8) {
+    console.error('❌ ADMIN_PASSWORD חסר או קצר מ-8 תווים. הגדירו אותו ב-.env. השרת לא יעלה.');
+    process.exit(1);
+}
+
+const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 שעות
+const sessions = new Map(); // token -> expiry timestamp
+
+function createSession() {
+    const token = crypto.randomBytes(32).toString('hex');
+    sessions.set(token, Date.now() + SESSION_TTL_MS);
+    return token;
+}
+
+// ניקוי טוקנים שפגו — פעם בשעה
+setInterval(() => {
+    const now = Date.now();
+    for (const [token, exp] of sessions) if (exp < now) sessions.delete(token);
+}, 60 * 60 * 1000).unref();
+
 function adminAuth(req, res, next) {
-    const auth = req.headers.authorization;
-    if (!auth || auth !== `Bearer ${ADMIN_PASS}`) {
+    const auth = req.headers.authorization || '';
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+    const exp = sessions.get(token);
+    if (!exp || exp < Date.now()) {
+        if (exp) sessions.delete(token);
         return res.status(401).json({ error: 'גישה לא מורשית' });
     }
     next();
 }
+
+// השוואת סיסמה בזמן קבוע (מונע התקפות תזמון)
+function passwordMatches(input) {
+    const a = Buffer.from(String(input || ''));
+    const b = Buffer.from(ADMIN_PASS);
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+// הגבלת ניסיונות כניסה — מונע ניחוש סיסמה (brute-force)
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { error: 'יותר מדי נסיונות כניסה. נסו שוב בעוד 15 דקות.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 // =====================
 // Routes — Public
@@ -191,9 +337,17 @@ app.post('/api/thank-you', uploadPhoto.single('photo'), async (req, res) => {
     if (!message?.trim()) {
         return res.status(400).json({ error: 'הודעה היא שדה חובה' });
     }
+    if (tooLong(req.body, { name: 80, email: 150, hospital: 80, message: 2000 })) {
+        if (req.file) fs.unlink(path.join(UPLOADS_DIR, req.file.filename), () => {});
+        return res.status(400).json({ error: 'אחד השדות ארוך מדי' });
+    }
+    if (email?.trim() && !isValidEmail(email)) {
+        if (req.file) fs.unlink(path.join(UPLOADS_DIR, req.file.filename), () => {});
+        return res.status(400).json({ error: 'כתובת מייל לא תקינה' });
+    }
     const photoFilename = req.file ? req.file.filename : null;
-    // עם תמונה → ממתינה לאישור. ללא תמונה → מאושרת אוטומטית
-    const status = photoFilename ? 'pending' : 'approved';
+    // כל הודעה ממתינה לאישור מנהל לפני פרסום בקיר (מניעת ספאם)
+    const status = 'pending';
     try {
         await pool.query(
             `INSERT INTO thank_you_notes (display_name, message, email, hospital, photo_filename, status)
@@ -202,10 +356,16 @@ app.post('/api/thank-you', uploadPhoto.single('photo'), async (req, res) => {
              email?.trim() || '', hospital?.trim() || '',
              photoFilename || '', status]
         );
-        const msg = photoFilename
-            ? 'תודה! ההודעה עם התמונה תפורסם לאחר אישור המנהל.'
-            : 'תודה! ההודעה פורסמה בקיר התודה.';
-        res.status(201).json({ ok: true, message: msg });
+        notifyChannels('💌 הודעת תודה חדשה', [
+            ['שם', name?.trim() || 'אנונימי'],
+            ['בית חולים', hospital?.trim()],
+            ['הודעה', message.trim()],
+            ['תמונה', photoFilename ? 'כן (ממתינה לאישור)' : 'לא'],
+        ]);
+        res.status(201).json({
+            ok: true,
+            message: 'תודה! ההודעה התקבלה ותפורסם בקיר לאחר אישור המנהל.'
+        });
     } catch (err) {
         console.error(err);
         if (req.file) fs.unlink(path.join(UPLOADS_DIR, req.file.filename), () => {});
@@ -219,14 +379,21 @@ app.post('/api/contact', async (req, res) => {
     if (!name?.trim() || !message?.trim()) {
         return res.status(400).json({ error: 'שם והודעה הם שדות חובה' });
     }
+    if (tooLong(req.body, { name: 100, phone: 30, email: 150, message: 3000 })) {
+        return res.status(400).json({ error: 'אחד השדות ארוך מדי' });
+    }
+    if (email?.trim() && !isValidEmail(email)) {
+        return res.status(400).json({ error: 'כתובת מייל לא תקינה' });
+    }
     try {
         await pool.query(
             'INSERT INTO contacts (name, phone, email, message) VALUES ($1, $2, $3, $4)',
             [name.trim(), phone?.trim() || '', email?.trim() || '', message.trim()]
         );
-        notifyAdmin('📩 פנייה חדשה באתר',
-            row('שם', name.trim()) + row('טלפון', phone?.trim()) +
-            row('מייל', email?.trim()) + row('הודעה', message.trim()));
+        notifyChannels('📩 פנייה חדשה באתר', [
+            ['שם', name.trim()], ['טלפון', phone?.trim()],
+            ['מייל', email?.trim()], ['הודעה', message.trim()],
+        ]);
     res.status(201).json({ ok: true, message: 'ההודעה נשלחה! נחזור אליכם בהקדם.' });
     } catch (err) {
         console.error(err);
@@ -240,15 +407,22 @@ app.post('/api/volunteer', async (req, res) => {
     if (!name?.trim() || !phone?.trim() || !city?.trim()) {
         return res.status(400).json({ error: 'שם, טלפון ועיר הם שדות חובה' });
     }
+    if (tooLong(req.body, { name: 100, phone: 30, email: 150, city: 60, message: 2000 })) {
+        return res.status(400).json({ error: 'אחד השדות ארוך מדי' });
+    }
+    if (email?.trim() && !isValidEmail(email)) {
+        return res.status(400).json({ error: 'כתובת מייל לא תקינה' });
+    }
     try {
         await pool.query(
             'INSERT INTO volunteers (name, phone, email, city, has_car, notes) VALUES ($1, $2, $3, $4, $5, $6)',
             [name.trim(), phone.trim(), email?.trim() || '', city.trim(), !!hasCar, message?.trim() || '']
         );
-        notifyAdmin('🤝 מתנדב חדש נרשם',
-            row('שם', name.trim()) + row('טלפון', phone.trim()) +
-            row('מייל', email?.trim()) + row('עיר', city.trim()) +
-            row('רכב', hasCar ? 'כן' : 'לא') + row('הערה', message?.trim()));
+        notifyChannels('🤝 מתנדב חדש נרשם', [
+            ['שם', name.trim()], ['טלפון', phone.trim()],
+            ['מייל', email?.trim()], ['עיר', city.trim()],
+            ['רכב', hasCar ? 'כן' : 'לא'], ['הערה', message?.trim()],
+        ]);
     res.status(201).json({ ok: true, message: 'ברוכים הבאים למשפחת חסדי המלך! ניצור קשר בהקדם.' });
     } catch (err) {
         console.error(err);
@@ -262,22 +436,22 @@ app.get('/api/media', logVisit, async (req, res) => {
     const limit = Math.min(20, parseInt(req.query.limit) || 5);
     const offset = (page - 1) * limit;
     const category = req.query.category || '';
+    // type=photo|video — סינון לפי סוג מדיה (ה-tab "סרטונים" משתמש בזה)
+    const type = ['photo', 'video'].includes(req.query.type) ? req.query.type : '';
 
     try {
-        let query, params;
-        if (category) {
-            query = `SELECT * FROM media WHERE category=$1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`;
-            params = [category, limit, offset];
-        } else {
-            query = `SELECT * FROM media ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
-            params = [limit, offset];
-        }
-        const result = await pool.query(query, params);
+        // בניית תנאי WHERE דינמי לפי הפרמטרים שהתקבלו
+        const conds = [];
+        const params = [];
+        if (category) { params.push(category); conds.push(`category=$${params.length}`); }
+        if (type) { params.push(type); conds.push(`type=$${params.length}`); }
+        const where = conds.length ? `WHERE ${conds.join(' AND ')}` : '';
 
-        const countQuery = category
-            ? `SELECT COUNT(*) FROM media WHERE category=$1`
-            : `SELECT COUNT(*) FROM media`;
-        const countResult = await pool.query(countQuery, category ? [category] : []);
+        const listParams = [...params, limit, offset];
+        const query = `SELECT * FROM media ${where} ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+        const result = await pool.query(query, listParams);
+
+        const countResult = await pool.query(`SELECT COUNT(*) FROM media ${where}`, params);
         const total = parseInt(countResult.rows[0].count);
 
         res.json({
@@ -297,10 +471,10 @@ app.get('/api/media', logVisit, async (req, res) => {
 // Routes — Admin
 // =====================
 
-app.post('/api/admin/login', (req, res) => {
+app.post('/api/admin/login', loginLimiter, (req, res) => {
     const { password } = req.body;
-    if (password === ADMIN_PASS) {
-        res.json({ ok: true, token: ADMIN_PASS });
+    if (passwordMatches(password)) {
+        res.json({ ok: true, token: createSession() });
     } else {
         res.status(401).json({ error: 'סיסמה שגויה' });
     }
@@ -335,8 +509,8 @@ app.post('/api/admin/contacts/:id/reply', adminAuth, async (req, res) => {
                 to: c.email,
                 subject: 'תגובה מחסדי המלך',
                 html: `<div dir="rtl" style="font-family:Arial,sans-serif;font-size:16px;">
-                    <p>שלום ${c.name},</p>
-                    <p>${reply_text.trim().replace(/\n/g, '<br>')}</p>
+                    <p>שלום ${escapeHtml(c.name)},</p>
+                    <p>${escapeHtml(reply_text.trim()).replace(/\n/g, '<br>')}</p>
                     <hr>
                     <p style="color:#666;font-size:12px;">חסדי המלך — מביאים שמחה לילדים 💙</p>
                 </div>`
@@ -350,7 +524,7 @@ app.post('/api/admin/contacts/:id/reply', adminAuth, async (req, res) => {
         res.json({ ok: true, emailSent: !!c.email });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'שגיאת שרת: ' + err.message });
+        res.status(500).json({ error: 'שגיאת שרת בשליחת המייל' });
     }
 });
 
@@ -380,6 +554,9 @@ app.get('/api/admin/thank-you', adminAuth, async (req, res) => {
 app.put('/api/admin/thank-you/:id', adminAuth, async (req, res) => {
     const { id } = req.params;
     const { status } = req.body; // 'approved' | 'rejected'
+    if (!['approved', 'rejected', 'pending'].includes(status)) {
+        return res.status(400).json({ error: 'סטטוס לא חוקי' });
+    }
     try {
         const result = await pool.query(
             'UPDATE thank_you_notes SET status=$1 WHERE id=$2 RETURNING *',
@@ -399,9 +576,11 @@ app.put('/api/admin/stats', adminAuth, async (req, res) => {
     try {
         for (const key of fields) {
             if (req.body[key] !== undefined) {
+                const value = parseInt(req.body[key], 10);
+                if (!Number.isFinite(value) || value < 0) continue; // התעלם מערכים לא תקינים
                 await pool.query(
                     'INSERT INTO stats (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value=$2',
-                    [key, parseInt(req.body[key])]
+                    [key, value]
                 );
             }
         }
@@ -433,16 +612,17 @@ app.get('/api/admin/stats/visits', adminAuth, async (req, res) => {
     }
 });
 
-// תרומות — הוספה
-app.post('/api/donations', async (req, res) => {
+// תרומות — הוספה (Admin בלבד; אין רישום תרומות ציבורי כדי למנוע זיהום נתונים)
+app.post('/api/donations', adminAuth, async (req, res) => {
     const { donor_name, amount, method, note } = req.body;
-    if (!amount || isNaN(parseFloat(amount))) {
-        return res.status(400).json({ error: 'סכום תרומה הוא חובה' });
+    const amt = parseFloat(amount);
+    if (!Number.isFinite(amt) || amt <= 0) {
+        return res.status(400).json({ error: 'סכום תרומה חייב להיות מספר חיובי' });
     }
     try {
         await pool.query(
             'INSERT INTO donations (donor_name, amount, method, note) VALUES ($1, $2, $3, $4)',
-            [donor_name?.trim() || 'אנונימי', parseFloat(amount), method || 'other', note?.trim() || '']
+            [donor_name?.trim() || 'אנונימי', amt, method || 'other', note?.trim() || '']
         );
         res.status(201).json({ ok: true });
     } catch (err) {
@@ -526,13 +706,14 @@ app.delete('/api/admin/media/:id', adminAuth, async (req, res) => {
 // תרומה ידנית (Admin)
 app.post('/api/admin/donations', adminAuth, async (req, res) => {
     const { donor_name, amount, method, note } = req.body;
-    if (!amount || isNaN(parseFloat(amount))) {
-        return res.status(400).json({ error: 'סכום תרומה הוא חובה' });
+    const amt = parseFloat(amount);
+    if (!Number.isFinite(amt) || amt <= 0) {
+        return res.status(400).json({ error: 'סכום תרומה חייב להיות מספר חיובי' });
     }
     try {
         const result = await pool.query(
             'INSERT INTO donations (donor_name, amount, method, note) VALUES ($1,$2,$3,$4) RETURNING *',
-            [donor_name?.trim() || 'אנונימי', parseFloat(amount), method || 'other', note?.trim() || '']
+            [donor_name?.trim() || 'אנונימי', amt, method || 'other', note?.trim() || '']
         );
         res.status(201).json({ ok: true, donation: result.rows[0] });
     } catch (err) {
@@ -652,12 +833,32 @@ app.get('/api/newsletters', async (req, res) => {
 app.post('/api/admin/newsletters', adminAuth, uploadNewsletter.single('file'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'לא נשלח קובץ' });
     const { title, parasha_name, week_of } = req.body;
+
+    // המרת תמונה ל-PDF אוטומטית (בגלל אינטרנט מסונן שחותך תמונות)
+    let filename = req.file.filename;
+    let fileType = req.file.mimetype;
+    if (fileType && fileType.startsWith('image/')) {
+        try {
+            const absPath = path.join(UPLOADS_DIR, req.file.filename);
+            const pdfBuffer = await imageToPdfBuffer(absPath, fileType);
+            if (pdfBuffer) {
+                const pdfName = `${path.parse(req.file.filename).name}.pdf`;
+                fs.writeFileSync(path.join(UPLOADS_DIR, pdfName), pdfBuffer);
+                fs.unlink(absPath, () => {}); // מחיקת התמונה המקורית
+                filename = pdfName;
+                fileType = 'application/pdf';
+            }
+        } catch (e) {
+            console.error('newsletter image→pdf failed:', e.message); // נשמר כתמונה במקרה כשל
+        }
+    }
+
     try {
         const result = await pool.query(
             `INSERT INTO newsletters (title, parasha_name, filename, original_name, file_type, week_of)
              VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
             [title?.trim() || '', parasha_name?.trim() || '',
-             req.file.filename, req.file.originalname, req.file.mimetype,
+             filename, req.file.originalname, fileType,
              week_of || null]
         );
         await pool.query(
@@ -667,7 +868,7 @@ app.post('/api/admin/newsletters', adminAuth, uploadNewsletter.single('file'), a
         res.status(201).json({ ok: true, newsletter: result.rows[0] });
     } catch (err) {
         console.error(err);
-        fs.unlink(path.join(UPLOADS_DIR, req.file.filename), () => {});
+        fs.unlink(path.join(UPLOADS_DIR, filename), () => {});
         res.status(500).json({ error: 'שגיאת שרת' });
     }
 });
@@ -843,10 +1044,22 @@ app.post('/api/newsletters/:id/download', async (req, res) => {
 // תרגום אוטומטי — DeepL + מטמון DB
 // =====================
 
+// הגבלת קצב לתרגום — מונע ניצול מכסת DeepL
+const translateLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 120,
+    message: { translated: '' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 // POST /api/translate  { text, lang }
-app.post('/api/translate', async (req, res) => {
+app.post('/api/translate', translateLimiter, async (req, res) => {
     const { text, lang } = req.body;
     if (!text || !lang || lang === 'he') return res.json({ translated: text });
+    // רק שפות נתמכות, וטקסט בגודל סביר
+    if (!['en', 'fr'].includes(lang)) return res.json({ translated: text });
+    if (typeof text !== 'string' || text.length > 5000) return res.json({ translated: text });
 
     try {
         // בדוק מטמון
@@ -901,9 +1114,36 @@ app.post('/api/translate', async (req, res) => {
 });
 
 // =====================
+// טיפול שגיאות גלובלי — מחזיר JSON תקין (כולל שגיאות העלאה ו-CORS)
+// =====================
+app.use((err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+        const msg = err.code === 'LIMIT_FILE_SIZE' ? 'הקובץ גדול מדי' : 'שגיאה בהעלאת הקובץ';
+        return res.status(400).json({ error: msg });
+    }
+    if (err && /Origin/.test(err.message || '')) {
+        return res.status(403).json({ error: 'מקור לא מורשה' });
+    }
+    if (err && err.message) {
+        // שגיאות מסנני הקבצים שלנו (סוג קובץ לא נתמך וכו')
+        if (/קובץ|PDF|תמונ/.test(err.message)) {
+            return res.status(400).json({ error: err.message });
+        }
+    }
+    console.error('Unhandled error:', err);
+    res.status(500).json({ error: 'שגיאת שרת' });
+});
+
+// =====================
 // הפעלת השרת
 // =====================
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
+
+// בדיקת חיבור ל-DB בעלייה — מתריע בלוג אם אין חיבור
+pool.query('SELECT 1')
+    .then(() => console.log('✅ חיבור לבסיס הנתונים תקין'))
+    .catch((err) => console.error('⚠️  אזהרה: אין חיבור לבסיס הנתונים —', err.message));
+
 app.listen(PORT, () => {
     console.log(`✅ שרת חסדי המלך פועל על פורט ${PORT}`);
     console.log(`📊 Health: http://localhost:${PORT}/api/health`);

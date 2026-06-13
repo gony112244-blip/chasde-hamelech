@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLang } from '../contexts/LangContext';
-
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3002' : '');
+import API_BASE from '../config';
 
 // cache client-side כדי לא לשאול שוב ושוב
 const clientCache = new Map();

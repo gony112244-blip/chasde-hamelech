@@ -1,44 +1,35 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useT } from '../../hooks/useT';
-
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3002' : '');
-
-const FALLBACK = [
-    {
-        id: 'f1',
-        name: 'אמא ממחלקת ילדים',
-        message: 'הבן שלי היה מאושפז שבועיים. ביום שהגיעו עם המשחק והספר — זו הייתה הפעם הראשונה שהוא חייך מאז שהגענו.',
-        hospital: 'בית חולים שניידר',
-    },
-    {
-        id: 'f2',
-        name: 'אבא ממחלקה כירורגית',
-        message: 'אתם לא מבינים מה עשיתם לנו. ילדה בת 6 שבכתה כל הלילה — פתאום שכחה שהיא בבית חולים בגלל משחק קופסה.',
-        hospital: 'בית חולים וולפסון',
-    },
-    {
-        id: 'f3',
-        name: 'אחות בכירה',
-        message: 'אני כבר 15 שנה במקצוע. מעט מאוד אנשים באים ופשוט מחלקים אהבה בלי לבקש כלום בחזרה. תודה.',
-        hospital: 'בית חולים רמב"ם',
-    },
-];
+import { useLang } from '../../contexts/LangContext';
+import { translateBatch } from '../../hooks/useTranslate';
+import API_BASE from '../../config';
 
 export default function Testimonials() {
-    const [items, setItems] = useState(FALLBACK);
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(true);
     const t = useT();
+    const { lang } = useLang();
 
     useEffect(() => {
+        let active = true;
         fetch(`${API_BASE}/api/thank-you?limit=3`)
             .then(r => r.ok ? r.json() : null)
-            .then(data => {
-                if (data && Array.isArray(data) && data.length > 0) {
-                    setItems(data);
+            .then(async (data) => {
+                if (!active) return;
+                let list = (data && Array.isArray(data)) ? data.slice(0, 3) : [];
+                // תרגום תוכן המשתמש לשפה הנבחרת (אם אינה עברית)
+                if (lang !== 'he' && list.length) {
+                    try { list = await translateBatch(list, ['message', 'hospital'], lang); } catch (_) {}
                 }
+                if (active) setItems(list);
             })
-            .catch(() => {});
-    }, []);
+            .catch(() => {})
+            .finally(() => active && setLoading(false));
+        return () => { active = false; };
+    }, [lang]);
+
+    const hasItems = items.length > 0;
 
     return (
         <section style={s.section}>
@@ -49,23 +40,31 @@ export default function Testimonials() {
                 </h2>
                 <p style={s.subtitle}>{t('testimonials_subtitle')}</p>
 
-                <div style={s.grid}>
-                    {items.slice(0, 3).map((t) => (
-                        <div key={t.id} style={s.card}>
-                            <div style={s.quoteIcon}>&ldquo;</div>
-                            <p style={s.text}>{t.message || t.text}</p>
-                            <div style={s.footer}>
-                                <div style={s.avatar}>
-                                    {(t.name || '?').charAt(0)}
-                                </div>
-                                <div>
-                                    <strong style={s.name}>{t.name}</strong>
-                                    {t.hospital && <span style={s.hospital}>{t.hospital}</span>}
+                {loading && <p style={s.stateMsg}>{t('loading')}</p>}
+
+                {!loading && !hasItems && (
+                    <p style={s.stateMsg}>{t('testimonials_empty')}</p>
+                )}
+
+                {!loading && hasItems && (
+                    <div style={s.grid}>
+                        {items.map((item) => (
+                            <div key={item.id} style={s.card}>
+                                <div style={s.quoteIcon}>&ldquo;</div>
+                                <p style={s.text}>{item.message || item.text}</p>
+                                <div style={s.footer}>
+                                    <div style={s.avatar} aria-hidden="true">
+                                        {(item.name || '?').charAt(0)}
+                                    </div>
+                                    <div>
+                                        <strong style={s.name}>{item.name}</strong>
+                                        {item.hospital && <span style={s.hospital}>{item.hospital}</span>}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
 
                 <div style={s.ctas}>
                     <Link to="/thank-you" style={s.ctaPrimary}>{t('testimonials_more')}</Link>
@@ -80,7 +79,7 @@ const s = {
     section: {
         background: 'var(--bg-warm)',
         fontFamily: "'Heebo', sans-serif",
-        direction: 'rtl',
+        direction: 'inherit',
         padding: '80px 20px',
     },
     inner: {
@@ -102,6 +101,11 @@ const s = {
         color: 'var(--text-muted)',
         fontSize: '1.05rem',
         marginBottom: '40px',
+    },
+    stateMsg: {
+        color: 'var(--text-muted)',
+        fontSize: '1rem',
+        padding: '24px 0 8px',
     },
     grid: {
         display: 'grid',

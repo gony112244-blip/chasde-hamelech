@@ -63,7 +63,7 @@ const s = {
         alignItems: 'center',
         justifyContent: 'center',
         fontFamily: "'Heebo', sans-serif",
-        direction: 'rtl',
+        direction: 'inherit',
         padding: '30px 20px',
         position: 'relative',
         overflow: 'hidden',

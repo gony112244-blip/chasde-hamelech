@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Logo from './Logo';
 import { useLang } from '../contexts/LangContext';
@@ -215,7 +215,7 @@ const s = {
     nav: {
         background: 'linear-gradient(135deg, #0f2044 0%, #1a3460 100%)',
         zIndex: 1000,
-        direction: 'rtl',
+        direction: 'inherit',
         fontFamily: "'Heebo', sans-serif",
         position: 'sticky',
         top: 0,

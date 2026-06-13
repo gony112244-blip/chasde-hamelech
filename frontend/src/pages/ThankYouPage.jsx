@@ -254,7 +254,7 @@ export default function ThankYouPage() {
 }
 
 const s = {
-    page: { fontFamily: "'Heebo', sans-serif", direction: 'rtl' },
+    page: { fontFamily: "'Heebo', sans-serif", direction: 'inherit' },
     header: {
         background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 50%, #071530 100%)',
         padding: '60px 20px 50px', textAlign: 'center', position: 'relative', overflow: 'hidden',
@@ -285,12 +285,12 @@ const s = {
     formHint: { color: 'var(--royal)', fontSize: '0.9rem', background: 'var(--royal-pale)', borderRadius: '10px', padding: '10px 14px', margin: 0 },
     input: {
         width: '100%', padding: '13px 16px', borderRadius: '12px', border: '2px solid var(--royal-pale)',
-        fontSize: '1rem', fontFamily: "'Heebo', sans-serif", direction: 'rtl', outline: 'none',
+        fontSize: '1rem', fontFamily: "'Heebo', sans-serif", direction: 'inherit', outline: 'none',
         transition: 'border-color 0.2s', boxSizing: 'border-box',
     },
     textarea: {
         width: '100%', padding: '13px 16px', borderRadius: '12px', border: '2px solid var(--royal-pale)',
-        fontSize: '1rem', fontFamily: "'Heebo', sans-serif", direction: 'rtl', outline: 'none',
+        fontSize: '1rem', fontFamily: "'Heebo', sans-serif", direction: 'inherit', outline: 'none',
         resize: 'vertical', minHeight: '100px', transition: 'border-color 0.2s', boxSizing: 'border-box',
     },
     photoSection: { display: 'flex', flexDirection: 'column', gap: '10px' },

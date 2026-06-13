@@ -67,6 +67,7 @@ export default {
     testimonials_subtitle: 'Notes de remerciement des familles que nous avons visitées',
     testimonials_more: 'Lire plus de témoignages',
     testimonials_write: 'Écrivez le vôtre aussi',
+    testimonials_empty: 'Aucun message pour le moment — soyez le premier à nous écrire un mot de remerciement 💙',
 
     // HelpPage
     helppage_title: '💝 Comment Aider?',
@@ -95,6 +96,20 @@ export default {
     gallery_posts_title: 'Nos Mises à Jour',
     gallery_photos_title: 'Photos',
     gallery_videos_title: 'Vidéos',
+    gallery_items: 'éléments dans la galerie',
+    gallery_error: 'Échec du chargement de la galerie. Veuillez rafraîchir la page.',
+    gallery_empty_all: 'La galerie sera bientôt mise à jour — de nouvelles photos arrivent!',
+    gallery_empty_cat: 'Aucun élément dans cette catégorie pour le moment.',
+    gallery_play: 'Lire',
+    gallery_pause: 'Pause',
+    gallery_privacy_notice: 'Toutes les photos et vidéos sont publiées avec le consentement des parents et conformément à la loi sur la protection de la vie privée.',
+    gal_cat_all: 'Tout',
+    gal_cat_general: 'Général',
+    gal_cat_toys: 'Jeux',
+    gal_cat_books: 'Livres',
+    gal_cat_food: 'Nourriture',
+    gal_cat_preparation: 'Préparatifs',
+    gal_cat_videos: 'Vidéos',
 
     // ContactPage
     contact_title: '📩 Contactez-nous',
@@ -188,6 +203,10 @@ export default {
     parasha_print: 'Ouvrir pour imprimer',
     parasha_visits: 'Visites de la page',
     parasha_downloads: 'Téléchargements',
+    parasha_open_pdf: 'Cliquez pour ouvrir le feuillet (PDF)',
+    parasha_open_pdf_hint: 'Le feuillet s\'ouvre dans un nouvel onglet — facile à lire et à imprimer',
+    parasha_coming_title: 'Le feuillet arrive bientôt!',
+    parasha_coming_desc: 'Le feuillet de cette semaine sera mis en ligne mercredi après-midi.',
 
     // Footer
     footer_dev_contact: 'Vous avez rencontré un problème technique ou vous voulez un site comme celui-ci?',
@@ -196,4 +215,13 @@ export default {
     loading: 'Chargement...',
     error: 'Erreur',
     back_home: 'Retour à l\'accueil',
+
+    // Accessibilité (aria-labels)
+    a11y_prev: 'Précédent',
+    a11y_next: 'Suivant',
+    a11y_mute: 'Couper le son',
+    a11y_play_music: 'Jouer la musique',
+    a11y_goto_image: 'Aller à l\'image',
+    a11y_close: 'Fermer',
+    a11y_skip_to_content: 'Aller au contenu principal',
 };

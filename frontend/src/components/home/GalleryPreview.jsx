@@ -87,6 +87,7 @@ export default function GalleryPreview() {
 
     const current = items[active];
     const src = current.url || `${UPLOADS_BASE}/${current.filename}`;
+    const altText = current.title || current.caption || t('gallery_preview_title');
 
     return (
         <section style={s.section}>
@@ -99,7 +100,7 @@ export default function GalleryPreview() {
                 <div style={s.slideshowWrap}>
                     <img
                         src={src}
-                        alt={current.title || current.caption || 'תמונה מהגלריה'}
+                        alt={altText}
                         style={{
                             ...s.mainImg,
                             opacity: fade ? 1 : 0,
@@ -123,14 +124,14 @@ export default function GalleryPreview() {
                     </div>
 
                     {/* music toggle */}
-                    <button style={s.musicBtn} onClick={toggleMusic} aria-label={musicOn ? 'השתק' : 'הפעל מוזיקה'}>
+                    <button style={s.musicBtn} onClick={toggleMusic} aria-label={musicOn ? t('a11y_mute') : t('a11y_play_music')}>
                         {musicOn ? '🔊' : '🔇'}
                     </button>
 
                     {items.length > 1 && (
                         <>
-                            <button style={{ ...s.arrow, ...s.arrowRight }} onClick={handlePrev} aria-label="הקודם">›</button>
-                            <button style={{ ...s.arrow, ...s.arrowLeft }} onClick={handleNext} aria-label="הבא">‹</button>
+                            <button style={{ ...s.arrow, ...s.arrowRight }} onClick={handlePrev} aria-label={t('a11y_prev')}>›</button>
+                            <button style={{ ...s.arrow, ...s.arrowLeft }} onClick={handleNext} aria-label={t('a11y_next')}>‹</button>
                         </>
                     )}
                 </div>
@@ -142,7 +143,7 @@ export default function GalleryPreview() {
                                 key={i}
                                 style={{ ...s.dot, ...(i === active ? s.dotActive : {}) }}
                                 onClick={() => handleDot(i)}
-                                aria-label={`מעבר לתמונה ${i + 1}`}
+                                aria-label={`${t('a11y_goto_image')} ${i + 1}`}
                             />
                         ))}
                     </div>
@@ -161,7 +162,7 @@ const s = {
         background: 'linear-gradient(165deg, #0f2044 0%, #071530 100%)',
         padding: '80px 20px',
         fontFamily: "'Heebo', sans-serif",
-        direction: 'rtl',
+        direction: 'inherit',
     },
     inner: {
         maxWidth: '800px',

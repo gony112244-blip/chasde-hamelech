@@ -1,8 +1,7 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
-
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3002' : '');
+import API_BASE from '../config';
 
 export default function VolunteerPage() {
     const t = useT();
@@ -121,7 +120,7 @@ export default function VolunteerPage() {
 }
 
 const s = {
-    page: { fontFamily: "'Heebo', sans-serif", direction: 'rtl' },
+    page: { fontFamily: "'Heebo', sans-serif", direction: 'inherit' },
     header: {
         background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 50%, #071530 100%)',
         padding: '60px 20px 50px',
@@ -145,12 +144,12 @@ const s = {
     label: { color: 'var(--text)', fontSize: '0.92rem', fontWeight: 600 },
     input: {
         width: '100%', padding: '13px 16px', borderRadius: '12px', border: '2px solid var(--royal-pale)',
-        fontSize: '1rem', fontFamily: "'Heebo', sans-serif", direction: 'rtl', outline: 'none',
+        fontSize: '1rem', fontFamily: "'Heebo', sans-serif", direction: 'inherit', outline: 'none',
         transition: 'border-color 0.2s', boxSizing: 'border-box',
     },
     textarea: {
         width: '100%', padding: '13px 16px', borderRadius: '12px', border: '2px solid var(--royal-pale)',
-        fontSize: '1rem', fontFamily: "'Heebo', sans-serif", direction: 'rtl', outline: 'none',
+        fontSize: '1rem', fontFamily: "'Heebo', sans-serif", direction: 'inherit', outline: 'none',
         resize: 'vertical', boxSizing: 'border-box',
     },
     checkboxWrap: { padding: '4px 0' },
