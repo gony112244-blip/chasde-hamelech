@@ -5,6 +5,12 @@ import { useLang } from '../../contexts/LangContext';
 import { translateBatch } from '../../hooks/useTranslate';
 import API_BASE from '../../config';
 
+const FALLBACK = [
+    { id: 'f1', name: 'אמא ממחלקת ילדים', message: 'הבן שלי היה מאושפז שבועיים. ביום שהגיעו עם המשחק והספר — זו הייתה הפעם הראשונה שהוא חייך מאז שהגענו.', hospital: 'בית חולים שניידר' },
+    { id: 'f2', name: 'אבא גאה', message: 'הבת שלי לא מפסיקה לספר על הספר שקיבלה. היא קוראת אותו כל ערב לפני השינה. תודה מעומק הלב.', hospital: 'בית חולים וולפסון' },
+    { id: 'f3', name: 'אחות בכירה', message: 'אני עובדת 12 שנה במחלקת ילדים. אתם מהאנשים היחידים שמגיעים בקביעות ובאהבה אמיתית. הילדים מחכים לכם.', hospital: 'בית חולים רמב"ם' },
+];
+
 export default function Testimonials() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -17,14 +23,15 @@ export default function Testimonials() {
             .then(r => r.ok ? r.json() : null)
             .then(async (data) => {
                 if (!active) return;
-                let list = (data && Array.isArray(data)) ? data.slice(0, 3) : [];
-                // תרגום תוכן המשתמש לשפה הנבחרת (אם אינה עברית)
+                let list = (data && Array.isArray(data) && data.length > 0)
+                    ? data.slice(0, 3)
+                    : FALLBACK;
                 if (lang !== 'he' && list.length) {
                     try { list = await translateBatch(list, ['message', 'hospital'], lang); } catch (_) {}
                 }
                 if (active) setItems(list);
             })
-            .catch(() => {})
+            .catch(() => { if (active) setItems(FALLBACK); })
             .finally(() => active && setLoading(false));
         return () => { active = false; };
     }, [lang]);

@@ -5,6 +5,8 @@ import { useT } from '../hooks/useT';
 import { useLang } from '../contexts/LangContext';
 import { translateBatch } from '../hooks/useTranslate';
 
+const DATE_LOCALES = { he: 'he-IL', en: 'en-US', fr: 'fr-FR' };
+
 const FALLBACK_NOTES = [
     { id: 'f1', name: 'אמא ממחלקת ילדים', message: 'הבן שלי היה מאושפז שבועיים. ביום שהגיעו עם המשחק והספר — זו הייתה הפעם הראשונה שהוא חייך מאז שהגענו.', hospital: 'בית חולים שניידר', created_at: '2026-04-15' },
     { id: 'f2', name: 'אבא גאה', message: 'הבת שלי לא מפסיקה לספר על הספר שקיבלה. היא קוראת אותו כל ערב לפני השינה בבית החולים. תודה מעומק הלב.', hospital: 'בית חולים וולפסון', created_at: '2026-03-28' },
@@ -124,16 +126,14 @@ export default function ThankYouPage() {
                                 <h3 style={{ color: 'var(--royal)', margin: 0 }}>{t('thankyou_success_title')}</h3>
                                 <p style={{ color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>
                                     {photo
-                                        ? 'ההודעה עם התמונה נשלחה ותפורסם לאחר אישור המנהל.'
-                                        : 'ההודעה פורסמה בקיר התודה! 🎉'}
+                                        ? t('thankyou_success_msg_photo')
+                                        : t('thankyou_success_msg')}
                                 </p>
                             </div>
                         ) : (
                             <form onSubmit={handleSubmit} style={s.form}>
-                                <h3 style={s.formTitle}>שתפו את ההרגשה 💛</h3>
-                                <p style={s.formHint}>
-                                    💡 מוזמנים לצלם מכתב בכתב יד ולהעלות תמונה — זה הכי אמיתי!
-                                </p>
+                                <h3 style={s.formTitle}>{t('thankyou_form_title')}</h3>
+                                <p style={s.formHint}>{t('thankyou_form_hint')}</p>
                                 <input
                                     type="text"
                                     placeholder={t('thankyou_form_name')}
@@ -167,7 +167,7 @@ export default function ThankYouPage() {
                                 {/* העלאת תמונה / מכתב */}
                                 <div style={s.photoSection}>
                                     <label style={s.photoLabel}>
-                                        📷 העלו תמונה או מכתב בכתב יד (אופציונלי)
+                                        {t('thankyou_form_photo')}
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -195,11 +195,11 @@ export default function ThankYouPage() {
 
                                 <div style={s.formActions}>
                                     <button type="submit" style={s.submitBtn} disabled={sending}>
-                                        {sending ? 'שולח...' : '📨 שלחו'}
+                                        {sending ? t('thankyou_form_sending') : t('thankyou_form_submit')}
                                     </button>
                                     <button type="button" style={s.cancelBtn}
                                         onClick={() => setShowForm(false)}>
-                                        ביטול
+                                        {t('thankyou_form_cancel')}
                                     </button>
                                 </div>
                             </form>
@@ -213,7 +213,7 @@ export default function ThankYouPage() {
                     <div style={s.emptyState}>
                         <span style={{ fontSize: '3rem' }}>💬</span>
                         <p style={{ color: 'var(--text-muted)', margin: 0 }}>
-                            היו הראשונים לכתוב! ✍️
+                            {t('thankyou_first_write')}
                         </p>
                     </div>
                 ) : (
@@ -237,10 +237,10 @@ export default function ThankYouPage() {
                                         {(note.name || 'א').charAt(0)}
                                     </div>
                                     <div>
-                                        <strong style={s.noteName}>{note.name || 'אנונימי'}</strong>
+                                        <strong style={s.noteName}>{note.name || t('thankyou_anonymous')}</strong>
                                         {note.hospital && <span style={s.noteDate}>{note.hospital}</span>}
                                         <span style={s.noteDate}>
-                                            {new Date(note.created_at).toLocaleDateString('he-IL')}
+                                            {new Date(note.created_at).toLocaleDateString(DATE_LOCALES[lang] || 'he-IL')}
                                         </span>
                                     </div>
                                 </div>

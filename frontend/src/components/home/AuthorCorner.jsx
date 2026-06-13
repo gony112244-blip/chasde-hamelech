@@ -56,16 +56,8 @@ export default function AuthorCorner() {
                     borderColor="#93c5fd"
                     name="דוד שמוחה"
                 >
-                    <p style={s.text}>
-                        חסדי המלך נולד מתוך אמונה פשוטה: ילד חולה שנמצא בבית חולים
-                        לא צריך לחוש לבד. הוא צריך לדעת שיש אנשים שחושבים עליו,
-                        אוהבים אותו — גם אם מעולם לא פגשו אותו.
-                    </p>
-                    <p style={s.text}>
-                        מאז שהתחלנו, ביקרנו במאות ילדים בבתי חולים ברחבי הארץ.
-                        חילקנו ספרים, משחקים, מתוקים — ובעיקר חיוכים.
-                        כל ביקור הוא עולם ומלואו עבור הילד ועבור המשפחה.
-                    </p>
+                    <p style={s.text}>{t('author_david_p1')}</p>
+                    <p style={s.text}>{t('author_david_p2')}</p>
                     <div style={{ ...s.quote, borderColor: 'rgba(147,197,253,0.25)', background: 'rgba(147,197,253,0.08)' }}>
                         <span style={{ ...s.quoteIcon, color: '#93c5fd' }}>&ldquo;</span>
                         <p style={{ ...s.quoteText, color: '#93c5fd' }}>{t('author_quote_david')}</p>
@@ -82,14 +74,8 @@ export default function AuthorCorner() {
                     borderColor="#fbbf24"
                     name="אביתר"
                 >
-                    <p style={s.text}>
-                        לפני כ-7 שנים, ביום פורים, חשבתי על כל הילדים המאושפזים שלא יחגגו כמו כולם —
-                        וזה ציער אותי מאוד. התארגנתי עם כמה חברים, קנינו ממתקים וצעצועים ויצאנו לשמח אותם.
-                    </p>
-                    <p style={s.text}>
-                        ראיתי כמה זה מנתק אותם מהכאב, כמה זה משמח את ההורים ואפילו את הצוות הרפואי —
-                        וקיבלתי על עצמי שכל עוד אוכל, אצא לשמח את הילדים, לא רק בפורים.
-                    </p>
+                    <p style={s.text}>{t('author_avitar_p1')}</p>
+                    <p style={s.text}>{t('author_avitar_p2')}</p>
                     <div style={s.quote}>
                         <span style={s.quoteIcon}>&ldquo;</span>
                         <p style={s.quoteText}>{t('author_quote_avitar')}</p>
@@ -118,20 +104,9 @@ export default function AuthorCorner() {
                         </div>
                         <div style={s.textContent}>
                             <h3 style={s.bookTitle}>{t('author_book_label')}</h3>
-                            <p style={s.text}>
-                                במשך שנים אני רואה את דוד ואביתר — בחורים טובים שיוצאים שבוע אחרי שבוע,
-                                מארגנים בעצמם ומחלקים לילדים מאושפזים. הרגיש לי שזה אחד הדברים הטהורים
-                                ביותר שאפשר לעשות.
-                            </p>
-                            <p style={s.text}>
-                                עלה בידנו רעיון: שגם אם לא זכיתי להיות בחזית, אני יכול לתרום את ספרי.
-                                &ldquo;שר הצבא&rdquo; עוסק בהתמודדות מול קשיים — ידיים קטנות מול קירות חיוורים של
-                                בית חולים, ועולם הדמיון שמוציא אותם למקומות גבוהים.
-                            </p>
-                            <p style={s.text}>
-                                לאחר שהבנתי שזה משנה, החלטתי לתרום ספרים כמה שביכולתי.
-                                כי לספר יש כוח שלא ניתן לכמת.
-                            </p>
+                            <p style={s.text}>{t('author_gony_p1')}</p>
+                            <p style={s.text}>{t('author_gony_p2')}</p>
+                            <p style={s.text}>{t('author_gony_p3')}</p>
                             <div style={s.quote}>
                                 <span style={s.quoteIcon}>&ldquo;</span>
                                 <p style={s.quoteText}>{t('author_quote_gony')}</p>
