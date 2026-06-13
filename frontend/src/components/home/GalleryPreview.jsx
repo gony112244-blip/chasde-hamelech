@@ -1,146 +1,71 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import API_BASE, { UPLOADS_BASE } from '../../config';
 import { useT } from '../../hooks/useT';
 
-const INTERVAL = 5500;   // ms between slides
-const CROSS_MS  = 1100;  // cross-fade duration
+const INTERVAL = 5500;
+const CROSS_MS  = 900;
 
 function getSrc(item) {
     return item.url || `${UPLOADS_BASE}/${item.filename}`;
 }
 
-function preloadImage(src) {
-    return new Promise((resolve) => {
-        const img = new window.Image();
-        img.onload = async () => {
-            try {
-                if (img.decode) await img.decode();
-                resolve(true);
-            } catch {
-                resolve(false);
-            }
-        };
-        img.onerror = () => resolve(false);
-        img.src = src;
-    });
-}
-
-// Ken Burns variants — zoom/pan direction changes per slide for variety
-const KB = [
-    `kbZoomInLeft  ${INTERVAL + CROSS_MS}ms ease-out forwards`,
-    `kbZoomInRight ${INTERVAL + CROSS_MS}ms ease-out forwards`,
-    `kbZoomOut     ${INTERVAL + CROSS_MS}ms ease-out forwards`,
-    `kbPanLeft     ${INTERVAL + CROSS_MS}ms ease-out forwards`,
-];
+const KB_CLASSES = ['gp-kb1', 'gp-kb2', 'gp-kb3', 'gp-kb4'];
+const KB_DUR = `${INTERVAL + CROSS_MS}ms`;
 
 const CSS = `
-    @keyframes kbZoomInLeft  { from { transform: scale(1.04) translate( 0%,  0%); } to { transform: scale(1.14) translate(-3%, -2%); } }
-    @keyframes kbZoomInRight { from { transform: scale(1.05) translate( 0%,  0%); } to { transform: scale(1.14) translate( 3%, -2%); } }
-    @keyframes kbZoomOut     { from { transform: scale(1.16) translate( 0%,  0%); } to { transform: scale(1.05) translate( 0%,  2%); } }
-    @keyframes kbPanLeft     { from { transform: scale(1.10) translate(-4%,  0%); } to { transform: scale(1.10) translate( 4%,  0%); } }
-    @keyframes progressFill  { from { width: 0%; } to { width: 100%; } }
-    .gp-layer { position:absolute; inset:0; overflow:hidden; background:#020810; }
-    .gp-backdrop { position:absolute; inset:-18px; width:calc(100% + 36px); height:calc(100% + 36px); object-fit:cover; display:block; filter:blur(18px) brightness(0.62) saturate(1.08); transform-origin:center center; }
+    @keyframes gpKb1 { from{transform:scale(1.04) translate(0%,0%)} to{transform:scale(1.14) translate(-3%,-2%)} }
+    @keyframes gpKb2 { from{transform:scale(1.05) translate(0%,0%)} to{transform:scale(1.14) translate(3%,-2%)} }
+    @keyframes gpKb3 { from{transform:scale(1.16) translate(0%,0%)} to{transform:scale(1.05) translate(0%,2%)} }
+    @keyframes gpKb4 { from{transform:scale(1.10) translate(-4%,0%)} to{transform:scale(1.10) translate(4%,0%)} }
+    .gp-kb1 .gp-photo { animation: gpKb1 ${KB_DUR} ease-out forwards; }
+    .gp-kb2 .gp-photo { animation: gpKb2 ${KB_DUR} ease-out forwards; }
+    .gp-kb3 .gp-photo { animation: gpKb3 ${KB_DUR} ease-out forwards; }
+    .gp-kb4 .gp-photo { animation: gpKb4 ${KB_DUR} ease-out forwards; }
     .gp-photo { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block; transform-origin:center center; }
-    .gp-fade-in  { animation: gpFadeIn  ${CROSS_MS}ms ease-out forwards; }
-    .gp-fade-out { animation: gpFadeOut ${CROSS_MS}ms ease-out forwards; }
-    @keyframes gpFadeIn  { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes gpFadeOut { from { opacity: 1; } to { opacity: 0; } }
-    .gp-wrap:hover .gp-arrows { opacity: 1 !important; }
+    @keyframes gpProgress { from{width:0%} to{width:100%} }
+    .gp-wrap:hover .gp-arrows { opacity:1!important; }
 `;
 
 export default function GalleryPreview() {
-    const [items, setItems]         = useState([]);
-    const [active, setActive]       = useState(0);
-    const [prev,   setPrev]         = useState(null);    // index of outgoing slide
-    const [kbKey,  setKbKey]        = useState(0);       // restarts KB animation on each slide
-    const [progKey, setProgKey]     = useState(0);       // restarts progress bar
-    const [musicOn, setMusicOn]     = useState(false);
-    const timerRef  = useRef(null);
-    const clearPrevRef = useRef(null);
-    const transitioningRef = useRef(false);
-    const audioRef  = useRef(null);
+    const [items,   setItems]   = useState([]);
+    const [active,  setActive]  = useState(0);
+    const [kbKey,   setKbKey]   = useState(0);
+    const [progKey, setProgKey] = useState(0);
+    const [musicOn, setMusicOn] = useState(false);
+    const timerRef = useRef(null);
+    const audioRef = useRef(null);
     const t = useT();
 
     useEffect(() => {
-        let cancelled = false;
         fetch(`${API_BASE}/api/media?limit=20`)
             .then(r => r.ok ? r.json() : [])
-            .then(async data => {
+            .then(data => {
                 const all    = Array.isArray(data) ? data : (data.items || []);
                 const photos = all.filter(m => m.type === 'photo');
-                const checked = await Promise.all(
-                    photos.map(async (photo) => {
-                        const ok = await preloadImage(getSrc(photo));
-                        return ok ? photo : null;
-                    })
-                );
-                const safePhotos = checked.filter(Boolean);
-                if (!cancelled && safePhotos.length > 0) setItems(safePhotos);
+                if (photos.length > 0) setItems(photos);
             })
             .catch(() => {});
-        return () => { cancelled = true; };
     }, []);
 
-    const commitSlide = useCallback((nextIdx) => {
-        clearTimeout(clearPrevRef.current);
-        transitioningRef.current = true;
-        setActive(cur => {
-            setPrev(cur);
-            return nextIdx;
-        });
+    function advance(nextIdx) {
+        clearTimeout(timerRef.current);
+        setActive(nextIdx);
         setKbKey(k => k + 1);
         setProgKey(k => k + 1);
-        // clear outgoing after cross-fade
-        clearPrevRef.current = setTimeout(() => {
-            setPrev(null);
-            transitioningRef.current = false;
-        }, CROSS_MS + 50);
-    }, []);
-
-    const goTo = useCallback(async (nextIdx) => {
-        if (transitioningRef.current) return;
-        if (nextIdx < 0 || nextIdx >= items.length) return;
-        if (nextIdx === active) return;
-        const loaded = await preloadImage(getSrc(items[nextIdx]));
-        if (loaded) commitSlide(nextIdx);
-    }, [active, commitSlide, items]);
-
-    const next = useCallback(async () => {
-        if (items.length <= 1) return;
-        const n = (active + 1) % items.length;
-        await goTo(n);
-    }, [active, goTo, items.length]);
-
-    const prevSlide = useCallback(async () => {
-        if (items.length <= 1) return;
-        const n = (active - 1 + items.length) % items.length;
-        await goTo(n);
-    }, [active, goTo, items.length]);
-
-    useEffect(() => {
-        if (items.length <= 1) return;
-        clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(next, INTERVAL);
-        return () => clearTimeout(timerRef.current);
-    }, [active, items.length, next]);
-
-    useEffect(() => {
-        return () => {
-            clearTimeout(clearPrevRef.current);
-            clearTimeout(timerRef.current);
-        };
-    }, []);
-
-    function resetTimer() {
-        clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(next, INTERVAL);
     }
 
-    function handlePrev() { prevSlide(); resetTimer(); }
-    function handleNext() { next();      resetTimer(); }
-    function handleDot(i) { if (i !== active) { goTo(i); resetTimer(); } }
+    // Chains setTimeout from current active — never fires mid-transition
+    useEffect(() => {
+        if (items.length <= 1) return;
+        timerRef.current = setTimeout(
+            () => advance((active + 1) % items.length),
+            INTERVAL
+        );
+        return () => clearTimeout(timerRef.current);
+    }, [active, items.length]); // eslint-disable-line
+
+    useEffect(() => () => clearTimeout(timerRef.current), []);
 
     function toggleMusic() {
         if (!audioRef.current) {
@@ -149,20 +74,12 @@ export default function GalleryPreview() {
             audioRef.current.volume = 0.2;
         }
         if (musicOn) { audioRef.current.pause(); setMusicOn(false); }
-        else {
-            audioRef.current.play()
-                .then(() => setMusicOn(true))
-                .catch(() => setMusicOn(false));
-        }
+        else { audioRef.current.play().then(() => setMusicOn(true)).catch(() => {}); }
     }
 
     if (items.length === 0) return null;
 
-    const cur  = items[active];
-    const curSrc  = getSrc(cur);
-    const prevItem = prev !== null ? items[prev] : null;
-    const prevSrc  = prevItem ? getSrc(prevItem) : null;
-    const kbAnim   = KB[kbKey % KB.length];
+    const kbClass = KB_CLASSES[kbKey % KB_CLASSES.length];
 
     return (
         <section style={s.section}>
@@ -173,73 +90,81 @@ export default function GalleryPreview() {
 
                 <div style={s.slideshowWrap} className="gp-wrap">
 
-                    {/* ── outgoing image (fade-out) ── */}
-                    {prevSrc && (
-                        <div className="gp-layer gp-fade-out" style={{ zIndex: 1 }} aria-hidden="true">
-                            <img src={prevSrc} alt="" className="gp-backdrop" />
-                            <img src={prevSrc} alt="" className="gp-photo" />
-                        </div>
-                    )}
+                    {/* כל השקופיות תמיד ב-DOM — רק opacity משתנה → אין flash לבן */}
+                    {items.map((item, i) => {
+                        const isActive = i === active;
+                        const src = getSrc(item);
+                        return (
+                            <div
+                                key={i}
+                                className={isActive ? kbClass : ''}
+                                style={{
+                                    position: 'absolute', inset: 0,
+                                    opacity: isActive ? 1 : 0,
+                                    transition: `opacity ${CROSS_MS}ms ease-out`,
+                                    zIndex: isActive ? 2 : 1,
+                                    overflow: 'hidden',
+                                    background: '#020810',
+                                }}
+                            >
+                                {/* רקע מטושטש — background-image לא מראה לבן בטעינה */}
+                                <div style={{
+                                    position: 'absolute', inset: '-22px',
+                                    backgroundImage: `url(${src})`,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center',
+                                    filter: 'blur(22px) brightness(0.52) saturate(1.1)',
+                                }} />
+                                {/* תמונה ראשית — key שונה כשנעשית active מריץ מחדש KB */}
+                                <img
+                                    key={isActive ? `a${kbKey}` : `s${i}`}
+                                    src={src}
+                                    alt={item.title || ''}
+                                    className="gp-photo"
+                                />
+                            </div>
+                        );
+                    })}
 
-                    {/* ── incoming image (Ken Burns + fade-in) ── */}
-                    <div
-                        key={kbKey}
-                        className="gp-layer gp-fade-in"
-                        style={{ zIndex: 2, animation: `gpFadeIn ${CROSS_MS}ms ease-out forwards, ${kbAnim}` }}
-                    >
-                        <img src={curSrc} alt="" className="gp-backdrop" aria-hidden="true" />
-                        <img
-                            src={curSrc}
-                            alt={cur.title || t('gallery_preview_title')}
-                            className="gp-photo"
-                        />
-                    </div>
-
-                    {/* ── vignette overlay ── */}
                     <div style={s.vignette} />
 
-                    {/* ── slide counter ── */}
                     <div style={s.counter}>{active + 1} / {items.length}</div>
 
-                    {/* ── music toggle ── */}
                     <button style={s.musicBtn} onClick={toggleMusic}
                         aria-label={musicOn ? t('a11y_mute') : t('a11y_play_music')}>
                         {musicOn ? '🔊' : '🔇'}
                     </button>
 
-                    {/* ── arrows ── */}
                     {items.length > 1 && (
                         <div className="gp-arrows" style={{ ...s.arrows, opacity: 0, transition: 'opacity 0.25s' }}>
-                            <button style={{ ...s.arrow, ...s.arrowRight }} onClick={handlePrev} aria-label={t('a11y_prev')}>›</button>
-                            <button style={{ ...s.arrow, ...s.arrowLeft }}  onClick={handleNext} aria-label={t('a11y_next')}>‹</button>
+                            <button style={{ ...s.arrow, ...s.arrowRight }}
+                                onClick={() => advance((active - 1 + items.length) % items.length)}
+                                aria-label={t('a11y_prev')}>›
+                            </button>
+                            <button style={{ ...s.arrow, ...s.arrowLeft }}
+                                onClick={() => advance((active + 1) % items.length)}
+                                aria-label={t('a11y_next')}>‹
+                            </button>
                         </div>
                     )}
 
-                    {/* ── progress bar ── */}
                     {items.length > 1 && (
                         <div style={s.progressTrack}>
-                            <div
-                                key={progKey}
-                                style={{
-                                    ...s.progressBar,
-                                    animation: `progressFill ${INTERVAL}ms linear forwards`,
-                                }}
-                            />
+                            <div key={progKey} style={{
+                                ...s.progressBar,
+                                animation: `gpProgress ${INTERVAL}ms linear forwards`,
+                            }} />
                         </div>
                     )}
                 </div>
 
-                {/* ── dots ── */}
                 {items.length > 1 && (
                     <div style={s.dots}>
                         {items.map((_, i) => (
                             <button
                                 key={i}
-                                style={{
-                                    ...s.dot,
-                                    ...(i === active ? s.dotActive : {}),
-                                }}
-                                onClick={() => handleDot(i)}
+                                style={{ ...s.dot, ...(i === active ? s.dotActive : {}) }}
+                                onClick={() => advance(i)}
                                 aria-label={`${t('a11y_goto_image')} ${i + 1}`}
                             />
                         ))}
@@ -265,7 +190,6 @@ const s = {
         marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
     },
     subtitle: { color: 'rgba(255,255,255,0.6)', fontSize: '1rem', marginBottom: '32px' },
-
     slideshowWrap: {
         position: 'relative',
         borderRadius: '22px',
@@ -274,20 +198,17 @@ const s = {
         aspectRatio: '16/10',
         background: '#020810',
     },
-
     vignette: {
         position: 'absolute', inset: 0,
         background: 'radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%)',
-        zIndex: 3, pointerEvents: 'none',
+        zIndex: 10, pointerEvents: 'none',
     },
-
     counter: {
         position: 'absolute', top: '14px', left: '16px',
         background: 'rgba(0,0,0,0.45)', color: '#fff',
         padding: '4px 12px', borderRadius: '20px',
         fontSize: '0.78rem', fontWeight: 700,
-        backdropFilter: 'blur(6px)', zIndex: 5,
-        letterSpacing: '0.5px',
+        backdropFilter: 'blur(6px)', zIndex: 11, letterSpacing: '0.5px',
     },
     musicBtn: {
         position: 'absolute', top: '12px', right: '14px',
@@ -295,33 +216,27 @@ const s = {
         width: '38px', height: '38px', borderRadius: '50%',
         cursor: 'pointer', fontSize: '1.1rem', display: 'flex',
         alignItems: 'center', justifyContent: 'center',
-        backdropFilter: 'blur(6px)', zIndex: 5,
+        backdropFilter: 'blur(6px)', zIndex: 11,
     },
-
-    arrows: { position: 'absolute', inset: 0, zIndex: 5, pointerEvents: 'none' },
+    arrows: { position: 'absolute', inset: 0, zIndex: 11, pointerEvents: 'none' },
     arrow: {
         position: 'absolute', top: '50%', transform: 'translateY(-50%)',
-        background: 'rgba(0,0,0,0.4)',
-        border: '1px solid rgba(255,255,255,0.15)',
-        color: '#fff', fontSize: '2rem',
-        width: '46px', height: '46px', borderRadius: '50%',
+        background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.15)',
+        color: '#fff', fontSize: '2rem', width: '46px', height: '46px', borderRadius: '50%',
         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        backdropFilter: 'blur(8px)', transition: 'background 0.2s, transform 0.2s',
-        pointerEvents: 'all',
+        backdropFilter: 'blur(8px)', transition: 'background 0.2s', pointerEvents: 'all',
     },
     arrowRight: { right: '14px' },
     arrowLeft:  { left:  '14px' },
-
     progressTrack: {
         position: 'absolute', bottom: 0, left: 0, right: 0,
-        height: '3px', background: 'rgba(255,255,255,0.15)', zIndex: 5,
+        height: '3px', background: 'rgba(255,255,255,0.15)', zIndex: 11,
     },
     progressBar: {
         height: '100%', width: 0,
         background: 'linear-gradient(90deg, #fbbf24, #f0c040)',
         borderRadius: '0 2px 2px 0',
     },
-
     dots: {
         display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '16px', flexWrap: 'wrap',
     },
@@ -331,7 +246,6 @@ const s = {
         padding: 0, transition: 'background 0.3s, transform 0.3s, width 0.3s',
     },
     dotActive: { background: '#fbbf24', transform: 'scale(1.5)', width: '20px', borderRadius: '4px' },
-
     galleryBtn: {
         display: 'inline-block', marginTop: '30px',
         background: 'linear-gradient(135deg, #d4a017, #f0c040)',
