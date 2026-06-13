@@ -17,7 +17,7 @@ const CATEGORIES = [
 
 const DATE_LOCALES = { he: 'he-IL', en: 'en-US', fr: 'fr-FR' };
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 9;
 
 const hoverCSS = `
   .gal-photo:hover { transform: scale(1.02); box-shadow: 0 8px 24px rgba(0,0,0,0.2) !important; }
@@ -26,7 +26,7 @@ const hoverCSS = `
   .gal-video:hover { transform: scale(1.01); box-shadow: 0 8px 24px rgba(0,0,0,0.2) !important; }
 `;
 
-function VideoCard({ item, locale }) {
+function VideoCard({ item }) {
     const t = useT();
     const ref = useRef(null);
     const [playing, setPlaying] = useState(false);
@@ -61,26 +61,20 @@ function VideoCard({ item, locale }) {
                     <button style={s.pauseBtn} onClick={toggle} aria-label={t('gallery_pause')}>⏸</button>
                 )}
             </div>
-            {item.title && <p style={s.videoCaption}>{item.title}</p>}
-            {item.created_at && <p style={s.itemDate}>{fmtDate(item.created_at, locale)}</p>}
         </div>
     );
 }
 
-function PhotoCard({ item, onClick, locale }) {
+function PhotoCard({ item, onClick }) {
     const src = item.filename
         ? `${UPLOADS_BASE}/${item.filename}`
         : item.src;
 
     return (
-        <button className="gal-photo" style={s.photoCard} onClick={() => onClick(item)} title={item.title}>
-            <img src={src} alt={item.title || ''} style={s.photoImg} loading="lazy" />
+        <button className="gal-photo" style={s.photoCard} onClick={() => onClick(item)}>
+            <img src={src} alt="" style={s.photoImg} loading="lazy" />
             <div className="gal-overlay" style={s.photoOverlay}>
                 <span className="gal-zoom" style={s.photoZoom}>🔍</span>
-            </div>
-            <div style={s.photoFooter}>
-                {item.title && <p style={s.photoCaption}>{item.title}</p>}
-                {item.created_at && <p style={s.photoDate}>{fmtDate(item.created_at, locale)}</p>}
             </div>
         </button>
     );
@@ -98,6 +92,8 @@ export default function GalleryPage() {
     const [loadingMore, setLoadingMore] = useState(false);
     const [lightbox, setLightbox] = useState(null);
     const [posts, setPosts] = useState([]);
+    const [error, setError] = useState(false);
+    const sentinelRef = useRef(null);
 
     // טעינת פוסטים + תרגום אם צריך
     useEffect(() => {
@@ -110,8 +106,6 @@ export default function GalleryPage() {
             })
             .catch(() => {});
     }, [lang]);
-
-    const [error, setError] = useState(false);
 
     const loadItems = useCallback(async (cat, pg, append = false) => {
         if (append) setLoadingMore(true);
@@ -145,19 +139,22 @@ export default function GalleryPage() {
         loadItems(activeCategory, 1, false);
     }, [activeCategory, loadItems]);
 
-    // סגירת ה-Lightbox במקש Escape (נגישות מקלדת)
+    // Infinite scroll — IntersectionObserver על sentinel בתחתית
     useEffect(() => {
-        if (!lightbox) return;
-        const onKey = (e) => { if (e.key === 'Escape') setLightbox(null); };
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [lightbox]);
-
-    function loadMore() {
-        const nextPage = page + 1;
-        setPage(nextPage);
-        loadItems(activeCategory, nextPage, true);
-    }
+        if (!sentinelRef.current) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting && hasMore && !loadingMore && !loading) {
+                    const nextPage = page + 1;
+                    setPage(nextPage);
+                    loadItems(activeCategory, nextPage, true);
+                }
+            },
+            { rootMargin: '200px' }
+        );
+        observer.observe(sentinelRef.current);
+        return () => observer.disconnect();
+    }, [hasMore, loadingMore, loading, page, activeCategory, loadItems]);
 
     const photos = items.filter(i => i.type === 'photo');
     const videos = items.filter(i => i.type === 'video');
@@ -279,7 +276,7 @@ export default function GalleryPage() {
                                     )}
                                     <div style={s.photoGrid}>
                                         {(showAll ? photos : items.filter(i => i.type === 'photo')).map(item => (
-                                            <PhotoCard key={item.id} item={item} onClick={setLightbox} locale={locale} />
+                                            <PhotoCard key={item.id} item={item} onClick={setLightbox} />
                                         ))}
                                     </div>
                                 </div>
@@ -296,22 +293,17 @@ export default function GalleryPage() {
                                     )}
                                     <div style={s.videoGrid}>
                                         {(showAll ? videos : items.filter(i => i.type === 'video')).map(item => (
-                                            <VideoCard key={item.id} item={item} locale={locale} />
+                                            <VideoCard key={item.id} item={item} />
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Load More */}
-                            {hasMore && (
-                                <div style={{ textAlign: 'center' }}>
-                                    <button
-                                        style={s.loadMoreBtn}
-                                        onClick={loadMore}
-                                        disabled={loadingMore}
-                                    >
-                                        {loadingMore ? t('loading') : `⬇️ ${t('gallery_load_more')}`}
-                                    </button>
+                            {/* Sentinel לאינפיניט סקרול */}
+                            <div ref={sentinelRef} style={{ height: '1px' }} />
+                            {loadingMore && (
+                                <div style={s.spinnerWrap}>
+                                    <div style={s.spinner} />
                                 </div>
                             )}
                         </>
@@ -391,26 +383,23 @@ const s = {
     },
     sectionTitle: { color: 'var(--royal)', fontSize: '1.1rem', fontWeight: 700, margin: 0 },
 
-    photoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '14px' },
+    photoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' },
     photoCard: {
-        position: 'relative', borderRadius: '14px', overflow: 'hidden',
+        position: 'relative', borderRadius: '16px', overflow: 'hidden',
         border: 'none', padding: 0, cursor: 'pointer', background: 'transparent',
-        textAlign: 'right', boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.12)',
         transition: 'transform 0.2s, box-shadow 0.2s',
     },
-    photoImg: { width: '100%', aspectRatio: '3/4', objectFit: 'cover', display: 'block' },
+    photoImg: { width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' },
     photoOverlay: {
         position: 'absolute', inset: 0, background: 'rgba(0,0,0,0)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s',
     },
-    photoZoom: { fontSize: '1.8rem', opacity: 0, transition: 'opacity 0.2s' },
-    photoFooter: { background: 'rgba(255,255,255,0.95)', padding: '8px 12px' },
-    photoCaption: { margin: 0, fontSize: '0.8rem', color: '#2d4070', fontWeight: 600 },
-    photoDate: { margin: '2px 0 0', fontSize: '0.72rem', color: '#9ca3af' },
+    photoZoom: { fontSize: '2rem', opacity: 0, transition: 'opacity 0.2s' },
 
-    videoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' },
+    videoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' },
     videoCard: {
-        borderRadius: '14px', overflow: 'hidden', background: '#0a0a0a',
+        borderRadius: '16px', overflow: 'hidden', background: '#0a0a0a',
         boxShadow: '0 2px 10px rgba(0,0,0,0.15)', transition: 'transform 0.2s, box-shadow 0.2s',
     },
     videoWrapper: {
@@ -432,14 +421,6 @@ const s = {
         background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff',
         borderRadius: '50%', width: '30px', height: '30px',
         cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    },
-    videoCaption: { margin: 0, padding: '8px 12px 4px', color: '#fff', fontSize: '0.82rem', fontWeight: 600, background: '#111' },
-    itemDate: { margin: 0, padding: '0 12px 8px', color: '#9ca3af', fontSize: '0.72rem', background: '#111' },
-
-    loadMoreBtn: {
-        padding: '12px 32px', background: 'var(--royal)', color: '#fff',
-        border: 'none', borderRadius: '999px', fontSize: '1rem', fontWeight: 700,
-        cursor: 'pointer', fontFamily: "'Heebo', sans-serif", transition: 'opacity 0.2s',
     },
 
     overlay: {
