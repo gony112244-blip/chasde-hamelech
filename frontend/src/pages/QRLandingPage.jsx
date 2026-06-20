@@ -1,7 +1,9 @@
-﻿import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useT } from '../hooks/useT';
 
 // דף QR ייעודי — ללא Navbar/Footer — נפתח מסריקת QR בבית החולים
 export default function QRLandingPage() {
+    const t = useT();
     return (
         <div style={s.page}>
             {/* רקע */}
@@ -17,37 +19,34 @@ export default function QRLandingPage() {
 
                 {/* מסר ראשי — חם, לא "תרמו כסף" */}
                 <h1 style={s.title}>
-                    שמחים שפגשנו! 😊
+                    {t('qr_title')}
                 </h1>
 
                 <p style={s.text}>
-                    קיבלתם משחק או ספר מאיתנו?
-                    <br />
-                    אנחנו שמחים שהגיע אליכם 💛
+                    {t('qr_subtitle')}
                 </p>
 
                 <p style={s.textSmall}>
-                    אנחנו מחלקים משחקים, ספרים ואהבה לילדים מאושפזים
-                    — מתוך אמונה שכל ילד ראוי לחייך.
+                    {t('qr_desc')}
                 </p>
 
                 {/* כפתורים */}
                 <div style={s.buttons}>
                     <Link to="/thank-you" style={s.btnPrimary}>
-                        💬 ספרו לנו מה הרגשתם
+                        {t('qr_btn_feedback')}
                     </Link>
                     <Link to="/help" style={s.btnSecondary}>
-                        💝 רוצים לעזור לנו להמשיך?
+                        {t('qr_btn_help')}
                     </Link>
                     <Link to="/" style={s.btnTertiary}>
-                        🌐 לאתר המלא
+                        {t('qr_btn_website')}
                     </Link>
                 </div>
 
                 {/* חתימה */}
                 <div style={s.footer}>
                     <p style={s.footerText}>
-                        חסדי המלך — מחזירים את החיוך לגיבורים הקטנים
+                        {t('qr_footer')}
                     </p>
                 </div>
             </div>

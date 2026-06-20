@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
 import API_BASE from '../config';
@@ -70,7 +70,7 @@ export default function VolunteerPage() {
                     <div style={s.row}>
                         <div style={s.field}>
                             <label style={s.label}>{t('volunteer_name')}</label>
-                            <input style={s.input} required placeholder="ישראל ישראלי"
+                            <input style={s.input} required placeholder={t('placeholder_volunteer_name')}
                                 value={form.name} onChange={e => updateField('name', e.target.value)} />
                         </div>
                         <div style={s.field}>
@@ -88,7 +88,7 @@ export default function VolunteerPage() {
                         </div>
                         <div style={s.field}>
                             <label style={s.label}>{t('volunteer_city')}</label>
-                            <input style={s.input} required placeholder="תל אביב"
+                            <input style={s.input} required placeholder={t('placeholder_volunteer_city')}
                                 value={form.city} onChange={e => updateField('city', e.target.value)} />
                         </div>
                     </div>
@@ -104,7 +104,7 @@ export default function VolunteerPage() {
 
                     <div style={s.field}>
                         <label style={s.label}>{t('volunteer_message')}</label>
-                        <textarea style={s.textarea} rows={3} placeholder="ספרו לנו קצת על עצמכם..."
+                        <textarea style={s.textarea} rows={3} placeholder={t('placeholder_volunteer_notes')}
                             value={form.message} onChange={e => updateField('message', e.target.value)} />
                     </div>
 

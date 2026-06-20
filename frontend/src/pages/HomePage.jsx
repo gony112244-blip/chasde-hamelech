@@ -11,7 +11,11 @@ import Testimonials from '../components/home/Testimonials';
 export default function HomePage() {
     return (
         <>
-            <PageMeta path="/" />
+            <PageMeta 
+                path="/" 
+                title="מתנות לילדים חולים, חלוקה בבתי חולים והתנדבות" 
+                description="עמותת חסדי המלך משמחת ילדים מאושפזים ומחלקת מתנות לילדים, צעצועים וספרים בבתי חולים ברחבי הארץ. הצטרפו אלינו והחזירו את החיוך לגיבורים הקטנים." 
+            />
             <HeroSection />
             <Reveal><SmileCounter /></Reveal>
             <Reveal><GalleryPreview /></Reveal>

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
 import API_BASE from '../config';
@@ -23,7 +23,8 @@ export default function ContactPage() {
             if (res.ok) {
                 setSubmitted(true);
             } else {
-                setError('שגיאה בשליחה. נסו שוב או פנו אלינו ישירות.');
+                const data = await res.json().catch(() => ({}));
+                setError(data.error || 'שגיאה בשליחה. נסו שוב או פנו אלינו ישירות.');
             }
         } catch {
             setError('לא ניתן להתחבר לשרת. נסו שוב מאוחר יותר.');
@@ -67,7 +68,7 @@ export default function ContactPage() {
                     <form onSubmit={handleSubmit} style={s.formCard}>
                         <div style={s.field}>
                             <label style={s.label}>{t('contact_name')}</label>
-                            <input style={s.input} required placeholder="השם שלכם"
+                            <input style={s.input} required placeholder={t('placeholder_contact_name')}
                                 value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
                         </div>
                         <div style={s.row}>
@@ -84,7 +85,7 @@ export default function ContactPage() {
                         </div>
                         <div style={s.field}>
                             <label style={s.label}>{t('contact_message')}</label>
-                            <textarea style={s.textarea} rows={5} required placeholder="מה תרצו לספר לנו?"
+                            <textarea style={s.textarea} rows={5} required placeholder={t('placeholder_contact_msg')}
                                 value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} />
                         </div>
                         {error && <p style={s.errorMsg}>{error}</p>}

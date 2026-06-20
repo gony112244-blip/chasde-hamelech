@@ -240,4 +240,46 @@ export default {
     a11y_goto_image: 'Aller à l\'image',
     a11y_close: 'Fermer',
     a11y_skip_to_content: 'Aller au contenu principal',
+
+    // Placeholders
+    placeholder_volunteer_name: 'Jean Dupont',
+    placeholder_volunteer_city: 'Tel Aviv',
+    placeholder_volunteer_notes: 'Parlez-nous un peu de vous...',
+    placeholder_contact_name: 'Votre Nom',
+    placeholder_contact_msg: 'Que souhaitez-vous nous dire?',
+
+    // QR Page
+    qr_title: 'Ravis de vous rencontrer! 😊',
+    qr_subtitle: 'Vous avez reçu un jeu ou un livre de notre part? Nous sommes ravis qu\'il vous soit parvenu 💛',
+    qr_desc: 'Nous distribuons des jeux, des livres et de l\'amour aux enfants hospitalisés — convaincus que chaque enfant mérite de sourire.',
+    qr_btn_feedback: '💬 Dites-nous ce que vous avez ressenti',
+    qr_btn_help: '💝 Vous voulez nous aider à continuer?',
+    qr_btn_website: '🌐 Site Web Complet',
+    qr_footer: 'Chasde HaMelech — Redonner le sourire aux petits héros',
+
+    // ThankYou Page Hardcoded text
+    thankyou_remove_photo: '✕ Retirer',
+    thankyou_photo_warning: '⏳ Les messages avec photos attendent l\'approbation de l\'administrateur avant d\'être publiés',
+    thankyou_preview_alt: 'Aperçu',
+    thankyou_note_alt: 'Lettre de remerciement',
+
+    // ThankYou Page Fallbacks
+    thankyou_fallback_f1_name: 'Une maman de la pédiatrie',
+    thankyou_fallback_f1_msg: 'Mon fils a été hospitalisé pendant deux semaines. Le jour où ils sont arrivés avec le jeu et le livre — c\'était la première fois qu\'il souriait depuis notre arrivée.',
+    thankyou_fallback_f1_hosp: 'Hôpital Schneider',
+    thankyou_fallback_f2_name: 'Un père fier',
+    thankyou_fallback_f2_msg: 'Ma fille n\'arrête pas de parler du livre qu\'elle a reçu. Elle le lit tous les soirs avant de s\'endormir à l\'hôpital. Merci du fond du cœur.',
+    thankyou_fallback_f2_hosp: 'Hôpital Wolfson',
+    thankyou_fallback_f3_name: 'Anonyme',
+    thankyou_fallback_f3_msg: 'Juste merci. Pas de mots. Ceux qui n\'ont pas été là ne peuvent pas comprendre ce que cela fait à un enfant malade.',
+    thankyou_fallback_f3_hosp: '',
+    thankyou_fallback_f4_name: 'Grand-mère Rachel',
+    thankyou_fallback_f4_msg: 'Mon petit-fils a reçu un jeu et était si heureux. J\'ai demandé à écrire un merci en son nom car il est encore petit. Que Dieu vous bénisse.',
+    thankyou_fallback_f4_hosp: '',
+    thankyou_fallback_f5_name: 'Infirmière en Chef',
+    thankyou_fallback_f5_msg: 'Je travaille dans le service de pédiatrie depuis 12 ans. Vous êtes parmi les rares à venir régulièrement et avec un amour sincère. Les enfants ont hâte de vous voir.',
+    thankyou_fallback_f5_hosp: 'Hôpital Rambam',
+    thankyou_fallback_f6_name: 'Famille Cohen',
+    thankyou_fallback_f6_msg: 'Notre enfant a été hospitalisé pendant deux mois. Chaque fois que vous arriviez, c\'était un jour de fête. Merci de ne pas nous avoir oubliés.',
+    thankyou_fallback_f6_hosp: '',
 };

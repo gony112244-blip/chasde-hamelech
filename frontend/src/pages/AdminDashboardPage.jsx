@@ -14,6 +14,7 @@ const TABS = [
 function useAdminFetch(path, token) {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -21,6 +22,11 @@ function useAdminFetch(path, token) {
             const res = await fetch(`${API_BASE}${path}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            if (res.status === 401) {
+                sessionStorage.removeItem('adminToken');
+                navigate('/admin');
+                return;
+            }
             const json = await res.json();
             setData(json);
         } catch {
@@ -28,7 +34,7 @@ function useAdminFetch(path, token) {
         } finally {
             setLoading(false);
         }
-    }, [path, token]);
+    }, [path, token, navigate]);
 
     useEffect(() => { load(); }, [load]);
     return { data, loading, reload: load };
@@ -44,10 +50,15 @@ function ContactsTab({ token }) {
 
     async function deleteContact(id) {
         if (!window.confirm('למחוק את הפנייה?')) return;
-        await fetch(`${API_BASE}/api/admin/contacts/${id}`, {
-            method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
-        });
-        reload();
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/contacts/${id}`, {
+                method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error();
+            reload();
+        } catch {
+            alert('שגיאה במחיקת הפנייה');
+        }
     }
 
     async function sendReply(id) {
@@ -149,10 +160,15 @@ function VolunteersTab({ token }) {
 
     async function deleteVolunteer(id) {
         if (!window.confirm('למחוק את המתנדב?')) return;
-        await fetch(`${API_BASE}/api/admin/volunteers/${id}`, {
-            method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
-        });
-        reload();
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/volunteers/${id}`, {
+                method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error();
+            reload();
+        } catch {
+            alert('שגיאה במחיקת המתנדב');
+        }
     }
 
     async function saveNote(id) {
@@ -236,11 +252,16 @@ function ThankYouTab({ token }) {
 
     async function deleteNote(id) {
         if (!window.confirm('למחוק את ההודעה?')) return;
-        await fetch(`${API_BASE}/api/admin/thank-you/${id}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        reload();
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/thank-you/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error();
+            reload();
+        } catch {
+            alert('שגיאה במחיקת ההודעה');
+        }
     }
 
     if (loading) return <Spinner />;
@@ -410,11 +431,16 @@ function StatsTab({ token }) {
     }
 
     async function deleteShopItem(id) {
-        await fetch(`${API_BASE}/api/admin/shopping-list/${id}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        reloadShopping();
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/shopping-list/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error();
+            reloadShopping();
+        } catch {
+            alert('שגיאה במחיקת פריט הקניות');
+        }
     }
 
     if (statsLoading || !form) return <Spinner />;
@@ -532,8 +558,13 @@ function StatsTab({ token }) {
                                 </div>
                                 <button style={{ ...s.rejectBtn, marginTop: '8px' }} onClick={async () => {
                                     if (!window.confirm('למחוק תרומה זו?')) return;
-                                    await fetch(`${API_BASE}/api/admin/donations/${d.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-                                    reloadDonations();
+                                    try {
+                                        const res = await fetch(`${API_BASE}/api/admin/donations/${d.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+                                        if (!res.ok) throw new Error();
+                                        reloadDonations();
+                                    } catch {
+                                        alert('שגיאה במחיקת התרומה');
+                                    }
                                 }}>🗑️ מחק</button>
                             </div>
                         ))}
@@ -631,11 +662,16 @@ function NewsletterTab({ token }) {
 
     async function deleteNewsletter(id) {
         if (!window.confirm('למחוק את העלון?')) return;
-        await fetch(`${API_BASE}/api/admin/newsletters/${id}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        reload();
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/newsletters/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error();
+            reload();
+        } catch {
+            alert('שגיאה במחיקת העלון');
+        }
     }
 
     return (
@@ -753,11 +789,16 @@ function MediaTab({ token }) {
 
     async function deletePost(id) {
         if (!window.confirm('למחוק את הפוסט?')) return;
-        await fetch(`${API_BASE}/api/admin/gallery-posts/${id}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        reloadPosts();
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/gallery-posts/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error();
+            reloadPosts();
+        } catch {
+            alert('שגיאה במחיקת הפוסט');
+        }
     }
     const [uploading, setUploading] = useState(false);
     const [uploadMsg, setUploadMsg] = useState('');
@@ -826,11 +867,16 @@ function MediaTab({ token }) {
 
     async function deleteMedia(id, filename) {
         if (!window.confirm(`למחוק את "${filename}"?`)) return;
-        await fetch(`${API_BASE}/api/admin/media/${id}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        reload();
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/media/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error();
+            reload();
+        } catch {
+            alert('שגיאה במחיקת המדיה');
+        }
     }
 
     return (
@@ -1181,15 +1227,15 @@ const s = {
         fontSize: '0.95rem', fontFamily: "'Heebo', sans-serif", outline: 'none', direction: 'inherit',
     },
 
-    mediaGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '14px' },
+    mediaGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' },
     mediaCard: {
-        background: '#fff', borderRadius: '14px', overflow: 'hidden',
-        boxShadow: '0 2px 10px rgba(15,32,68,0.08)', position: 'relative',
+        background: '#fff', borderRadius: '16px', overflow: 'hidden',
+        boxShadow: '0 2px 14px rgba(15,32,68,0.1)', position: 'relative',
     },
-    mediaThumbnail: { width: '100%', height: '130px', objectFit: 'cover', display: 'block', background: '#e5e7eb' },
-    mediaInfo: { padding: '10px 12px' },
-    mediaTitle: { margin: 0, fontWeight: 600, color: NAVY, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-    mediaDate: { margin: '4px 0 0', color: '#9ca3af', fontSize: '0.75rem' },
+    mediaThumbnail: { width: '100%', height: '200px', objectFit: 'cover', display: 'block', background: '#e5e7eb' },
+    mediaInfo: { padding: '12px 14px' },
+    mediaTitle: { margin: 0, fontWeight: 600, color: NAVY, fontSize: '0.92rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+    mediaDate: { margin: '4px 0 0', color: '#9ca3af', fontSize: '0.78rem' },
     deleteBtn: {
         position: 'absolute', top: '8px', left: '8px',
         background: 'rgba(239,68,68,0.85)', border: 'none', borderRadius: '8px',

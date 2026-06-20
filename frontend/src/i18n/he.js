@@ -13,7 +13,7 @@ export default {
     hero_badge: '👑 מחלקים אהבה מאז 2019',
     hero_title: 'חסדי המלך',
     hero_slogan: 'מחזירים את החיוך לגיבורים הקטנים',
-    hero_desc: 'מחלקים משחקים, ספרים ואהבה לילדים מאושפזים בבתי חולים בכל רחבי הארץ',
+    hero_desc: 'עמותת חסדי המלך עוסקת בחלוקת מתנות לילדים, צעצועים וספרים. אנו מחלקים בבתי חולים בכל רחבי הארץ כדי לשמח ילדים מאושפזים ולהחזיר להם את החיוך.',
     hero_cta_help: '💝 אני רוצה לעזור',
     hero_cta_volunteer: '🤝 הצטרפו כמתנדבים',
     hero_activity: 'פעילים מדי שבוע · בבתי חולים ברחבי הארץ',
@@ -150,7 +150,7 @@ export default {
     parasha_empty: 'העלון השבועי יעלה בקרוב',
 
     // Footer
-    footer_about: 'מחלקים משחקים, ספרים ואהבה לילדים מאושפזים בבתי חולים ברחבי ישראל.',
+    footer_about: 'עמותת חסדי המלך עוסקת בחלוקת מתנות לילדים, צעצועים ומשחקים. אנו מחלקים בבתי חולים ברחבי ישראל ומחזירים את החיוך לגיבורים הקטנים.',
     footer_links: 'קישורים מהירים',
     footer_contact: 'יצירת קשר',
     footer_rights: 'כל הזכויות שמורות',
@@ -165,7 +165,7 @@ export default {
     notfound_home: '🏠 חזרה לדף הבית',
 
     // AboutSection
-    about_mission_desc: 'ילדים מאושפזים מפספסים את הילדות. אנחנו באים להחזיר להם רגעים של שמחה — עם משחק, ספר וחיוך.',
+    about_mission_desc: 'ילדים מאושפזים מפספסים את הילדות. עמותת חסדי המלך עוסקת בחלוקת מתנות לילדים, צעצועים וספרים בבתי חולים ברחבי הארץ. צוות המתנדבים שלנו מחלקים בבתי חולים מדי שבוע כדי להחזיר להם רגעים של שמחה וחיוך.',
     about_way_title: 'הדרך',
     about_way_desc: 'כל שבוע מגיעים לבתי חולים ברחבי הארץ, מחלקים חבילות אישיות לילדים במחלקות ילדים ואונקולוגיה.',
     about_vision_title: 'החזון',
@@ -240,4 +240,46 @@ export default {
     a11y_goto_image: 'מעבר לתמונה',
     a11y_close: 'סגור',
     a11y_skip_to_content: 'דלג לתוכן הראשי',
+
+    // Placeholders
+    placeholder_volunteer_name: 'ישראל ישראלי',
+    placeholder_volunteer_city: 'תל אביב',
+    placeholder_volunteer_notes: 'ספרו לנו קצת על עצמכם...',
+    placeholder_contact_name: 'השם שלכם',
+    placeholder_contact_msg: 'מה תרצו לספר לנו?',
+
+    // QR Page
+    qr_title: 'שמחים שפגשנו! 😊',
+    qr_subtitle: 'קיבלתם משחק או ספר מאיתנו? אנחנו שמחים שהגיע אליכם 💛',
+    qr_desc: 'אנחנו מחלקים משחקים, ספרים ואהבה לילדים מאושפזים — מתוך אמונה שכל ילד ראוי לחייך.',
+    qr_btn_feedback: '💬 ספרו לנו מה הרגשתם',
+    qr_btn_help: '💝 רוצים לעזור לנו להמשיך?',
+    qr_btn_website: '🌐 לאתר המלא',
+    qr_footer: 'חסדי המלך — מחזירים את החיוך לגיבורים הקטנים',
+
+    // ThankYou Page Hardcoded text
+    thankyou_remove_photo: '✕ הסירו',
+    thankyou_photo_warning: '⏳ הודעות עם תמונה ממתינות לאישור מנהל לפני הפרסום',
+    thankyou_preview_alt: 'תצוגה מקדימה',
+    thankyou_note_alt: 'מכתב תודה',
+
+    // ThankYou Page Fallbacks
+    thankyou_fallback_f1_name: 'אמא ממחלקת ילדים',
+    thankyou_fallback_f1_msg: 'הבן שלי היה מאושפז שבועיים. ביום שהגיעו עם המשחק והספר — זו הייתה הפעם הראשונה שהוא חייך מאז שהגענו.',
+    thankyou_fallback_f1_hosp: 'בית חולים שניידר',
+    thankyou_fallback_f2_name: 'אבא גאה',
+    thankyou_fallback_f2_msg: 'הבת שלי לא מפסיקה לספר על הספר שקיבלה. היא קוראת אותו כל ערב לפני השינה בבית החולים. תודה מעומק הלב.',
+    thankyou_fallback_f2_hosp: 'בית חולים וולפסון',
+    thankyou_fallback_f3_name: 'אנונימי',
+    thankyou_fallback_f3_msg: 'פשוט תודה. אין מילים. מי שלא היה שם לא יכול להבין מה זה עושה לילד חולה.',
+    thankyou_fallback_f3_hosp: '',
+    thankyou_fallback_f4_name: 'סבתא רחל',
+    thankyou_fallback_f4_msg: 'הנכד שלי קיבל משחק והוא כל כך שמח. ביקשתי לכתוב תודה בשמו כי הוא עוד קטן. ה׳ יברך אתכם.',
+    thankyou_fallback_f4_hosp: '',
+    thankyou_fallback_f5_name: 'אחות בכירה',
+    thankyou_fallback_f5_msg: 'אני עובדת 12 שנה במחלקת ילדים. אתם מהאנשים היחידים שמגיעים בקביעות ובאהבה אמיתית. הילדים מחכים לכם.',
+    thankyou_fallback_f5_hosp: 'בית חולים רמב"ם',
+    thankyou_fallback_f6_name: 'משפחת כהן',
+    thankyou_fallback_f6_msg: 'הילד שלנו היה מאושפז חודשיים. בכל פעם שהגעתם זה היה יום חג. תודה שלא שכחתם אותנו.',
+    thankyou_fallback_f6_hosp: '',
 };

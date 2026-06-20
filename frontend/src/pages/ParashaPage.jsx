@@ -3,9 +3,12 @@ import { Link } from 'react-router-dom';
 import API_BASE, { UPLOADS_BASE } from '../config';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
+import { useLang } from '../contexts/LangContext';
 
 export default function ParashaPage() {
     const t = useT();
+    const { lang } = useLang();
+    const DATE_LOCALES = { he: 'he-IL', en: 'en-US', fr: 'fr-FR' };
     const [latest, setLatest] = useState(null);
     const [archive, setArchive] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -80,7 +83,7 @@ export default function ParashaPage() {
                                 </h2>
                                 {latest.week_of && (
                                     <span style={s.weekBadge}>
-                                        {new Date(latest.week_of).toLocaleDateString('he-IL')}
+                                        {new Date(latest.week_of).toLocaleDateString(DATE_LOCALES[lang] || 'he-IL')}
                                     </span>
                                 )}
                             </div>
@@ -154,7 +157,7 @@ export default function ParashaPage() {
                                             </strong>
                                             {item.week_of && (
                                                 <span style={s.archiveDate}>
-                                                    {new Date(item.week_of).toLocaleDateString('he-IL')}
+                                                    {new Date(item.week_of).toLocaleDateString(DATE_LOCALES[lang] || 'he-IL')}
                                                 </span>
                                             )}
                                         </div>

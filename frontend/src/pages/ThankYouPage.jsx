@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import API_BASE, { UPLOADS_BASE } from '../config';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
@@ -8,12 +8,12 @@ import { translateBatch } from '../hooks/useTranslate';
 const DATE_LOCALES = { he: 'he-IL', en: 'en-US', fr: 'fr-FR' };
 
 const FALLBACK_NOTES = [
-    { id: 'f1', name: 'אמא ממחלקת ילדים', message: 'הבן שלי היה מאושפז שבועיים. ביום שהגיעו עם המשחק והספר — זו הייתה הפעם הראשונה שהוא חייך מאז שהגענו.', hospital: 'בית חולים שניידר', created_at: '2026-04-15' },
-    { id: 'f2', name: 'אבא גאה', message: 'הבת שלי לא מפסיקה לספר על הספר שקיבלה. היא קוראת אותו כל ערב לפני השינה בבית החולים. תודה מעומק הלב.', hospital: 'בית חולים וולפסון', created_at: '2026-03-28' },
-    { id: 'f3', name: 'אנונימי', message: 'פשוט תודה. אין מילים. מי שלא היה שם לא יכול להבין מה זה עושה לילד חולה.', hospital: '', created_at: '2026-03-10' },
-    { id: 'f4', name: 'סבתא רחל', message: 'הנכד שלי קיבל משחק והוא כל כך שמח. ביקשתי לכתוב תודה בשמו כי הוא עוד קטן. ה׳ יברך אתכם.', hospital: '', created_at: '2026-02-22' },
-    { id: 'f5', name: 'אחות בכירה', message: 'אני עובדת 12 שנה במחלקת ילדים. אתם מהאנשים היחידים שמגיעים בקביעות ובאהבה אמיתית. הילדים מחכים לכם.', hospital: 'בית חולים רמב"ם', created_at: '2026-02-05' },
-    { id: 'f6', name: 'משפחת כהן', message: 'הילד שלנו היה מאושפז חודשיים. בכל פעם שהגעתם זה היה יום חג. תודה שלא שכחתם אותנו.', hospital: '', created_at: '2026-01-18' },
+    { id: 'f1', nameKey: 'thankyou_fallback_f1_name', messageKey: 'thankyou_fallback_f1_msg', hospitalKey: 'thankyou_fallback_f1_hosp', created_at: '2026-04-15' },
+    { id: 'f2', nameKey: 'thankyou_fallback_f2_name', messageKey: 'thankyou_fallback_f2_msg', hospitalKey: 'thankyou_fallback_f2_hosp', created_at: '2026-03-28' },
+    { id: 'f3', nameKey: 'thankyou_fallback_f3_name', messageKey: 'thankyou_fallback_f3_msg', hospitalKey: 'thankyou_fallback_f3_hosp', created_at: '2026-03-10' },
+    { id: 'f4', nameKey: 'thankyou_fallback_f4_name', messageKey: 'thankyou_fallback_f4_msg', hospitalKey: 'thankyou_fallback_f4_hosp', created_at: '2026-02-22' },
+    { id: 'f5', nameKey: 'thankyou_fallback_f5_name', messageKey: 'thankyou_fallback_f5_msg', hospitalKey: 'thankyou_fallback_f5_hosp', created_at: '2026-02-05' },
+    { id: 'f6', nameKey: 'thankyou_fallback_f6_name', messageKey: 'thankyou_fallback_f6_msg', hospitalKey: 'thankyou_fallback_f6_hosp', created_at: '2026-01-18' },
 ];
 
 export default function ThankYouPage() {
@@ -74,7 +74,11 @@ export default function ThankYouPage() {
                 method: 'POST',
                 body: fd,
             });
-            const data = await res.json();
+            let data = {};
+            const contentType = res.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                data = await res.json();
+            }
             if (res.ok) {
                 setSubmitted(true);
                 setForm({ name: '', message: '', email: '', hospital: '' });
@@ -177,16 +181,16 @@ export default function ThankYouPage() {
                                     </label>
                                     {photoPreview && (
                                         <div style={s.previewWrap}>
-                                            <img src={photoPreview} alt="תצוגה מקדימה" style={s.previewImg} />
+                                            <img src={photoPreview} alt={t('thankyou_preview_alt')} style={s.previewImg} />
                                             <button type="button" style={s.removePhoto}
                                                 onClick={() => { setPhoto(null); setPhotoPreview(null); }}>
-                                                ✕ הסירו
+                                                {t('thankyou_remove_photo')}
                                             </button>
                                         </div>
                                     )}
                                     {photo && (
                                         <p style={s.photoNote}>
-                                            ⏳ הודעות עם תמונה ממתינות לאישור מנהל לפני הפרסום
+                                            {t('thankyou_photo_warning')}
                                         </p>
                                     )}
                                 </div>
@@ -226,19 +230,25 @@ export default function ThankYouPage() {
                                 {note.photo_filename && (
                                     <img
                                         src={`${UPLOADS_BASE}/${note.photo_filename}`}
-                                        alt="מכתב תודה"
+                                        alt={t('thankyou_note_alt')}
                                         style={s.notePhoto}
                                     />
                                 )}
                                 <div style={s.noteQuote}>&ldquo;</div>
-                                <p style={s.noteText}>{note.message}</p>
+                                <p style={s.noteText}>{note.messageKey ? t(note.messageKey) : note.message}</p>
                                 <div style={s.noteFooter}>
                                     <div style={s.noteAvatar}>
-                                        {(note.name || 'א').charAt(0)}
+                                        {(note.nameKey ? t(note.nameKey) : (note.name || 'א')).charAt(0)}
                                     </div>
                                     <div>
-                                        <strong style={s.noteName}>{note.name || t('thankyou_anonymous')}</strong>
-                                        {note.hospital && <span style={s.noteDate}>{note.hospital}</span>}
+                                        <strong style={s.noteName}>
+                                            {note.nameKey ? t(note.nameKey) : (note.name || t('thankyou_anonymous'))}
+                                        </strong>
+                                        {(note.hospitalKey ? t(note.hospitalKey) : note.hospital) && (
+                                            <span style={s.noteDate}>
+                                                {note.hospitalKey ? t(note.hospitalKey) : note.hospital}
+                                            </span>
+                                        )}
                                         <span style={s.noteDate}>
                                             {new Date(note.created_at).toLocaleDateString(DATE_LOCALES[lang] || 'he-IL')}
                                         </span>

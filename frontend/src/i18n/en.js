@@ -240,4 +240,46 @@ export default {
     a11y_goto_image: 'Go to image',
     a11y_close: 'Close',
     a11y_skip_to_content: 'Skip to main content',
+
+    // Placeholders
+    placeholder_volunteer_name: 'John Doe',
+    placeholder_volunteer_city: 'Tel Aviv',
+    placeholder_volunteer_notes: 'Tell us a bit about yourself...',
+    placeholder_contact_name: 'Your Name',
+    placeholder_contact_msg: 'What would you like to tell us?',
+
+    // QR Page
+    qr_title: 'Glad we met! 😊',
+    qr_subtitle: 'Received a game or book from us? We are glad it reached you 💛',
+    qr_desc: 'We distribute games, books, and love to hospitalized children — believing every child deserves to smile.',
+    qr_btn_feedback: '💬 Tell us how you felt',
+    qr_btn_help: '💝 Want to help us continue?',
+    qr_btn_website: '🌐 Full Website',
+    qr_footer: 'Chasde HaMelech — Bringing back smiles to the little heroes',
+
+    // ThankYou Page Hardcoded text
+    thankyou_remove_photo: '✕ Remove',
+    thankyou_photo_warning: '⏳ Messages with photos await admin approval before publishing',
+    thankyou_preview_alt: 'Preview',
+    thankyou_note_alt: 'Thank you letter',
+
+    // ThankYou Page Fallbacks
+    thankyou_fallback_f1_name: 'A mother from pediatrics',
+    thankyou_fallback_f1_msg: 'My son was hospitalized for two weeks. The day they arrived with the game and book — it was the first time he smiled since we arrived.',
+    thankyou_fallback_f1_hosp: 'Schneider Hospital',
+    thankyou_fallback_f2_name: 'A proud father',
+    thankyou_fallback_f2_msg: 'My daughter won\'t stop talking about the book she received. She reads it every night before bed in the hospital. Thank you from the bottom of our hearts.',
+    thankyou_fallback_f2_hosp: 'Wolfson Hospital',
+    thankyou_fallback_f3_name: 'Anonymous',
+    thankyou_fallback_f3_msg: 'Just thank you. No words. Those who haven\'t been there cannot understand what this does to a sick child.',
+    thankyou_fallback_f3_hosp: '',
+    thankyou_fallback_f4_name: 'Grandma Rachel',
+    thankyou_fallback_f4_msg: 'My grandson received a game and was so happy. I asked to write a thank you on his behalf because he is still small. May God bless you.',
+    thankyou_fallback_f4_hosp: '',
+    thankyou_fallback_f5_name: 'Senior Nurse',
+    thankyou_fallback_f5_msg: 'I\'ve been working in the pediatric ward for 12 years. You are among the few who come regularly and with real love. The children look forward to seeing you.',
+    thankyou_fallback_f5_hosp: 'Rambam Hospital',
+    thankyou_fallback_f6_name: 'Cohen Family',
+    thankyou_fallback_f6_msg: 'Our child was hospitalized for two months. Every time you arrived it was a holiday. Thank you for not forgetting us.',
+    thankyou_fallback_f6_hosp: '',
 };

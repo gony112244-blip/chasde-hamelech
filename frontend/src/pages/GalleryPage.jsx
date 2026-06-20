@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import API_BASE, { UPLOADS_BASE } from '../config';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
@@ -204,7 +204,7 @@ export default function GalleryPage() {
                                     <div key={post.id} style={s.postCard}>
                                         <div style={s.postHeader}>
                                             <h3 style={s.postTitle}>{post.title}</h3>
-                                            <span style={s.postDate}>{fmtDate(post.created_at)}</span>
+                                            <span style={s.postDate}>{fmtDate(post.created_at, locale)}</span>
                                         </div>
                                         {post.body && <p style={s.postBody}>{post.body}</p>}
                                         {post.media && post.media.length > 0 && (
