@@ -685,14 +685,23 @@ function NewsletterTab({ token }) {
                         value={form.parasha_name} onChange={e => setForm(p => ({ ...p, parasha_name: e.target.value }))} />
                     <input type="date" style={s.uploadInput}
                         value={form.week_of} onChange={e => setForm(p => ({ ...p, week_of: e.target.value }))} />
-                    <div style={{ ...s.fileDropzone, minHeight: '80px' }} onClick={() => fileRef.current?.click()}>
+                    <label
+                        htmlFor="newsletter-file-input"
+                        style={{ ...s.fileDropzone, minHeight: '80px', cursor: 'pointer' }}
+                    >
                         {file
                             ? <p style={{ color: '#2d4070', margin: 0 }}>📎 {file.name}</p>
-                            : <div style={s.filePrompt}><span style={{ fontSize: '2rem' }}>📄</span><p>PDF או תמונה</p></div>
+                            : <div style={s.filePrompt}><span style={{ fontSize: '2rem' }}>📄</span><p>לחץ לבחירת קובץ<br /><span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>PDF או תמונה</span></p></div>
                         }
-                        <input ref={fileRef} type="file" accept=".pdf,image/*" style={{ display: 'none' }}
-                            onChange={e => setFile(e.target.files[0] || null)} />
-                    </div>
+                        <input
+                            id="newsletter-file-input"
+                            ref={fileRef}
+                            type="file"
+                            accept=".pdf,image/*"
+                            style={{ display: 'none' }}
+                            onChange={e => setFile(e.target.files[0] || null)}
+                        />
+                    </label>
                     <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 4px' }}>
                         💡 תמונות (JPG/PNG) יומרו אוטומטית ל-PDF — כדי שהעלון ייפתח גם באינטרנט מסונן.
                     </p>
@@ -953,10 +962,13 @@ function MediaTab({ token }) {
             <section>
                 <h3 style={s.sectionTitle}>📤 העלאת תמונה / סרטון</h3>
                 <form onSubmit={handleUpload} style={s.uploadForm}>
-                    <div style={s.fileDropzone} onClick={() => fileRef.current?.click()}>
+                    <label
+                        htmlFor="media-file-input"
+                        style={{ ...s.fileDropzone, cursor: 'pointer' }}
+                    >
                         {preview ? (
                             preview.type === 'video'
-                                ? <video src={preview.url} style={s.previewMedia} controls />
+                                ? <video src={preview.url} style={s.previewMedia} controls onClick={e => e.stopPropagation()} />
                                 : <img src={preview.url} alt="preview" style={s.previewMedia} />
                         ) : (
                             <div style={s.filePrompt}>
@@ -965,13 +977,14 @@ function MediaTab({ token }) {
                             </div>
                         )}
                         <input
+                            id="media-file-input"
                             ref={fileRef}
                             type="file"
                             accept="image/*,video/*"
                             style={{ display: 'none' }}
                             onChange={onFileChange}
                         />
-                    </div>
+                    </label>
 
                     {file && <p style={{ color: '#6478a8', fontSize: '0.85rem', margin: 0 }}>📎 {file.name}</p>}
 
