@@ -246,8 +246,8 @@ async function logVisit(req, res, next) {
 // Admin Auth — טוקן הפעלה אקראי עם תפוגה (לא הסיסמה עצמה)
 // =====================
 const ADMIN_PASS = process.env.ADMIN_PASSWORD;
-if (!ADMIN_PASS || ADMIN_PASS.length < 8) {
-    console.error('❌ ADMIN_PASSWORD חסר או קצר מ-8 תווים. הגדירו אותו ב-.env. השרת לא יעלה.');
+if (!ADMIN_PASS || ADMIN_PASS.length < 4) {
+    console.error('❌ ADMIN_PASSWORD חסר או קצר מ-4 תווים. הגדירו אותו ב-.env. השרת לא יעלה.');
     process.exit(1);
 }
 
