@@ -1117,7 +1117,7 @@ const NAVY = '#0f2044';
 const BLUE = '#dbeafe';
 
 const s = {
-    page: { minHeight: '100vh', background: '#f8fafe', fontFamily: "'Heebo', sans-serif", direction: 'inherit' },
+    page: { minHeight: '100vh', background: '#f8fafe', fontFamily: "'Heebo', sans-serif", direction: 'inherit', overflowX: 'hidden' },
 
     header: { background: 'linear-gradient(135deg, #071530 0%, #0f2044 100%)', padding: '20px' },
     headerInner: { maxWidth: '960px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
@@ -1129,12 +1129,12 @@ const s = {
         fontFamily: "'Heebo', sans-serif", fontSize: '0.88rem',
     },
 
-    tabBar: { background: '#fff', borderBottom: `2px solid ${BLUE}`, display: 'flex', overflowX: 'auto' },
+    tabBar: { background: '#fff', borderBottom: `2px solid ${BLUE}`, display: 'flex', overflowX: 'auto', width: '100%', boxSizing: 'border-box' },
     tabBtn: {
         padding: '14px 20px', border: 'none', background: 'none',
         color: '#6478a8', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer',
         fontFamily: "'Heebo', sans-serif", whiteSpace: 'nowrap',
-        borderBottom: '3px solid transparent', transition: 'all 0.2s',
+        borderBottom: '3px solid transparent', transition: 'all 0.2s', flexShrink: 0,
     },
     tabBtnActive: { color: NAVY, borderBottom: `3px solid ${NAVY}` },
 
