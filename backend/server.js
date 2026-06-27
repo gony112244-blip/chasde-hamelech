@@ -1114,6 +1114,74 @@ app.post('/api/translate', translateLimiter, async (req, res) => {
 });
 
 // =====================
+// דוחות חודשיים — שקיפות פעילות
+// =====================
+
+// יצירת הטבלה בהפעלה ראשונה
+pool.query(`
+    CREATE TABLE IF NOT EXISTS monthly_reports (
+        id            SERIAL PRIMARY KEY,
+        month_year    TEXT NOT NULL UNIQUE,  -- פורמט: '2026-06'
+        distributions INTEGER DEFAULT 0,     -- מספר חלוקות (ילד/משפחה/שקית — כל יחידה)
+        goal          INTEGER DEFAULT 0,     -- יעד החודש
+        description   TEXT DEFAULT '',       -- תיאור חופשי (מה חולק, איפה וכו')
+        receipts_url  TEXT DEFAULT '',       -- קישור ל-Google Drive
+        created_at    TIMESTAMPTZ DEFAULT NOW()
+    )
+`).catch(err => console.error('monthly_reports table error:', err.message));
+
+// ציבורי — קבלת כל הדוחות + יעד החודש הנוכחי
+app.get('/api/monthly-reports', async (req, res) => {
+    try {
+        const reports = await pool.query(
+            'SELECT * FROM monthly_reports ORDER BY month_year DESC LIMIT 24'
+        );
+        // יעד החודש הנוכחי
+        const thisMonth = new Date().toISOString().slice(0, 7);
+        const current = reports.rows.find(r => r.month_year === thisMonth) || null;
+        res.json({ reports: reports.rows, current });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'שגיאת שרת' });
+    }
+});
+
+// Admin — הוסף / עדכן דוח חודשי
+app.post('/api/admin/monthly-reports', adminAuth, async (req, res) => {
+    const { month_year, distributions, goal, description, receipts_url } = req.body;
+    if (!month_year || !/^\d{4}-\d{2}$/.test(month_year)) {
+        return res.status(400).json({ error: 'חודש לא תקין (פורמט: YYYY-MM)' });
+    }
+    const dist = Math.max(0, parseInt(distributions) || 0);
+    const g    = Math.max(0, parseInt(goal) || 0);
+    try {
+        const result = await pool.query(
+            `INSERT INTO monthly_reports (month_year, distributions, goal, description, receipts_url)
+             VALUES ($1, $2, $3, $4, $5)
+             ON CONFLICT (month_year) DO UPDATE
+               SET distributions=$2, goal=$3, description=$4, receipts_url=$5
+             RETURNING *`,
+            [month_year, dist, g, description?.trim() || '', receipts_url?.trim() || '']
+        );
+        res.status(201).json({ ok: true, report: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'שגיאת שרת' });
+    }
+});
+
+// Admin — מחיקת דוח
+app.delete('/api/admin/monthly-reports/:id', adminAuth, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM monthly_reports WHERE id=$1', [req.params.id]);
+        res.json({ ok: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'שגיאת שרת' });
+    }
+});
+
+// =====================
 // טיפול שגיאות גלובלי — מחזיר JSON תקין (כולל שגיאות העלאה ו-CORS)
 // =====================
 app.use((err, req, res, next) => {

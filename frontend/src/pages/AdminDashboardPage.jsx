@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import API_BASE, { UPLOADS_BASE } from '../config';
 
 const TABS = [
-    { id: 'contacts',    label: 'פניות',        icon: '✉️' },
-    { id: 'volunteers',  label: 'מתנדבים',      icon: '🙋' },
-    { id: 'thankyou',    label: 'הודעות תודה',  icon: '💌' },
-    { id: 'stats',       label: 'סטטיסטיקות',   icon: '📊' },
-    { id: 'media',       label: 'מדיה וגלריה',   icon: '🖼️' },
-    { id: 'newsletter',  label: 'עלון השבוע',    icon: '📖' },
+    { id: 'contacts',      label: 'פניות',        icon: '✉️' },
+    { id: 'volunteers',    label: 'מתנדבים',      icon: '🙋' },
+    { id: 'thankyou',      label: 'הודעות תודה',  icon: '💌' },
+    { id: 'stats',         label: 'סטטיסטיקות',   icon: '📊' },
+    { id: 'media',         label: 'מדיה וגלריה',   icon: '🖼️' },
+    { id: 'newsletter',    label: 'עלון השבוע',    icon: '📖' },
+    { id: 'transparency',  label: 'שקיפות',        icon: '🔍' },
 ];
 
 function useAdminFetch(path, token) {
@@ -1053,6 +1054,143 @@ function MediaTab({ token }) {
     );
 }
 
+// ─── Tab: שקיפות ───────────────────────────────────────────
+function TransparencyTab({ token }) {
+    const { data, loading, reload } = useAdminFetch('/api/monthly-reports', token);
+    const today = new Date().toISOString().slice(0, 7);
+    const [form, setForm] = useState({
+        month_year: today,
+        distributions: '',
+        goal: '',
+        description: '',
+        receipts_url: '',
+    });
+    const [saving, setSaving] = useState(false);
+    const [msg, setMsg] = useState('');
+
+    async function handleSave(e) {
+        e.preventDefault();
+        setSaving(true);
+        setMsg('');
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/monthly-reports`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(form),
+            });
+            const json = await res.json();
+            if (res.ok) {
+                setMsg('✅ נשמר!');
+                reload();
+                setTimeout(() => setMsg(''), 2500);
+            } else {
+                setMsg('❌ ' + (json.error || 'שגיאה'));
+            }
+        } catch {
+            setMsg('❌ שגיאת רשת');
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    async function handleDelete(id) {
+        if (!window.confirm('למחוק את הדוח?')) return;
+        try {
+            await fetch(`${API_BASE}/api/admin/monthly-reports/${id}`, {
+                method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+            });
+            reload();
+        } catch {
+            alert('שגיאה במחיקה');
+        }
+    }
+
+    const hebrewMonth = (ym) => {
+        const [y, m] = ym.split('-');
+        return new Date(y, m - 1, 1).toLocaleDateString('he-IL', { month: 'long', year: 'numeric' });
+    };
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            <section>
+                <h3 style={s.sectionTitle}>📝 עדכון דוח חודשי</h3>
+                <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '500px' }}>
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                            <label style={{ color: '#2d4070', fontSize: '0.85rem', fontWeight: 600 }}>חודש</label>
+                            <input type="month" style={s.uploadInput} value={form.month_year}
+                                onChange={e => setForm(p => ({ ...p, month_year: e.target.value }))} required />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                            <label style={{ color: '#2d4070', fontSize: '0.85rem', fontWeight: 600 }}>יעד חלוקות</label>
+                            <input type="number" min="0" style={s.uploadInput} placeholder="למשל: 50"
+                                value={form.goal} onChange={e => setForm(p => ({ ...p, goal: e.target.value }))} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                            <label style={{ color: '#2d4070', fontSize: '0.85rem', fontWeight: 600 }}>בוצע בפועל</label>
+                            <input type="number" min="0" style={s.uploadInput} placeholder="למשל: 46"
+                                value={form.distributions} onChange={e => setForm(p => ({ ...p, distributions: e.target.value }))} />
+                        </div>
+                    </div>
+                    <textarea rows={3} style={{ ...s.uploadInput, resize: 'vertical', minHeight: '70px' }}
+                        placeholder='תיאור (לא חובה) — למשל: "חולק ב-3 בתי חולים, כולל שקיות, ספרים ומשחקים"'
+                        value={form.description}
+                        onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
+                    <input style={s.uploadInput} placeholder="קישור לקבלות ב-Google Drive (לא חובה)"
+                        value={form.receipts_url} onChange={e => setForm(p => ({ ...p, receipts_url: e.target.value }))} />
+                    <button type="submit" style={s.saveBtn} disabled={saving}>
+                        {saving ? 'שומר...' : '💾 שמור דוח'}
+                    </button>
+                    {msg && <div style={s.flashMsg}>{msg}</div>}
+                </form>
+            </section>
+
+            <section>
+                <h3 style={s.sectionTitle}>📋 היסטוריית דוחות</h3>
+                {loading ? <Spinner /> : (
+                    <div style={s.list}>
+                        {(!data?.reports || data.reports.length === 0) && <Empty text="אין דוחות עדיין" />}
+                        {data?.reports?.map(r => (
+                            <div key={r.id} style={{ ...s.card, borderRight: '4px solid #dbeafe' }}>
+                                <div style={s.cardTop}>
+                                    <strong style={{ ...s.name, fontSize: '1.05rem' }}>{hebrewMonth(r.month_year)}</strong>
+                                    <button style={s.rejectBtn} onClick={() => handleDelete(r.id)}>🗑️</button>
+                                </div>
+                                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                                    <span style={{ color: '#059669', fontWeight: 700, fontSize: '1.1rem' }}>
+                                        ✅ {r.distributions} חלוקות
+                                    </span>
+                                    {r.goal > 0 && (
+                                        <span style={{ color: '#6478a8', fontSize: '0.9rem', alignSelf: 'center' }}>
+                                            מתוך יעד: {r.goal}
+                                        </span>
+                                    )}
+                                </div>
+                                {r.goal > 0 && (
+                                    <div style={{ background: '#f0f4ff', borderRadius: '999px', height: '10px', overflow: 'hidden', marginBottom: '8px' }}>
+                                        <div style={{
+                                            height: '100%', borderRadius: '999px', background: '#0f2044',
+                                            width: `${Math.min(100, Math.round((r.distributions / r.goal) * 100))}%`,
+                                            transition: 'width 0.4s',
+                                        }} />
+                                    </div>
+                                )}
+                                {r.description && <p style={{ ...s.msg, fontSize: '0.9rem', color: '#2d4070' }}>{r.description}</p>}
+                                {r.receipts_url && (
+                                    <a href={r.receipts_url} target="_blank" rel="noopener noreferrer"
+                                        style={{ ...s.replyBtn, display: 'inline-block', marginTop: '8px', textDecoration: 'none', fontSize: '0.82rem' }}>
+                                        📎 צפה בקבלות
+                                    </a>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
+        </div>
+    );
+}
+
 // ─── Helpers ───────────────────────────────────────────────
 function Spinner() {
     return <div style={s.spinner}><div style={s.spinnerDot} /></div>;
@@ -1115,12 +1253,13 @@ export default function AdminDashboardPage() {
             </div>
 
             <div style={s.content}>
-                {tab === 'contacts'   && <ContactsTab    token={token} />}
-                {tab === 'volunteers' && <VolunteersTab   token={token} />}
-                {tab === 'thankyou'   && <ThankYouTab     token={token} />}
-                {tab === 'stats'      && <StatsTab        token={token} />}
-                {tab === 'media'      && <MediaTab        token={token} />}
-                {tab === 'newsletter' && <NewsletterTab   token={token} />}
+                {tab === 'contacts'      && <ContactsTab      token={token} />}
+                {tab === 'volunteers'    && <VolunteersTab     token={token} />}
+                {tab === 'thankyou'      && <ThankYouTab       token={token} />}
+                {tab === 'stats'         && <StatsTab          token={token} />}
+                {tab === 'media'         && <MediaTab          token={token} />}
+                {tab === 'newsletter'    && <NewsletterTab      token={token} />}
+                {tab === 'transparency'  && <TransparencyTab   token={token} />}
             </div>
         </div>
     );
