@@ -8,6 +8,7 @@ export default {
     nav_volunteer: 'Bénévoles',
     nav_contact: 'Contact',
     nav_donate: 'Aidez-nous ✨',
+    nav_transparency: 'Transparence',
 
     // Hero
     hero_badge: '👑 Distribuons l\'amour depuis 2019',

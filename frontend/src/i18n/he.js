@@ -8,6 +8,7 @@ export default {
     nav_volunteer: 'מתנדבים',
     nav_contact: 'צור קשר',
     nav_donate: 'עזרו לנו ✨',
+    nav_transparency: 'שקיפות ופעילות',
 
     // Hero
     hero_badge: '👑 מחלקים אהבה מאז 2019',

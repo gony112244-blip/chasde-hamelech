@@ -8,6 +8,7 @@ export default {
     nav_volunteer: 'Volunteers',
     nav_contact: 'Contact',
     nav_donate: 'Help Us ✨',
+    nav_transparency: 'Transparency',
 
     // Hero
     hero_badge: '👑 Spreading love since 2019',

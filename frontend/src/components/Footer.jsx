@@ -20,6 +20,7 @@ export default function Footer() {
                         <Link to="/gallery" style={s.link}>{t('nav_gallery')}</Link>
                         <Link to="/thank-you" style={s.link}>{t('nav_thankyou')}</Link>
                         <Link to="/parasha" style={s.link}>{t('nav_parasha')}</Link>
+                        <Link to="/transparency" style={s.link}>{t('nav_transparency')}</Link>
                         <Link to="/volunteer" style={s.link}>{t('nav_volunteer')}</Link>
                         <Link to="/contact" style={s.link}>{t('nav_contact')}</Link>
                     </nav>
