@@ -1,6 +1,6 @@
 /**
- * OG share image — square 1200×1200.
- * WhatsApp crops link-preview thumbnails to a square; a square OG image avoids side clipping.
+ * OG share image — square 1200×1200, compact center layout.
+ * WhatsApp thumbnails are tiny; only crown + title in the safe zone.
  */
 import sharp from 'sharp';
 import { readFileSync } from 'fs';
@@ -21,9 +21,9 @@ const bgSvg = `
       <stop offset="0%" stop-color="#1a3460"/>
       <stop offset="100%" stop-color="#0a1628"/>
     </linearGradient>
-    <radialGradient id="glow" cx="50%" cy="28%" r="42%">
-      <stop offset="0%" stop-color="#f0c040" stop-opacity="0.24"/>
-      <stop offset="60%" stop-color="#d4a017" stop-opacity="0.05"/>
+    <radialGradient id="glow" cx="50%" cy="46%" r="38%">
+      <stop offset="0%" stop-color="#f0c040" stop-opacity="0.28"/>
+      <stop offset="55%" stop-color="#d4a017" stop-opacity="0.06"/>
       <stop offset="100%" stop-color="#0a1628" stop-opacity="0"/>
     </radialGradient>
   </defs>
@@ -34,33 +34,27 @@ const bgSvg = `
 const textSvg = `
 <svg width="${SIZE}" height="${SIZE}" xmlns="http://www.w3.org/2000/svg">
   <style>
-    .title { font-family: Arial, 'Segoe UI', sans-serif; font-weight: bold; font-size: 82px; }
-    .sub { fill: rgba(255,255,255,0.93); font-family: Arial, 'Segoe UI', sans-serif; font-size: 34px; }
-    .sub2 { fill: rgba(255,255,255,0.78); font-family: Arial, 'Segoe UI', sans-serif; font-size: 26px; }
-    .line { stroke: #d4a017; stroke-width: 2; opacity: 0.65; }
+    .title { font-family: Arial, 'Segoe UI', sans-serif; font-weight: bold; font-size: 76px; }
+    .sub { fill: rgba(255,255,255,0.88); font-family: Arial, 'Segoe UI', sans-serif; font-size: 30px; }
   </style>
-  <text x="600" y="680" text-anchor="middle" direction="rtl" unicode-bidi="plaintext" class="title">
-    <tspan fill="#ffffff">חסדי</tspan><tspan fill="#f0c040" dx="12">המלך</tspan>
+  <text x="600" y="720" text-anchor="middle" direction="rtl" unicode-bidi="plaintext" class="title">
+    <tspan fill="#ffffff">חסדי</tspan><tspan fill="#f0c040" dx="14">המלך</tspan>
   </text>
-  <text x="600" y="750" text-anchor="middle" direction="rtl" class="sub">מחזירים את החיוך לגיבורים הקטנים</text>
-  <line x1="300" y1="790" x2="470" y2="790" class="line"/>
-  <line x1="730" y1="790" x2="900" y2="790" class="line"/>
-  <text x="600" y="835" text-anchor="middle" direction="rtl" class="sub2">חלוקת משחקים וספרים לילדים בבתי חולים</text>
+  <text x="600" y="780" text-anchor="middle" direction="rtl" class="sub">מחזירים חיוך לגיבורים הקטנים</text>
 </svg>`;
 
 async function main() {
-    // Keep source banner for crown extraction (original wide design)
     const banner = readFileSync(bannerPath);
 
     const crown = await sharp(banner)
-        .extract({ left: 400, top: 45, width: 400, height: 230 })
-        .resize(380, null, { fit: 'inside' })
+        .extract({ left: 370, top: 40, width: 460, height: 220 })
+        .resize(320, null, { fit: 'inside' })
         .png()
         .toBuffer();
 
     const crownInfo = await sharp(crown).metadata();
     const crownLeft = Math.round((SIZE - crownInfo.width) / 2);
-    const crownTop = 150;
+    const crownTop = 430;
 
     const bg = await sharp(Buffer.from(bgSvg)).png().toBuffer();
     const textLayer = await sharp(Buffer.from(textSvg)).png().toBuffer();
@@ -73,8 +67,8 @@ async function main() {
         .jpeg({ quality: 88, mozjpeg: true })
         .toFile(outPath);
 
-    const { width, height, size } = await sharp(outPath).metadata();
-    console.log(`Wrote ${outPath} — ${width}×${height}, ${Math.round(size / 1024)}KB`);
+    const { width, height } = await sharp(outPath).metadata();
+    console.log(`Wrote ${outPath} — ${width}×${height}`);
 }
 
 main().catch((err) => {

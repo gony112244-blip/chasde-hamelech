@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 const SITE = 'חסדי המלך';
 const BASE_DESC = 'מחלקים משחקים, ספרים ואהבה לילדים מאושפזים בבתי חולים בכל רחבי הארץ.';
 const BASE_URL = 'https://chasde-hamelech.org.il';
-const OG_IMAGE = `${BASE_URL}/og-share.jpg?v=3`;
+const OG_IMAGE = `${BASE_URL}/og-share.jpg?v=4`;
 const OG_IMAGE_WIDTH = '1200';
 const OG_IMAGE_HEIGHT = '1200';
 
