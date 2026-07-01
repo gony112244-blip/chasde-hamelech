@@ -89,7 +89,7 @@ export default function AuthorCorner() {
                 {/* ── פינת הסופר ── */}
                 <div style={s.block}>
                     <h2 style={s.blockTitle}>
-                        <span>✍️</span> {t('author_corner_label')}
+                        <span>✍️</span> {t('author_corner_heading')}
                     </h2>
                     <div style={{ ...s.founderRow, flexDirection: isMobile ? 'column' : 'row' }}>
                         <div style={s.imageWrap}>
@@ -101,14 +101,13 @@ export default function AuthorCorner() {
                                     loading="eager"
                                 />
                             </div>
-                            <p style={s.personName}>גוני שמוחה</p>
                             <p style={s.personRole}>{t('author_book_label')}</p>
                         </div>
                         <div style={s.textContent}>
-                            <h3 style={s.bookTitle}>{t('author_book_label')}</h3>
                             <p style={s.text}>{t('author_gony_p1')}</p>
                             <p style={s.text}>{t('author_gony_p2')}</p>
                             <p style={s.text}>{t('author_gony_p3')}</p>
+                            <p style={s.text}>{t('author_gony_p4')}</p>
                             <div style={s.quote}>
                                 <span style={s.quoteIcon}>&ldquo;</span>
                                 <p style={s.quoteText}>{t('author_quote_gony')}</p>
