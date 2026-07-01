@@ -95,9 +95,10 @@ export default function AuthorCorner() {
                         <div style={s.imageWrap}>
                             <div style={s.bookCoverFrame}>
                                 <img
-                                    src="/book-cover.png"
+                                    src="/book-cover.png?v=2"
                                     alt='כריכת הספר "שר הצבא"'
                                     style={s.bookCoverImg}
+                                    loading="eager"
                                 />
                             </div>
                             <p style={s.personName}>גוני שמוחה</p>
@@ -193,19 +194,22 @@ const s = {
     },
     placeholderText: { fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' },
     bookCoverFrame: {
-        width: '160px',
-        height: '210px',
-        borderRadius: '10px',
+        width: '200px',
+        height: '280px',
+        borderRadius: '12px',
         border: '3px solid #fbbf24',
         overflow: 'hidden',
-        background: 'rgba(0,0,0,0.25)',
-        boxShadow: '0 0 0 4px rgba(251,191,36,0.15), 0 8px 24px rgba(0,0,0,0.4)',
+        background: 'linear-gradient(145deg, rgba(255,255,255,0.08), rgba(0,0,0,0.35))',
+        boxShadow: '0 0 0 4px rgba(251,191,36,0.15), 0 12px 32px rgba(0,0,0,0.45)',
     },
     bookCoverImg: {
         width: '100%',
         height: '100%',
         objectFit: 'contain',
+        objectPosition: 'center',
         display: 'block',
+        padding: '6px',
+        boxSizing: 'border-box',
     },
     personName: { fontSize: '1.05rem', fontWeight: 700, color: '#fbbf24', margin: 0, textAlign: 'center' },
     personRole: { fontSize: '0.82rem', color: 'rgba(255,255,255,0.5)', margin: 0, textAlign: 'center' },
