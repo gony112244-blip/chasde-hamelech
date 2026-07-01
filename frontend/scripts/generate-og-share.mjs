@@ -1,6 +1,6 @@
 /**
- * OG share image — square 1200×1200, compact center layout.
- * WhatsApp thumbnails are tiny; only crown + title in the safe zone.
+ * OG share image — square 1200×1200.
+ * Reuses crown + title from the original banner (large, styled) centered in frame.
  */
 import sharp from 'sharp';
 import { readFileSync } from 'fs';
@@ -21,8 +21,8 @@ const bgSvg = `
       <stop offset="0%" stop-color="#1a3460"/>
       <stop offset="100%" stop-color="#0a1628"/>
     </linearGradient>
-    <radialGradient id="glow" cx="50%" cy="46%" r="38%">
-      <stop offset="0%" stop-color="#f0c040" stop-opacity="0.28"/>
+    <radialGradient id="glow" cx="50%" cy="38%" r="48%">
+      <stop offset="0%" stop-color="#f0c040" stop-opacity="0.26"/>
       <stop offset="55%" stop-color="#d4a017" stop-opacity="0.06"/>
       <stop offset="100%" stop-color="#0a1628" stop-opacity="0"/>
     </radialGradient>
@@ -31,44 +31,29 @@ const bgSvg = `
   <rect width="${SIZE}" height="${SIZE}" fill="url(#glow)"/>
 </svg>`;
 
-const textSvg = `
-<svg width="${SIZE}" height="${SIZE}" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    .title { font-family: Arial, 'Segoe UI', sans-serif; font-weight: bold; font-size: 76px; }
-    .sub { fill: rgba(255,255,255,0.88); font-family: Arial, 'Segoe UI', sans-serif; font-size: 30px; }
-  </style>
-  <text x="600" y="720" text-anchor="middle" direction="rtl" unicode-bidi="plaintext" class="title">
-    <tspan fill="#ffffff">חסדי</tspan><tspan fill="#f0c040" dx="14">המלך</tspan>
-  </text>
-  <text x="600" y="780" text-anchor="middle" direction="rtl" class="sub">מחזירים חיוך לגיבורים הקטנים</text>
-</svg>`;
-
 async function main() {
     const banner = readFileSync(bannerPath);
 
-    const crown = await sharp(banner)
-        .extract({ left: 370, top: 40, width: 460, height: 220 })
-        .resize(320, null, { fit: 'inside' })
+    // Crown + 3D title from original banner — wide enough to keep full "חסדי המלך"
+    const hero = await sharp(banner)
+        .extract({ left: 120, top: 8, width: 960, height: 430 })
+        .resize(1080, null, { fit: 'inside' })
         .png()
         .toBuffer();
 
-    const crownInfo = await sharp(crown).metadata();
-    const crownLeft = Math.round((SIZE - crownInfo.width) / 2);
-    const crownTop = 430;
+    const heroInfo = await sharp(hero).metadata();
+    const heroLeft = Math.round((SIZE - heroInfo.width) / 2);
+    const heroTop = Math.round((SIZE - heroInfo.height) / 2 - 40);
 
     const bg = await sharp(Buffer.from(bgSvg)).png().toBuffer();
-    const textLayer = await sharp(Buffer.from(textSvg)).png().toBuffer();
 
     await sharp(bg)
-        .composite([
-            { input: crown, top: crownTop, left: crownLeft },
-            { input: textLayer, top: 0, left: 0 },
-        ])
-        .jpeg({ quality: 88, mozjpeg: true })
+        .composite([{ input: hero, top: Math.max(60, heroTop), left: heroLeft }])
+        .jpeg({ quality: 90, mozjpeg: true })
         .toFile(outPath);
 
     const { width, height } = await sharp(outPath).metadata();
-    console.log(`Wrote ${outPath} — ${width}×${height}`);
+    console.log(`Wrote ${outPath} — ${width}×${height}, hero ${heroInfo.width}×${heroInfo.height}`);
 }
 
 main().catch((err) => {
