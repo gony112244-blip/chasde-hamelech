@@ -107,6 +107,15 @@ export default function Navbar() {
                 transform: hidden && !menuOpen ? 'translateY(-100%)' : 'translateY(0)',
                 boxShadow: scrolled ? '0 4px 20px rgba(0,0,0,0.25)' : 'none',
             }} role="navigation" aria-label="ניווט ראשי">
+                {lang === 'he' && (
+                    <div style={s.bsdRow}>
+                        <span style={s.bsd} aria-label='בס"ד'>
+                            <span style={s.bsdLine} aria-hidden="true" />
+                            <span style={s.bsdText}>בס״ד</span>
+                            <span style={{ ...s.bsdLine, ...s.bsdLineRight }} aria-hidden="true" />
+                        </span>
+                    </div>
+                )}
                 <div style={s.inner}>
                     {/* לוגו */}
                     <Link to="/" style={s.logoLink} aria-label="חסדי המלך — דף הבית" onClick={handleLogoTap}>
@@ -223,6 +232,40 @@ const s = {
         top: 0,
         transition: 'transform 0.35s ease, box-shadow 0.3s ease',
         willChange: 'transform',
+    },
+    bsdRow: {
+        maxWidth: '1100px',
+        margin: '0 auto',
+        width: '100%',
+        padding: '6px 20px 0',
+        display: 'flex',
+        justifyContent: 'flex-end',
+        direction: 'ltr',
+    },
+    bsd: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '7px',
+        pointerEvents: 'none',
+        userSelect: 'none',
+    },
+    bsdText: {
+        color: 'rgba(251, 191, 36, 0.92)',
+        fontSize: '0.72rem',
+        fontWeight: 600,
+        letterSpacing: '0.12em',
+        fontFamily: "'Heebo', 'Frank Ruhl Libre', serif",
+        textShadow: '0 1px 6px rgba(251, 191, 36, 0.3)',
+        lineHeight: 1,
+    },
+    bsdLine: {
+        display: 'block',
+        width: '14px',
+        height: '1px',
+        background: 'linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.55))',
+    },
+    bsdLineRight: {
+        background: 'linear-gradient(90deg, rgba(251, 191, 36, 0.55), transparent)',
     },
     inner: {
         maxWidth: '1100px',
