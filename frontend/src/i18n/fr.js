@@ -193,9 +193,17 @@ export default {
 
     // HelpPage
     help_paybox_btn: '💳 PayBox — Faire un Don',
+    help_paypal_btn: '🌍 PayPal — Don International',
+    help_bit_copy: 'Copier',
+    help_bit_copied: 'Numéro Bit copié !',
+    help_bit_copy_fail: 'Impossible de copier — copiez manuellement',
+    help_payment_pending: 'Détails bientôt disponibles',
     help_bank_show: '🏦 Afficher les Détails du Virement',
     help_bank_hide: '🏦 Masquer les Détails du Virement',
-    help_credit_soon: 'Paiement par Carte — Bientôt',
+    help_bank_name: 'Banque',
+    help_bank_branch: 'Agence',
+    help_bank_account: 'Compte',
+    help_bank_holder: 'Titulaire',
     help_items_title: '🎁 Don de Matériel Neuf',
     help_items_subtitle: 'Neuf seulement — pas d\'occasion',
     help_contact_arrange: '📦 Contactez-nous pour organiser la collecte',

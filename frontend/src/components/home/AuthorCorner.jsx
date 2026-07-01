@@ -1,16 +1,17 @@
 ﻿import { useState, useEffect } from 'react';
 import { useT } from '../../hooks/useT';
+import { BP_SM, mq } from '../../breakpoints';
 
 function useIsMobile() {
     const [isMobile, setIsMobile] = useState(
-        typeof window !== 'undefined' ? window.innerWidth <= 640 : false
+        typeof window !== 'undefined' ? window.innerWidth <= BP_SM : false
     );
     useEffect(() => {
-        const mq = window.matchMedia('(max-width: 640px)');
+        const media = window.matchMedia(mq.sm);
         const handler = (e) => setIsMobile(e.matches);
-        mq.addEventListener('change', handler);
-        setIsMobile(mq.matches);
-        return () => mq.removeEventListener('change', handler);
+        media.addEventListener('change', handler);
+        setIsMobile(media.matches);
+        return () => media.removeEventListener('change', handler);
     }, []);
     return isMobile;
 }

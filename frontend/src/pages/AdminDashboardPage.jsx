@@ -1272,7 +1272,7 @@ const s = {
     page: { minHeight: '100vh', background: '#f8fafe', fontFamily: "'Heebo', sans-serif", direction: 'inherit', overflowX: 'hidden' },
 
     header: { background: 'linear-gradient(135deg, #071530 0%, #0f2044 100%)', padding: '20px' },
-    headerInner: { maxWidth: '960px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    headerInner: { maxWidth: '960px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' },
     headerTitle: { color: '#fbbf24', fontSize: '1.4rem', fontWeight: 800, margin: 0 },
     headerSub: { color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem', margin: 0 },
     logoutBtn: {
@@ -1297,7 +1297,7 @@ const s = {
         background: '#fff', borderRadius: '16px', padding: '20px 22px',
         boxShadow: '0 2px 10px rgba(15,32,68,0.07)', borderRight: `4px solid ${BLUE}`,
     },
-    cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' },
+    cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' },
     name: { color: NAVY, fontSize: '1rem' },
     date: { color: '#6478a8', fontSize: '0.8rem' },
     meta: { display: 'flex', gap: '16px', flexWrap: 'wrap', color: '#2d4070', fontSize: '0.88rem', marginBottom: '10px' },
@@ -1334,7 +1334,7 @@ const s = {
     sectionTitle: { color: NAVY, fontSize: '1.05rem', fontWeight: 700, margin: '0 0 16px', paddingBottom: '8px', borderBottom: `2px solid ${BLUE}` },
 
     statsForm: { display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '460px' },
-    statRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' },
+    statRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' },
     statLabel: { color: '#2d4070', fontSize: '0.95rem', fontWeight: 600 },
     statInput: {
         padding: '10px 14px', borderRadius: '10px', border: `2px solid ${BLUE}`,

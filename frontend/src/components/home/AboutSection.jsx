@@ -140,8 +140,8 @@ const s = {
         display: 'flex',
         flexDirection: 'column',
         gap: '24px',
-        borderRight: '3px solid var(--royal-pale)',
-        paddingRight: '28px',
+        borderInlineStart: '3px solid var(--royal-pale)',
+        paddingInlineStart: '28px',
     },
     tlItem: {
         position: 'relative',
@@ -151,7 +151,7 @@ const s = {
     tlItemActive: {},
     tlDot: {
         position: 'absolute',
-        right: '-39px',
+        insetInlineEnd: '-39px',
         top: '4px',
         width: '18px',
         height: '18px',

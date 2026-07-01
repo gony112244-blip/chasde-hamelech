@@ -176,6 +176,8 @@ const transporter = nodemailer.createTransport({
 
 // התראה למנהל על פעילות חדשה — לא חוסם את הבקשה אם נכשל
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+const SITE_URL = process.env.SITE_URL || 'https://chasde-hamelech.org.il';
+
 async function notifyAdmin(subject, rowsHtml) {
     if (!process.env.EMAIL_USER || !ADMIN_EMAIL) return;
     try {
@@ -193,6 +195,55 @@ async function notifyAdmin(subject, rowsHtml) {
     } catch (err) {
         console.error('notifyAdmin failed:', err.message);
     }
+}
+
+/** מייל אוטומטי למשתמש — לא חוסם את הבקשה אם נכשל */
+async function sendUserEmail(to, subject, bodyHtml) {
+    if (!process.env.EMAIL_USER || !to?.trim() || !isValidEmail(to)) return false;
+    try {
+        await transporter.sendMail({
+            from: `"חסדי המלך" <${process.env.EMAIL_USER}>`,
+            to: to.trim(),
+            subject,
+            html: `<div dir="rtl" style="font-family:Arial,sans-serif;font-size:16px;color:#1f2937;max-width:560px;line-height:1.7;">
+                ${bodyHtml}
+                <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+                <p style="color:#888;font-size:12px;margin:0;">חסדי המלך — מביאים שמחה לילדים 💙<br>
+                <a href="${SITE_URL}" style="color:#0f2044;">${SITE_URL}</a></p>
+            </div>`,
+        });
+        return true;
+    } catch (err) {
+        console.error('sendUserEmail failed:', err.message);
+        return false;
+    }
+}
+
+function emailContactReceived(name) {
+    return `<p>שלום ${escapeHtml(name)},</p>
+        <p>קיבלנו את פנייתך ונחזור אליך בהקדם האפשרי.</p>
+        <p>תודה על הפנייה — כל מילה חשובה לנו.</p>`;
+}
+
+function emailVolunteerWelcome(name) {
+    return `<p>שלום ${escapeHtml(name)},</p>
+        <p>ברוכים הבאים למשפחת חסדי המלך! 🙏</p>
+        <p>שמחים שהצטרפתם. ניצור קשר בהקדם עם פרטים על הפעילות הקרובה.</p>
+        <p>בינתיים, תוכלו לעקוב אחרינו ב<a href="${SITE_URL}/gallery">גלריה</a> ו<a href="${SITE_URL}/help">לתרום</a>.</p>`;
+}
+
+function emailThankYouPending(name) {
+    const who = name?.trim() ? escapeHtml(name) : 'ידיד/ה יקר/ה';
+    return `<p>שלום ${who},</p>
+        <p>תודה רבה על הודעת התודה שלך! 💙</p>
+        <p>קיבלנו את ההודעה והיא תפורסם ב<a href="${SITE_URL}/thank-you">קיר התודה</a> לאחר אישור המנהל.</p>`;
+}
+
+function emailThankYouApproved(name) {
+    const who = name?.trim() ? escapeHtml(name) : 'ידיד/ה יקר/ה';
+    return `<p>שלום ${who},</p>
+        <p>שמחים לעדכן שהודעת התודה שלך אושרה ופורסמה ב<a href="${SITE_URL}/thank-you">קיר התודה</a>! 🎉</p>
+        <p>תודה ששיתפת את הסיפור שלך — זה מחמם את הלב.</p>`;
 }
 // אימות קלט בסיסי לטפסים ציבוריים
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -362,6 +413,13 @@ app.post('/api/thank-you', uploadPhoto.single('photo'), async (req, res) => {
             ['הודעה', message.trim()],
             ['תמונה', photoFilename ? 'כן (ממתינה לאישור)' : 'לא'],
         ]);
+        if (email?.trim()) {
+            sendUserEmail(
+                email.trim(),
+                'קיבלנו את הודעת התודה שלך — חסדי המלך',
+                emailThankYouPending(name?.trim() || '')
+            );
+        }
         res.status(201).json({
             ok: true,
             message: 'תודה! ההודעה התקבלה ותפורסם בקיר לאחר אישור המנהל.'
@@ -394,6 +452,13 @@ app.post('/api/contact', async (req, res) => {
             ['שם', name.trim()], ['טלפון', phone?.trim()],
             ['מייל', email?.trim()], ['הודעה', message.trim()],
         ]);
+        if (email?.trim()) {
+            sendUserEmail(
+                email.trim(),
+                'קיבלנו את פנייתך — חסדי המלך',
+                emailContactReceived(name.trim())
+            );
+        }
     res.status(201).json({ ok: true, message: 'ההודעה נשלחה! נחזור אליכם בהקדם.' });
     } catch (err) {
         console.error(err);
@@ -423,6 +488,13 @@ app.post('/api/volunteer', async (req, res) => {
             ['מייל', email?.trim()], ['עיר', city.trim()],
             ['רכב', hasCar ? 'כן' : 'לא'], ['הערה', message?.trim()],
         ]);
+        if (email?.trim()) {
+            sendUserEmail(
+                email.trim(),
+                'ברוכים הבאים למשפחת חסדי המלך!',
+                emailVolunteerWelcome(name.trim())
+            );
+        }
     res.status(201).json({ ok: true, message: 'ברוכים הבאים למשפחת חסדי המלך! ניצור קשר בהקדם.' });
     } catch (err) {
         console.error(err);
@@ -563,7 +635,15 @@ app.put('/api/admin/thank-you/:id', adminAuth, async (req, res) => {
             [status, id]
         );
         if (!result.rows.length) return res.status(404).json({ error: 'לא נמצא' });
-        res.json({ ok: true, note: result.rows[0] });
+        const note = result.rows[0];
+        if (status === 'approved' && note.email?.trim()) {
+            sendUserEmail(
+                note.email.trim(),
+                'הודעת התודה שלך פורסמה — חסדי המלך',
+                emailThankYouApproved(note.display_name || '')
+            );
+        }
+        res.json({ ok: true, note });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'שגיאת שרת' });

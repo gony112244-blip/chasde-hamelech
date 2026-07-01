@@ -317,7 +317,7 @@ const s = {
     },
     photoNote: { color: 'var(--text-muted)', fontSize: '0.82rem', margin: 0 },
     errorMsg: { color: '#dc2626', fontSize: '0.9rem', margin: 0, textAlign: 'center' },
-    formActions: { display: 'flex', gap: '12px' },
+    formActions: { display: 'flex', gap: '12px', flexWrap: 'wrap' },
     submitBtn: {
         flex: 1, background: 'linear-gradient(135deg, #0f2044, #1a3460)', color: '#fff',
         border: 'none', padding: '14px', borderRadius: '12px', fontWeight: 700, fontSize: '1rem',
@@ -333,7 +333,7 @@ const s = {
     emptyState: { textAlign: 'center', padding: '60px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' },
     notesGrid: {
         maxWidth: '1000px', margin: '0 auto', display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '20px',
     },
     noteCard: {
         background: 'var(--bg-card)', borderRadius: '18px', padding: '28px 24px',

@@ -4,6 +4,7 @@ import API_BASE, { UPLOADS_BASE } from '../config';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
 import { useLang } from '../contexts/LangContext';
+import { BP_MD } from '../breakpoints';
 
 export default function ParashaPage() {
     const t = useT();
@@ -14,11 +15,11 @@ export default function ParashaPage() {
     const [loading, setLoading] = useState(true);
     const [imgError, setImgError] = useState(false);
     const [isMobile, setIsMobile] = useState(
-        typeof window !== 'undefined' && window.innerWidth < 768
+        typeof window !== 'undefined' && window.innerWidth < BP_MD
     );
 
     useEffect(() => {
-        const onResize = () => setIsMobile(window.innerWidth < 768);
+        const onResize = () => setIsMobile(window.innerWidth < BP_MD);
         window.addEventListener('resize', onResize);
         return () => window.removeEventListener('resize', onResize);
     }, []);

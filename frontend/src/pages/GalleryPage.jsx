@@ -356,9 +356,9 @@ const s = {
     postTitle: { color: 'var(--royal)', fontSize: '1.05rem', fontWeight: 700, margin: 0 },
     postDate: { color: 'var(--text-muted)', fontSize: '0.82rem' },
     postBody: { color: 'var(--text-soft)', fontSize: '0.95rem', lineHeight: 1.7, margin: '0 0 14px' },
-    postMedia: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
+    postMedia: { display: 'flex', gap: '12px', flexWrap: 'wrap' },
     postThumb: {
-        width: '100px', height: '100px', borderRadius: '12px', overflow: 'hidden',
+        width: '240px', height: '240px', borderRadius: '14px', overflow: 'hidden',
         border: 'none', padding: 0, cursor: 'pointer', background: 'transparent',
         flexShrink: 0,
     },
@@ -383,21 +383,21 @@ const s = {
     },
     sectionTitle: { color: 'var(--royal)', fontSize: '1.1rem', fontWeight: 700, margin: 0 },
 
-    photoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' },
+    photoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '20px' },
     photoCard: {
         position: 'relative', borderRadius: '16px', overflow: 'hidden',
         border: 'none', padding: 0, cursor: 'pointer', background: 'transparent',
         boxShadow: '0 2px 10px rgba(0,0,0,0.12)',
         transition: 'transform 0.2s, box-shadow 0.2s',
     },
-    photoImg: { width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' },
+    photoImg: { width: '100%', aspectRatio: '3/2', objectFit: 'cover', display: 'block' },
     photoOverlay: {
         position: 'absolute', inset: 0, background: 'rgba(0,0,0,0)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s',
     },
     photoZoom: { fontSize: '2rem', opacity: 0, transition: 'opacity 0.2s' },
 
-    videoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' },
+    videoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: '20px' },
     videoCard: {
         borderRadius: '16px', overflow: 'hidden', background: '#0a0a0a',
         boxShadow: '0 2px 10px rgba(0,0,0,0.15)', transition: 'transform 0.2s, box-shadow 0.2s',
@@ -419,7 +419,7 @@ const s = {
     pauseBtn: {
         position: 'absolute', bottom: '10px', left: '10px',
         background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff',
-        borderRadius: '50%', width: '30px', height: '30px',
+        borderRadius: '50%', width: '44px', height: '44px',
         cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
     },
 
@@ -433,7 +433,7 @@ const s = {
         width: '40px', height: '40px', borderRadius: '50%', fontSize: '1.1rem',
         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
     },
-    lightboxImg: { maxWidth: '90vw', maxHeight: '80vh', borderRadius: '12px', objectFit: 'contain' },
+    lightboxImg: { maxWidth: '95vw', maxHeight: '85vh', borderRadius: '12px', objectFit: 'contain' },
     lightboxCaption: { color: 'rgba(255,255,255,0.85)', fontSize: '0.95rem', marginTop: '14px', textAlign: 'center', maxWidth: '500px' },
 
     spinnerWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0' },

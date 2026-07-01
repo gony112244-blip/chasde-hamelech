@@ -74,8 +74,8 @@ const icons = {
 const s = {
     container: {
         position: 'fixed',
-        top: '80px',
-        left: '20px',
+        top: 'max(80px, env(safe-area-inset-top))',
+        left: 'max(20px, env(safe-area-inset-left))',
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',
@@ -107,8 +107,8 @@ const s = {
         background: 'rgba(255,255,255,0.2)',
         border: 'none',
         color: '#fff',
-        width: '26px',
-        height: '26px',
+        width: '44px',
+        height: '44px',
         borderRadius: '50%',
         cursor: 'pointer',
         fontSize: '12px',

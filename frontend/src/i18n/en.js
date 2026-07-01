@@ -193,9 +193,17 @@ export default {
 
     // HelpPage
     help_paybox_btn: '💳 PayBox — Donate Now',
+    help_paypal_btn: '🌍 PayPal — International Donation',
+    help_bit_copy: 'Copy',
+    help_bit_copied: 'Bit number copied!',
+    help_bit_copy_fail: 'Could not copy — please copy manually',
+    help_payment_pending: 'Details coming soon',
     help_bank_show: '🏦 Show Bank Transfer Details',
     help_bank_hide: '🏦 Hide Bank Transfer Details',
-    help_credit_soon: 'Credit Card Payment — Coming Soon',
+    help_bank_name: 'Bank',
+    help_bank_branch: 'Branch',
+    help_bank_account: 'Account',
+    help_bank_holder: 'Account holder',
     help_items_title: '🎁 New Equipment Donation',
     help_items_subtitle: 'New only — not second-hand',
     help_contact_arrange: '📦 Contact us to arrange pickup',

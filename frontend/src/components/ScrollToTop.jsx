@@ -23,8 +23,8 @@ export default function ScrollToTop() {
             aria-label="חזור למעלה"
             style={{
                 position: 'fixed',
-                bottom: '28px',
-                left: '20px',
+                bottom: 'max(28px, env(safe-area-inset-bottom))',
+                left: 'max(20px, env(safe-area-inset-left))',
                 zIndex: 1200,
                 width: '48px',
                 height: '48px',

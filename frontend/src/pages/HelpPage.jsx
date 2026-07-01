@@ -1,18 +1,9 @@
 ﻿import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import PageMeta from '../components/PageMeta';
+import { useToast } from '../components/ToastProvider';
+import { PAYMENTS } from '../config';
 import { useT } from '../hooks/useT';
-
-const PAYBOX_LINK = 'https://payboxapp.page.link/WXV7'; // יש לעדכן בקישור אמיתי
-
-const BIT_NUMBER = '050-XXXXXXX'; // יש לעדכן
-
-const BANK_DETAILS = {
-    bank: 'הפועלים',
-    branch: '000',
-    account: '000000',
-    name: 'חסדי המלך',
-};
 
 const ITEMS_NEEDED = [
     { icon: '🎲', name: 'משחקי קופסה', desc: 'חדש בלבד · לגילאי 4–12' },
@@ -24,11 +15,19 @@ const ITEMS_NEEDED = [
     { icon: '🧩', name: 'פאזלים', desc: 'חדש בלבד · לגילאי 3–10' },
 ];
 
+function hasBankDetails(bank) {
+    return !!(bank.name && bank.branch && bank.account);
+}
+
 export default function HelpPage() {
     const t = useT();
+    const toast = useToast();
     const [showBank, setShowBank] = useState(false);
     const itemsRef = useRef(null);
     const location = useLocation();
+
+    const { payboxLink, bitNumber, paypalLink, bank } = PAYMENTS;
+    const bankReady = hasBankDetails(bank);
 
     useEffect(() => {
         if (location.hash === '#donate' && itemsRef.current) {
@@ -38,10 +37,16 @@ export default function HelpPage() {
         }
     }, [location.hash]);
 
+    function copyBit() {
+        if (!bitNumber) return;
+        navigator.clipboard.writeText(bitNumber.replace(/-/g, ''))
+            .then(() => toast.success(t('help_bit_copied')))
+            .catch(() => toast.error(t('help_bit_copy_fail')));
+    }
+
     return (
         <div style={s.page}>
             <PageMeta title="איך עוזרים" description="תרומה כספית, תרומת משחקים וספרים, או התנדבות — כל דרך לעזור לילדים מאושפזים. הצטרפו אלינו." path="/help" />
-            {/* Header */}
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={{ position: 'relative', zIndex: 2 }}>
@@ -53,7 +58,6 @@ export default function HelpPage() {
                 </div>
             </section>
 
-            {/* תרומה כספית */}
             <section style={s.donateSection}>
                 <div style={s.donateInner}>
                     <div style={s.donateCard}>
@@ -63,22 +67,37 @@ export default function HelpPage() {
                             כל שקל הופך למשחק, ספר או חיוך ביד ילד מאושפז.
                         </p>
 
-                        {/* PayBox */}
-                        <a href={PAYBOX_LINK} style={s.donateBtnPrimary}
-                            target="_blank" rel="noopener noreferrer">
-                            {t('help_paybox_btn')}
-                        </a>
+                        {payboxLink && (
+                            <a href={payboxLink} style={s.donateBtnPrimary}
+                                target="_blank" rel="noopener noreferrer">
+                                {t('help_paybox_btn')}
+                            </a>
+                        )}
 
-                        {/* Bit */}
                         <div style={s.payOption}>
                             <span style={s.payOptionIcon}>📱</span>
-                            <div>
+                            <div style={{ flex: 1, textAlign: 'inherit' }}>
                                 <strong style={s.payOptionLabel}>Bit</strong>
-                                <span style={s.payOptionValue}>{BIT_NUMBER}</span>
+                                {bitNumber ? (
+                                    <span style={s.payOptionValue}>{bitNumber}</span>
+                                ) : (
+                                    <span style={s.payOptionPending}>{t('help_payment_pending')}</span>
+                                )}
                             </div>
+                            {bitNumber && (
+                                <button type="button" style={s.copyBtn} onClick={copyBit}>
+                                    {t('help_bit_copy')}
+                                </button>
+                            )}
                         </div>
 
-                        {/* העברה בנקאית */}
+                        {paypalLink && (
+                            <a href={paypalLink} style={s.paypalBtn}
+                                target="_blank" rel="noopener noreferrer">
+                                {t('help_paypal_btn')}
+                            </a>
+                        )}
+
                         <button
                             style={s.bankToggle}
                             onClick={() => setShowBank(v => !v)}
@@ -87,18 +106,18 @@ export default function HelpPage() {
                         </button>
                         {showBank && (
                             <div style={s.bankBox}>
-                                <p style={s.bankLine}>בנק: {BANK_DETAILS.bank}</p>
-                                <p style={s.bankLine}>סניף: {BANK_DETAILS.branch}</p>
-                                <p style={s.bankLine}>חשבון: {BANK_DETAILS.account}</p>
-                                <p style={s.bankLine}>על שם: {BANK_DETAILS.name}</p>
+                                {bankReady ? (
+                                    <>
+                                        <p style={s.bankLine}>{t('help_bank_name')}: {bank.name}</p>
+                                        <p style={s.bankLine}>{t('help_bank_branch')}: {bank.branch}</p>
+                                        <p style={s.bankLine}>{t('help_bank_account')}: {bank.account}</p>
+                                        <p style={s.bankLine}>{t('help_bank_holder')}: {bank.holder}</p>
+                                    </>
+                                ) : (
+                                    <p style={s.bankPending}>{t('help_payment_pending')}</p>
+                                )}
                             </div>
                         )}
-
-                        {/* כרטיס אשראי — בקרוב */}
-                        <div style={s.creditPlaceholder}>
-                            <span>💳</span>
-                            <span>{t('help_credit_soon')}</span>
-                        </div>
 
                         <p style={s.donateNote}>
                             100% מהתרומות מגיעות ישירות לילדים
@@ -107,7 +126,6 @@ export default function HelpPage() {
                 </div>
             </section>
 
-            {/* תרומת פריטים */}
             <section style={s.itemsSection} ref={itemsRef} id="donate">
                 <div style={s.itemsInner}>
                     <h2 style={s.sectionTitle}>
@@ -137,7 +155,6 @@ export default function HelpPage() {
                 </div>
             </section>
 
-            {/* CTA סופי */}
             <section style={s.ctaSection}>
                 <div style={s.ctaInner}>
                     <h2 style={s.ctaTitle}>כל ילד ראוי לחייך 😊</h2>
@@ -180,30 +197,39 @@ const s = {
         background: 'linear-gradient(135deg, #d4a017, #f0c040)', color: '#3b0764',
         textDecoration: 'none', padding: '16px 48px', borderRadius: '14px', fontWeight: 700,
         fontSize: '1.1rem', boxShadow: '0 4px 20px rgba(212,160,23,0.3)', width: '100%',
-        display: 'block', textAlign: 'center',
+        display: 'block', textAlign: 'center', boxSizing: 'border-box',
     },
     payOption: {
         width: '100%', display: 'flex', alignItems: 'center', gap: '14px',
-        background: 'var(--royal-pale)', borderRadius: '14px', padding: '14px 20px', textAlign: 'right',
+        background: 'var(--royal-pale)', borderRadius: '14px', padding: '14px 20px',
+        boxSizing: 'border-box',
     },
     payOptionIcon: { fontSize: '1.6rem', flexShrink: 0 },
     payOptionLabel: { display: 'block', color: 'var(--royal)', fontSize: '0.95rem', fontWeight: 700 },
-    payOptionValue: { display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '2px' },
+    payOptionValue: { display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '2px', direction: 'ltr', unicodeBidi: 'embed' },
+    payOptionPending: { display: 'block', color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '2px', fontStyle: 'italic' },
+    copyBtn: {
+        background: 'var(--royal)', color: '#fff', border: 'none', borderRadius: '10px',
+        padding: '10px 16px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
+        fontFamily: "'Heebo', sans-serif", flexShrink: 0, minHeight: '44px',
+    },
+    paypalBtn: {
+        background: '#0070ba', color: '#fff', textDecoration: 'none',
+        padding: '14px 32px', borderRadius: '14px', fontWeight: 700, fontSize: '1rem',
+        width: '100%', display: 'block', textAlign: 'center', boxSizing: 'border-box',
+        minHeight: '48px', lineHeight: '20px',
+    },
     bankToggle: {
         background: 'none', border: '2px solid var(--royal-pale)', color: 'var(--royal)',
-        borderRadius: '12px', padding: '10px 20px', fontWeight: 600, cursor: 'pointer',
-        fontSize: '0.92rem', fontFamily: "'Heebo', sans-serif",
+        borderRadius: '12px', padding: '12px 20px', fontWeight: 600, cursor: 'pointer',
+        fontSize: '0.92rem', fontFamily: "'Heebo', sans-serif", minHeight: '44px',
     },
     bankBox: {
         width: '100%', background: 'var(--royal-pale)', borderRadius: '14px', padding: '16px 20px',
-        textAlign: 'right',
+        textAlign: 'inherit', boxSizing: 'border-box',
     },
     bankLine: { color: 'var(--royal)', fontSize: '0.93rem', margin: '4px 0', fontWeight: 500 },
-    creditPlaceholder: {
-        display: 'flex', alignItems: 'center', gap: '8px',
-        color: 'var(--text-muted)', fontSize: '0.88rem',
-        border: '1px dashed rgba(15,32,68,0.2)', borderRadius: '10px', padding: '10px 16px',
-    },
+    bankPending: { color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0, fontStyle: 'italic' },
     donateNote: { color: 'var(--text-muted)', fontSize: '0.82rem', margin: 0 },
 
     itemsSection: { padding: '60px 20px', background: 'var(--bg-warm)', scrollMarginTop: '90px' },
@@ -213,7 +239,7 @@ const s = {
         marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
     },
     sectionSubtitle: { color: 'var(--text-muted)', fontSize: '1rem', marginBottom: '32px', lineHeight: 1.7 },
-    itemsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px', marginBottom: '32px' },
+    itemsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: '16px', marginBottom: '32px' },
     itemCard: {
         background: 'var(--bg-card)', borderRadius: '16px', padding: '24px 14px',
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
@@ -230,7 +256,8 @@ const s = {
     contactText: { color: 'var(--text-soft)', fontSize: '1rem', margin: 0 },
     contactBtn: {
         background: 'var(--royal-pale)', color: 'var(--royal)', textDecoration: 'none',
-        padding: '12px 28px', borderRadius: '12px', fontWeight: 700,
+        padding: '12px 28px', borderRadius: '12px', fontWeight: 700, minHeight: '44px',
+        display: 'inline-flex', alignItems: 'center',
     },
 
     ctaSection: {
@@ -243,9 +270,11 @@ const s = {
     ctaBtnPrimary: {
         background: 'linear-gradient(135deg, #d4a017, #f0c040)', color: '#3b0764',
         textDecoration: 'none', padding: '14px 32px', borderRadius: '14px', fontWeight: 700,
+        minHeight: '44px', display: 'inline-flex', alignItems: 'center',
     },
     ctaBtnSecondary: {
         background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.25)',
         color: '#fff', textDecoration: 'none', padding: '12px 28px', borderRadius: '14px', fontWeight: 600,
+        minHeight: '44px', display: 'inline-flex', alignItems: 'center',
     },
 };

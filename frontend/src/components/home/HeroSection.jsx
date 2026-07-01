@@ -31,7 +31,14 @@ export default function HeroSection() {
                     </Link>
                 </div>
 
-                <div style={s.activityBadge} onClick={scrollDown} role="button" tabIndex={0} aria-label="גלול למטה">
+                <div
+                    style={s.activityBadge}
+                    onClick={scrollDown}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); scrollDown(); } }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="גלול למטה"
+                >
                     <span style={s.activityPulse} />
                     <span>{t('hero_activity')}</span>
                     <span style={s.activityArrow}>↓</span>
@@ -47,7 +54,7 @@ const s = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: 'calc(100vh - 64px)',
+        minHeight: 'calc(100dvh - 64px)',
         background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 25%, #071530 65%, #2e0a66 100%)',
         color: '#fff',
         fontFamily: "'Heebo', sans-serif",

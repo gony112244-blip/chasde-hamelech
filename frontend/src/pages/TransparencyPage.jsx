@@ -169,7 +169,7 @@ export default function TransparencyPage() {
 }
 
 const s = {
-    page: { fontFamily: "'Heebo', sans-serif", direction: 'rtl' },
+    page: { fontFamily: "'Heebo', sans-serif", direction: 'inherit' },
     header: {
         background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 50%, #071530 100%)',
         padding: '60px 20px 50px', textAlign: 'center', position: 'relative', overflow: 'hidden',
@@ -192,7 +192,7 @@ const s = {
         background: '#dbeafe', color: NAVY, padding: '4px 20px',
         borderRadius: '999px', fontSize: '0.9rem', fontWeight: 700,
     },
-    bigNumbers: { display: 'flex', alignItems: 'center', gap: '24px' },
+    bigNumbers: { display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' },
     bigNum: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' },
     bigNumVal: { fontSize: '3rem', fontWeight: 900, color: '#059669', lineHeight: 1 },
     bigNumLabel: { color: '#6478a8', fontSize: '0.85rem' },
@@ -233,7 +233,7 @@ const s = {
         boxShadow: '0 2px 10px rgba(15,32,68,0.06)', borderRight: '4px solid #dbeafe',
         display: 'flex', flexDirection: 'column', gap: '10px',
     },
-    histTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    histTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' },
     histMonth: { color: NAVY, fontSize: '1.02rem' },
     histCount: { color: '#059669', fontWeight: 700, fontSize: '0.98rem' },
     histBarWrap: { display: 'flex', alignItems: 'center', gap: '10px' },

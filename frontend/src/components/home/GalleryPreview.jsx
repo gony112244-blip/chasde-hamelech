@@ -22,9 +22,17 @@ const CSS = `
     .gp-kb2 .gp-photo { animation: gpKb2 ${KB_DUR} ease-out forwards; }
     .gp-kb3 .gp-photo { animation: gpKb3 ${KB_DUR} ease-out forwards; }
     .gp-kb4 .gp-photo { animation: gpKb4 ${KB_DUR} ease-out forwards; }
-    .gp-photo { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block; transform-origin:center center; }
+    .gp-photo { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block; transform-origin:center center; will-change:transform; }
     @keyframes gpProgress { from{width:0%} to{width:100%} }
     .gp-wrap:hover .gp-arrows { opacity:1!important; }
+    @media (max-width: 1024px), (pointer: coarse) {
+        .gp-arrows { opacity: 1 !important; }
+    }
+    .gp-wrap { will-change:transform; transform:translateZ(0); }
+    /* טאבלט — ביטול backdrop-filter כבד לשיפור גלילה */
+    @media (max-width: 1024px) and (pointer: coarse) {
+        .gp-music-btn, .gp-counter-el, .gp-arrow-btn { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: rgba(0,0,0,0.6) !important; }
+    }
 `;
 
 export default function GalleryPreview() {
@@ -130,18 +138,18 @@ export default function GalleryPreview() {
 
                     <div style={s.counter}>{active + 1} / {items.length}</div>
 
-                    <button style={s.musicBtn} onClick={toggleMusic}
+                    <button style={s.musicBtn} className="gp-music-btn" onClick={toggleMusic}
                         aria-label={musicOn ? t('a11y_mute') : t('a11y_play_music')}>
                         {musicOn ? '🔊' : '🔇'}
                     </button>
 
                     {items.length > 1 && (
-                        <div className="gp-arrows" style={{ ...s.arrows, opacity: 0, transition: 'opacity 0.25s' }}>
-                            <button style={{ ...s.arrow, ...s.arrowRight }}
+                        <div className="gp-arrows" style={s.arrows}>
+                            <button style={{ ...s.arrow, ...s.arrowRight }} className="gp-arrow-btn"
                                 onClick={() => advance((active - 1 + items.length) % items.length)}
                                 aria-label={t('a11y_prev')}>›
                             </button>
-                            <button style={{ ...s.arrow, ...s.arrowLeft }}
+                            <button style={{ ...s.arrow, ...s.arrowLeft }} className="gp-arrow-btn"
                                 onClick={() => advance((active + 1) % items.length)}
                                 aria-label={t('a11y_next')}>‹
                             </button>
@@ -163,10 +171,13 @@ export default function GalleryPreview() {
                         {items.map((_, i) => (
                             <button
                                 key={i}
-                                style={{ ...s.dot, ...(i === active ? s.dotActive : {}) }}
+                                style={s.dotBtn}
                                 onClick={() => advance(i)}
                                 aria-label={`${t('a11y_goto_image')} ${i + 1}`}
-                            />
+                                aria-current={i === active ? 'true' : undefined}
+                            >
+                                <span style={{ ...s.dotInner, ...(i === active ? s.dotInnerActive : {}) }} />
+                            </button>
                         ))}
                     </div>
                 )}
@@ -183,8 +194,11 @@ const s = {
         padding: '80px 20px',
         fontFamily: "'Heebo', sans-serif",
         direction: 'inherit',
+        /* מניעת עיכוב גלילה בטאבלט */
+        WebkitOverflowScrolling: 'touch',
+        touchAction: 'pan-y',
     },
-    inner: { maxWidth: '860px', margin: '0 auto', textAlign: 'center' },
+    inner: { maxWidth: '1000px', margin: '0 auto', textAlign: 'center' },
     title: {
         fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, color: '#fbbf24',
         marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
@@ -195,8 +209,11 @@ const s = {
         borderRadius: '22px',
         overflow: 'hidden',
         boxShadow: '0 32px 80px rgba(0,0,0,0.65)',
-        aspectRatio: '16/10',
+        aspectRatio: '16/9',
         background: '#020810',
+        /* האצת GPU לגלילה חלקה */
+        transform: 'translateZ(0)',
+        willChange: 'transform',
     },
     vignette: {
         position: 'absolute', inset: 0,
@@ -213,16 +230,16 @@ const s = {
     musicBtn: {
         position: 'absolute', top: '12px', right: '14px',
         background: 'rgba(0,0,0,0.45)', border: 'none', color: '#fff',
-        width: '38px', height: '38px', borderRadius: '50%',
+        width: '44px', height: '44px', borderRadius: '50%',
         cursor: 'pointer', fontSize: '1.1rem', display: 'flex',
         alignItems: 'center', justifyContent: 'center',
         backdropFilter: 'blur(6px)', zIndex: 11,
     },
-    arrows: { position: 'absolute', inset: 0, zIndex: 11, pointerEvents: 'none' },
+    arrows: { position: 'absolute', inset: 0, zIndex: 11, pointerEvents: 'none', opacity: 0, transition: 'opacity 0.25s' },
     arrow: {
         position: 'absolute', top: '50%', transform: 'translateY(-50%)',
         background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.15)',
-        color: '#fff', fontSize: '2rem', width: '46px', height: '46px', borderRadius: '50%',
+        color: '#fff', fontSize: '2rem', width: '48px', height: '48px', borderRadius: '50%',
         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
         backdropFilter: 'blur(8px)', transition: 'background 0.2s', pointerEvents: 'all',
     },
@@ -238,14 +255,19 @@ const s = {
         borderRadius: '0 2px 2px 0',
     },
     dots: {
-        display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '16px', flexWrap: 'wrap',
+        display: 'flex', justifyContent: 'center', gap: '4px', marginTop: '16px', flexWrap: 'wrap',
     },
-    dot: {
-        width: '7px', height: '7px', borderRadius: '50%',
-        background: 'rgba(255,255,255,0.22)', border: 'none', cursor: 'pointer',
-        padding: 0, transition: 'background 0.3s, transform 0.3s, width 0.3s',
+    dotBtn: {
+        width: '44px', height: '44px', borderRadius: '50%',
+        background: 'transparent', border: 'none', cursor: 'pointer',
+        padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
     },
-    dotActive: { background: '#fbbf24', transform: 'scale(1.5)', width: '20px', borderRadius: '4px' },
+    dotInner: {
+        width: '8px', height: '8px', borderRadius: '50%',
+        background: 'rgba(255,255,255,0.22)', transition: 'background 0.3s, transform 0.3s, width 0.3s',
+        display: 'block',
+    },
+    dotInnerActive: { background: '#fbbf24', transform: 'scale(1.4)' },
     galleryBtn: {
         display: 'inline-block', marginTop: '30px',
         background: 'linear-gradient(135deg, #d4a017, #f0c040)',

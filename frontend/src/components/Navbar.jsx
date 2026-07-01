@@ -4,7 +4,9 @@ import Logo from './Logo';
 import { useLang } from '../contexts/LangContext';
 import { useT } from '../hooks/useT';
 
-const MOBILE_BREAKPOINT = 768;
+import { BP_MD } from '../breakpoints';
+
+const MOBILE_BREAKPOINT = BP_MD;
 
 const NAV_LINKS = [
     { to: '/',          key: 'nav_home',      icon: '🏠' },

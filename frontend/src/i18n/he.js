@@ -193,9 +193,17 @@ export default {
 
     // HelpPage
     help_paybox_btn: '💳 PayBox — תרמו עכשיו',
+    help_paypal_btn: '🌍 PayPal — תרומה בינלאומית',
+    help_bit_copy: 'העתק',
+    help_bit_copied: 'מספר Bit הועתק!',
+    help_bit_copy_fail: 'לא הצלחנו להעתיק — העתיקו ידנית',
+    help_payment_pending: 'פרטים יעודכנו בקרוב',
     help_bank_show: '🏦 הצג פרטי העברה בנקאית',
     help_bank_hide: '🏦 הסתר פרטי העברה בנקאית',
-    help_credit_soon: 'תשלום בכרטיס אשראי — בקרוב',
+    help_bank_name: 'בנק',
+    help_bank_branch: 'סניף',
+    help_bank_account: 'חשבון',
+    help_bank_holder: 'על שם',
     help_items_title: '🎁 תרומת ציוד חדש',
     help_items_subtitle: 'חדש בלבד — לא יד שנייה',
     help_contact_arrange: '📦 צרו קשר לתיאום איסוף',
