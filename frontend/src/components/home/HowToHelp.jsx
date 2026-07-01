@@ -1,21 +1,37 @@
 ﻿import { Link } from 'react-router-dom';
 import { useT } from '../../hooks/useT';
 
+const SHARE_URL = 'https://chasde-hamelech.org.il/';
+const SHARE_TEXT =
+    'מחלקים משחקים וספרים לילדים מאושפזים בבתי חולים ברחבי הארץ — אולי גם אתם יכולים לעזור!';
+
+function isMobile() {
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
 async function handleShare() {
-    const shareData = {
-        title: 'חסדי המלך',
-        text: 'מחלקים משחקים וספרים לילדים מאושפזים בבתי חולים ברחבי הארץ — אולי גם אתם יכולים לעזור!',
-        url: window.location.origin,
-    };
+    // WhatsApp shows link preview when the URL is on its own line — not via Web Share text+url
+    const message = `${SHARE_TEXT}\n\n${SHARE_URL}`;
+
+    if (isMobile()) {
+        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+        return;
+    }
+
     try {
         if (navigator.share) {
-            await navigator.share(shareData);
-        } else {
-            await navigator.clipboard.writeText(window.location.origin);
-            alert('הקישור הועתק ללוח!');
+            await navigator.share({ title: 'חסדי המלך', url: SHARE_URL });
+            return;
         }
     } catch {
-        // המשתמש ביטל
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(message);
+        alert('הטקסט והקישור הועתקו — הדביקו בוואטסאפ');
+    } catch {
+        prompt('העתיקו והדביקו בוואטסאפ:', message);
     }
 }
 
