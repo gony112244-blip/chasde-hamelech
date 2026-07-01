@@ -95,7 +95,7 @@ export default function AuthorCorner() {
                         <div style={s.imageWrap}>
                             <div style={s.bookCoverFrame}>
                                 <img
-                                    src="/book-cover.png?v=2"
+                                    src="/book-cover.png?v=4"
                                     alt='כריכת הספר "שר הצבא"'
                                     style={s.bookCoverImg}
                                     loading="eager"
@@ -193,13 +193,13 @@ const s = {
     },
     placeholderText: { fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' },
     bookCoverFrame: {
-        width: '200px',
-        height: '280px',
-        borderRadius: '12px',
-        border: '3px solid #fbbf24',
+        width: '150px',
+        height: '210px',
+        borderRadius: '24px',
+        border: '4px solid #fbbf24',
         overflow: 'hidden',
-        background: 'linear-gradient(145deg, rgba(255,255,255,0.08), rgba(0,0,0,0.35))',
-        boxShadow: '0 0 0 4px rgba(251,191,36,0.15), 0 12px 32px rgba(0,0,0,0.45)',
+        boxShadow: '0 0 0 6px rgba(251,191,36,0.12)',
+        background: 'rgba(0,0,0,0.2)',
     },
     bookCoverImg: {
         width: '100%',
@@ -207,7 +207,7 @@ const s = {
         objectFit: 'contain',
         objectPosition: 'center',
         display: 'block',
-        padding: '6px',
+        padding: '8px',
         boxSizing: 'border-box',
     },
     personName: { fontSize: '1.05rem', fontWeight: 700, color: '#fbbf24', margin: 0, textAlign: 'center' },
