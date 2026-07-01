@@ -2,6 +2,7 @@
 import { useT } from '../../hooks/useT';
 import { useLang } from '../../contexts/LangContext';
 import API_BASE from '../../config';
+import { HospitalIcon } from '../icons/StatIcons';
 
 const LOCALES = { he: 'he-IL', en: 'en-US', fr: 'fr-FR' };
 
@@ -74,7 +75,7 @@ export default function SmileCounter() {
 
     const STATS = [
         { icon: '😊', value: stats.children_count, labelKey: 'smile_children', suffix: '+' },
-        { icon: '🏥', value: stats.hospitals_count, labelKey: 'smile_hospitals', suffix: '' },
+        { icon: 'hospital', value: stats.hospitals_count, labelKey: 'smile_hospitals', suffix: '' },
         { icon: '📚', value: stats.books_count, labelKey: 'smile_books',     suffix: '+' },
         { icon: '🎮', value: stats.games_count, labelKey: 'smile_games',     suffix: '+' },
     ];
@@ -90,7 +91,11 @@ export default function SmileCounter() {
                 <div style={s.grid}>
                     {STATS.map((stat, i) => (
                         <div key={i} style={s.card}>
-                            <span style={s.cardIcon}>{stat.icon}</span>
+                            <span style={s.cardIcon}>
+                                {stat.icon === 'hospital'
+                                    ? <HospitalIcon size={40} />
+                                    : stat.icon}
+                            </span>
                             <AnimatedNumber target={stat.value} suffix={stat.suffix} />
                             <span style={s.label}>{t(stat.labelKey)}</span>
                         </div>
@@ -150,6 +155,10 @@ const s = {
     cardIcon: {
         fontSize: '2.5rem',
         lineHeight: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '2.5rem',
     },
     number: {
         fontSize: '2.4rem',
