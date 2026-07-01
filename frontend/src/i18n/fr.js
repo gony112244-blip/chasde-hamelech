@@ -176,7 +176,7 @@ export default {
     about_tl_2026: 'Chasde HaMelech devient un projet national — site web, bénévoles et croissance constante',
 
     // HowToHelp
-    how_title: '💝 Comment Pouvez-vous Aider?',
+    how_title: 'Comment Pouvez-vous Aider?',
     how_subtitle: 'Tout le monde peut faire la différence — vous aussi',
     how_donate_title: 'Don Monétaire',
     how_donate_desc: 'Chaque shekel devient un jeu ou un livre dans la main d\'un enfant hospitalisé',
@@ -209,11 +209,11 @@ export default {
     help_contact_arrange: '📦 Contactez-nous pour organiser la collecte',
 
     // AuthorCorner
-    author_friends_title: '👑 Amis du Terrain',
+    author_friends_title: 'Amis du Terrain',
     author_quote_david: 'Un enfant qui sourit — vaut tout',
     author_quote_avitar: 'Grâce à Dieu, je sors presque chaque semaine depuis — merci pour ce privilège',
     author_quote_gony: 'Quand un enfant malade sourit à un livre que j\'ai écrit — c\'est la plus grande victoire qui soit',
-    author_corner_label: '✍️ Coin de l\'Auteur',
+    author_corner_label: 'Coin de l\'Auteur',
     author_book_label: 'Le Livre "Sar HaTzava"',
     author_david_p1: 'Chasde HaMelech est né d\'une croyance simple: un enfant malade à l\'hôpital ne devrait pas se sentir seul. Il doit savoir que des gens pensent à lui, l\'aiment — même s\'ils ne l\'ont jamais rencontré.',
     author_david_p2: 'Depuis que nous avons commencé, nous avons rendu visite à des centaines d\'enfants dans des hôpitaux à travers le pays. Nous avons distribué des livres, des jeux, des sucreries — et surtout des sourires. Chaque visite est un monde entier pour l\'enfant et la famille.',

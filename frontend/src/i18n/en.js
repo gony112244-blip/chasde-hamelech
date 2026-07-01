@@ -176,7 +176,7 @@ export default {
     about_tl_2026: 'Chasde HaMelech becomes a national project — website, volunteers, and constant growth',
 
     // HowToHelp
-    how_title: '💝 How Can You Help?',
+    how_title: 'How Can You Help?',
     how_subtitle: 'Everyone can make a difference — including you',
     how_donate_title: 'Monetary Donation',
     how_donate_desc: 'Every shekel becomes a game or book in the hand of a hospitalized child',
@@ -209,11 +209,11 @@ export default {
     help_contact_arrange: '📦 Contact us to arrange pickup',
 
     // AuthorCorner
-    author_friends_title: '👑 Friends from the Field',
+    author_friends_title: 'Friends from the Field',
     author_quote_david: 'One child who smiles — is worth everything',
     author_quote_avitar: 'Thank God, I\'ve been going out almost every week since — thank you for the privilege',
     author_quote_gony: 'When a sick child smiles at a book I wrote — that\'s the greatest victory there is',
-    author_corner_label: '✍️ Author\'s Corner',
+    author_corner_label: "Author's Corner",
     author_book_label: 'The Book "Sar HaTzava"',
     author_david_p1: 'Chasde HaMelech was born from a simple belief: a sick child in a hospital should not feel alone. He needs to know that people are thinking of him, loving him — even if they\'ve never met him.',
     author_david_p2: 'Since we started, we\'ve visited hundreds of children in hospitals across the country. We distributed books, games, and sweets — but most importantly, smiles. Every visit is a whole world for the child and the family.',
