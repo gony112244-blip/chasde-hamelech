@@ -1330,6 +1330,20 @@ app.post('/api/translate', translateLimiter, async (req, res) => {
 
 // יצירת הטבלה בהפעלה ראשונה
 pool.query(`
+    CREATE TABLE IF NOT EXISTS donation_reports (
+        id          SERIAL PRIMARY KEY,
+        donor_name  TEXT DEFAULT '',
+        amount      NUMERIC(10,2),
+        method      TEXT DEFAULT 'other',
+        email       TEXT DEFAULT '',
+        phone       TEXT DEFAULT '',
+        note        TEXT DEFAULT '',
+        status      TEXT DEFAULT 'pending',
+        created_at  TIMESTAMPTZ DEFAULT NOW()
+    )
+`).catch(err => console.error('donation_reports table error:', err.message));
+
+pool.query(`
     CREATE TABLE IF NOT EXISTS monthly_reports (
         id            SERIAL PRIMARY KEY,
         month_year    TEXT NOT NULL UNIQUE,  -- פורמט: '2026-06'
@@ -1397,7 +1411,7 @@ app.delete('/api/admin/monthly-reports/:id', adminAuth, async (req, res) => {
 // =====================
 
 // הגשת דיווח תרומה על ידי תורם (ציבורי)
-app.post('/api/donation-report', async (req, res) => {
+app.post('/api/donation-report', formLimiter, async (req, res) => {
     const { donor_name, amount, method, email, phone, note } = req.body;
     if (tooLong(req.body, { donor_name: 100, email: 150, phone: 30, note: 1000 })) {
         return res.status(400).json({ error: 'אחד השדות ארוך מדי' });
@@ -1445,24 +1459,32 @@ app.get('/api/admin/donation-reports', adminAuth, async (req, res) => {
 // אישור/דחייה + שליחת תודה (Admin)
 app.put('/api/admin/donation-reports/:id', adminAuth, async (req, res) => {
     const { id } = req.params;
-    const { status } = req.body; // 'approved' | 'rejected'
+    const { status } = req.body;
+    const reportId = parseInt(id, 10);
+    if (!Number.isFinite(reportId) || reportId <= 0) {
+        return res.status(400).json({ error: 'מזהה לא תקין' });
+    }
     if (!['approved', 'rejected', 'pending'].includes(status)) {
         return res.status(400).json({ error: 'סטטוס לא תקין' });
     }
     try {
+        const prev = await pool.query('SELECT status FROM donation_reports WHERE id=$1', [reportId]);
+        if (!prev.rows.length) return res.status(404).json({ error: 'לא נמצא' });
+        const oldStatus = prev.rows[0].status;
+
         const result = await pool.query(
             'UPDATE donation_reports SET status=$1 WHERE id=$2 RETURNING *',
-            [status, id]
+            [status, reportId]
         );
-        if (!result.rows.length) return res.status(404).json({ error: 'לא נמצא' });
         const report = result.rows[0];
+        const donationNote = `דיווח #${reportId}`;
 
-        // אם אושר — רושמים בטבלת donations + שולחים מייל תודה
-        if (status === 'approved') {
+        // אישור ראשון בלבד — מונע כפילות תרומות ומיילים
+        if (status === 'approved' && oldStatus !== 'approved') {
             if (report.amount) {
                 await pool.query(
                     'INSERT INTO donations (donor_name, amount, method, note) VALUES ($1,$2,$3,$4)',
-                    [report.donor_name || 'אנונימי', report.amount, report.method, `דיווח #${id}`]
+                    [report.donor_name || 'אנונימי', report.amount, report.method, donationNote]
                 );
             }
             if (report.email) {
@@ -1472,6 +1494,11 @@ app.put('/api/admin/donation-reports/:id', adminAuth, async (req, res) => {
                     emailDonorThanks(report.donor_name, report.amount, report.method)
                 );
             }
+        }
+
+        // ביטול אישור — מסיר את הרישום מטבלת donations
+        if (status === 'pending' && oldStatus === 'approved') {
+            await pool.query('DELETE FROM donations WHERE note = $1', [donationNote]);
         }
 
         res.json({ ok: true, report });

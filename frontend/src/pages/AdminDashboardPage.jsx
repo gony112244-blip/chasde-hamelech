@@ -53,6 +53,10 @@ function useAdminFetch(path, token) {
                 return;
             }
             const json = await res.json();
+            if (!res.ok) {
+                setData(null);
+                return;
+            }
             setData(json);
         } catch {
             setData([]);
@@ -322,12 +326,17 @@ function ThankYouTab({ token }) {
     const [filter, setFilter] = useState('all');
 
     async function setStatus(id, status) {
-        await fetch(`${API_BASE}/api/admin/thank-you/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ status }),
-        });
-        reload();
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/thank-you/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ status }),
+            });
+            if (!res.ok) throw new Error();
+            reload();
+        } catch {
+            alert('שגיאה בעדכון הסטטוס');
+        }
     }
 
     async function deleteNote(id) {
@@ -458,14 +467,16 @@ function DonationReportsTab({ token }) {
     const [filter, setFilter] = useState('pending');
     const [actioning, setActioning] = useState(null);
 
+    const reports = Array.isArray(data) ? data : [];
+
     const METHOD_LABEL = { bit: 'Bit', paybox: 'PayBox', paypal: 'PayPal', bank: 'העברה', other: 'אחר' };
     const STATUS_LABEL = { pending: '⏳ ממתין', approved: '✅ אושר', rejected: '❌ נדחה' };
 
     const counts = {
-        all: (data || []).length,
-        pending: (data || []).filter(r => r.status === 'pending').length,
-        approved: (data || []).filter(r => r.status === 'approved').length,
-        rejected: (data || []).filter(r => r.status === 'rejected').length,
+        all: reports.length,
+        pending: reports.filter(r => r.status === 'pending').length,
+        approved: reports.filter(r => r.status === 'approved').length,
+        rejected: reports.filter(r => r.status === 'rejected').length,
     };
     const FILTERS = [
         { key: 'pending', label: 'ממתינות' },
@@ -473,7 +484,7 @@ function DonationReportsTab({ token }) {
         { key: 'approved', label: 'אושרו' },
         { key: 'rejected', label: 'נדחו' },
     ];
-    const filtered = filter === 'all' ? (data || []) : (data || []).filter(r => r.status === filter);
+    const filtered = filter === 'all' ? reports : reports.filter(r => r.status === filter);
 
     async function setStatus(id, status) {
         setActioning(id);
@@ -506,6 +517,7 @@ function DonationReportsTab({ token }) {
     }
 
     if (loading) return <Spinner />;
+    if (!Array.isArray(data)) return <Empty text="שגיאה בטעינת דיווחי תרומות — נסו לרענן" />;
 
     return (
         <div>

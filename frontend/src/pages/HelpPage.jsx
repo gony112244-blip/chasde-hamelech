@@ -16,14 +16,6 @@ const ITEMS_NEEDED = [
     { icon: '🧩', name: 'פאזלים', desc: 'חדש בלבד · לגילאי 3–10' },
 ];
 
-const METHOD_LABELS = {
-    paybox: 'PayBox',
-    bit: 'Bit',
-    paypal: 'PayPal',
-    bank: 'העברה בנקאית',
-    other: 'אחר',
-};
-
 function hasBankDetails(bank) {
     return !!(bank.name && bank.branch && bank.account);
 }
@@ -36,6 +28,10 @@ function DonationReportForm({ defaultMethod, onClose }) {
     const [sending, setSending] = useState(false);
     const [done, setDone] = useState(false);
     const [err, setErr] = useState('');
+
+    useEffect(() => {
+        setForm(f => ({ ...f, method: defaultMethod || 'other' }));
+    }, [defaultMethod]);
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -167,7 +163,12 @@ export default function HelpPage() {
             .then(() => {
                 toast.success(t('help_bit_copied'));
                 setReportMethod('bit');
-                setTimeout(() => setShowReportForm(true), 800);
+                setTimeout(() => {
+                    setShowReportForm(true);
+                    setTimeout(() => {
+                        document.getElementById('donation-report-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                }, 800);
             })
             .catch(() => toast.error(t('help_bit_copy_fail')));
     }
@@ -244,7 +245,13 @@ export default function HelpPage() {
 
                         <button
                             style={s.bankToggle}
-                            onClick={() => setShowBank(v => !v)}
+                            onClick={() => {
+                                setShowBank(v => {
+                                    const next = !v;
+                                    if (next) setReportMethod('bank');
+                                    return next;
+                                });
+                            }}
                         >
                             {showBank ? t('help_bank_hide') : t('help_bank_show')}
                         </button>
