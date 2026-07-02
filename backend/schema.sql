@@ -125,6 +125,19 @@ CREATE TABLE IF NOT EXISTS activity_log (
 -- מעקב הורדות עלון
 ALTER TABLE newsletters ADD COLUMN IF NOT EXISTS downloads INTEGER DEFAULT 0;
 
+-- דיווחי תרומות (ממתינים לאישור מנהל)
+CREATE TABLE IF NOT EXISTS donation_reports (
+    id          SERIAL PRIMARY KEY,
+    donor_name  TEXT DEFAULT '',
+    amount      NUMERIC(10,2),
+    method      TEXT DEFAULT 'other',  -- bit | paybox | paypal | bank | other
+    email       TEXT DEFAULT '',
+    phone       TEXT DEFAULT '',
+    note        TEXT DEFAULT '',
+    status      TEXT DEFAULT 'pending', -- pending | approved | rejected
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- מטמון תרגומים (DeepL)
 CREATE TABLE IF NOT EXISTS translations (
     id              SERIAL PRIMARY KEY,

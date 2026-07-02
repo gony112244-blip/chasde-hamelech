@@ -303,6 +303,33 @@ function emailThankYouApproved(name) {
         </div>
     `;
 }
+
+function emailDonorThanks(name, amount, method) {
+    const who = name?.trim() ? escapeHtml(name) : 'תורם/ת יקר/ה';
+    const methodLabel = { bit: 'Bit', paybox: 'PayBox', paypal: 'PayPal', bank: 'העברה בנקאית', other: 'תשלום' };
+    const methodStr = methodLabel[method] || 'תשלום';
+    const amountStr = amount ? `₪${parseFloat(amount).toLocaleString('he-IL')}` : '';
+    return `
+        <h2 style="color:#1e3a8a;margin-top:0;">תודה רבה על תרומתך, ${who}! 💛</h2>
+        <p style="font-size:16px;line-height:1.6;color:#4b5563;">
+            קיבלנו את דיווח התרומה שלך${amountStr ? ` על סך <strong>${amountStr}</strong>` : ''} דרך <strong>${methodStr}</strong> — ואנו מודים לך מעומק הלב!
+        </p>
+        <p style="font-size:16px;line-height:1.6;color:#4b5563;">
+            בזכותך, ילדים מאושפזים יזכו לקבל משחקים, ספרים וחיוכים שיאירו את ימיהם הקשים.
+        </p>
+        <div style="margin:24px 0;padding:18px 20px;background:#eff6ff;border-right:4px solid #3b82f6;border-radius:6px;">
+            <p style="margin:0;color:#1e40af;font-weight:600;font-size:15px;">
+                כל שקל מגיע ישירות לידי הילדים — ללא עלויות ניהול.
+            </p>
+        </div>
+        <p style="font-size:16px;line-height:1.6;color:#4b5563;">
+            תרומתך נרשמה במערכת שלנו. תודה שבחרת להיות חלק ממשפחת חסדי המלך!
+        </p>
+        <div style="text-align:center;margin:32px 0;">
+            <a href="${SITE_URL}/thank-you" style="background-color:#1e3a8a;color:white;padding:12px 28px;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px;display:inline-block;">קיר התודה שלנו</a>
+        </div>
+    `;
+}
 // אימות קלט בסיסי לטפסים ציבוריים
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function isValidEmail(email) {
@@ -1350,6 +1377,107 @@ app.post('/api/admin/monthly-reports', adminAuth, async (req, res) => {
 app.delete('/api/admin/monthly-reports/:id', adminAuth, async (req, res) => {
     try {
         await pool.query('DELETE FROM monthly_reports WHERE id=$1', [req.params.id]);
+        res.json({ ok: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'שגיאת שרת' });
+    }
+});
+
+// =====================
+// דיווחי תרומות — טופס ציבורי (POST) + ניהול (GET/PUT/DELETE)
+// =====================
+
+// הגשת דיווח תרומה על ידי תורם (ציבורי)
+app.post('/api/donation-report', async (req, res) => {
+    const { donor_name, amount, method, email, phone, note } = req.body;
+    if (tooLong(req.body, { donor_name: 100, email: 150, phone: 30, note: 1000 })) {
+        return res.status(400).json({ error: 'אחד השדות ארוך מדי' });
+    }
+    if (email?.trim() && !isValidEmail(email)) {
+        return res.status(400).json({ error: 'כתובת מייל לא תקינה' });
+    }
+    const amt = amount ? parseFloat(amount) : null;
+    if (amount && (!Number.isFinite(amt) || amt <= 0)) {
+        return res.status(400).json({ error: 'סכום לא תקין' });
+    }
+    const validMethods = ['bit', 'paybox', 'paypal', 'bank', 'other'];
+    const safeMethod = validMethods.includes(method) ? method : 'other';
+    try {
+        await pool.query(
+            'INSERT INTO donation_reports (donor_name, amount, method, email, phone, note) VALUES ($1,$2,$3,$4,$5,$6)',
+            [donor_name?.trim() || '', amt, safeMethod, email?.trim() || '', phone?.trim() || '', note?.trim() || '']
+        );
+        notifyChannels('💰 דיווח תרומה חדש', [
+            ['שם', donor_name?.trim()],
+            ['סכום', amt ? `₪${amt}` : 'לא צוין'],
+            ['אמצעי', safeMethod],
+            ['מייל', email?.trim()],
+            ['טלפון', phone?.trim()],
+            ['הערה', note?.trim()],
+        ]);
+        res.status(201).json({ ok: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'שגיאת שרת' });
+    }
+});
+
+// רשימת דיווחי תרומות (Admin)
+app.get('/api/admin/donation-reports', adminAuth, async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM donation_reports ORDER BY created_at DESC');
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'שגיאת שרת' });
+    }
+});
+
+// אישור/דחייה + שליחת תודה (Admin)
+app.put('/api/admin/donation-reports/:id', adminAuth, async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body; // 'approved' | 'rejected'
+    if (!['approved', 'rejected', 'pending'].includes(status)) {
+        return res.status(400).json({ error: 'סטטוס לא תקין' });
+    }
+    try {
+        const result = await pool.query(
+            'UPDATE donation_reports SET status=$1 WHERE id=$2 RETURNING *',
+            [status, id]
+        );
+        if (!result.rows.length) return res.status(404).json({ error: 'לא נמצא' });
+        const report = result.rows[0];
+
+        // אם אושר — רושמים בטבלת donations + שולחים מייל תודה
+        if (status === 'approved') {
+            if (report.amount) {
+                await pool.query(
+                    'INSERT INTO donations (donor_name, amount, method, note) VALUES ($1,$2,$3,$4)',
+                    [report.donor_name || 'אנונימי', report.amount, report.method, `דיווח #${id}`]
+                );
+            }
+            if (report.email) {
+                sendUserEmail(
+                    report.email,
+                    'תודה על תרומתך לחסדי המלך! 💛',
+                    emailDonorThanks(report.donor_name, report.amount, report.method)
+                );
+            }
+        }
+
+        res.json({ ok: true, report });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'שגיאת שרת' });
+    }
+});
+
+// מחיקת דיווח תרומה (Admin)
+app.delete('/api/admin/donation-reports/:id', adminAuth, async (req, res) => {
+    try {
+        const result = await pool.query('DELETE FROM donation_reports WHERE id=$1 RETURNING id', [req.params.id]);
+        if (!result.rows.length) return res.status(404).json({ error: 'לא נמצא' });
         res.json({ ok: true });
     } catch (err) {
         console.error(err);

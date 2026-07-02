@@ -26,13 +26,14 @@ function WhatsAppButton({ phone }) {
 }
 
 const TABS = [
-    { id: 'contacts',      label: 'פניות',        icon: '✉️' },
-    { id: 'volunteers',    label: 'מתנדבים',      icon: '🙋' },
-    { id: 'thankyou',      label: 'הודעות תודה',  icon: '💌' },
-    { id: 'stats',         label: 'סטטיסטיקות',   icon: '📊' },
-    { id: 'media',         label: 'מדיה וגלריה',   icon: '🖼️' },
-    { id: 'newsletter',    label: 'עלון השבוע',    icon: '📖' },
-    { id: 'transparency',  label: 'שקיפות',        icon: '🔍' },
+    { id: 'contacts',         label: 'פניות',          icon: '✉️' },
+    { id: 'volunteers',       label: 'מתנדבים',        icon: '🙋' },
+    { id: 'thankyou',         label: 'הודעות תודה',    icon: '💌' },
+    { id: 'donationreports',  label: 'דיווחי תרומות',  icon: '💰' },
+    { id: 'stats',            label: 'סטטיסטיקות',     icon: '📊' },
+    { id: 'media',            label: 'מדיה וגלריה',     icon: '🖼️' },
+    { id: 'newsletter',       label: 'עלון השבוע',      icon: '📖' },
+    { id: 'transparency',     label: 'שקיפות',          icon: '🔍' },
 ];
 
 function useAdminFetch(path, token) {
@@ -447,6 +448,135 @@ function ThankYouTab({ token }) {
                     </tbody>
                 </table>
             </div>
+        </div>
+    );
+}
+
+// ─── Tab: דיווחי תרומות ────────────────────────────────────
+function DonationReportsTab({ token }) {
+    const { data, loading, reload } = useAdminFetch('/api/admin/donation-reports', token);
+    const [filter, setFilter] = useState('pending');
+    const [actioning, setActioning] = useState(null);
+
+    const METHOD_LABEL = { bit: 'Bit', paybox: 'PayBox', paypal: 'PayPal', bank: 'העברה', other: 'אחר' };
+    const STATUS_LABEL = { pending: '⏳ ממתין', approved: '✅ אושר', rejected: '❌ נדחה' };
+
+    const counts = {
+        all: (data || []).length,
+        pending: (data || []).filter(r => r.status === 'pending').length,
+        approved: (data || []).filter(r => r.status === 'approved').length,
+        rejected: (data || []).filter(r => r.status === 'rejected').length,
+    };
+    const FILTERS = [
+        { key: 'pending', label: 'ממתינות' },
+        { key: 'all', label: 'הכל' },
+        { key: 'approved', label: 'אושרו' },
+        { key: 'rejected', label: 'נדחו' },
+    ];
+    const filtered = filter === 'all' ? (data || []) : (data || []).filter(r => r.status === filter);
+
+    async function setStatus(id, status) {
+        setActioning(id);
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/donation-reports/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ status }),
+            });
+            if (!res.ok) throw new Error();
+            reload();
+        } catch {
+            alert('שגיאה בעדכון הסטטוס');
+        } finally {
+            setActioning(null);
+        }
+    }
+
+    async function deleteReport(id) {
+        if (!window.confirm('למחוק דיווח זה?')) return;
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/donation-reports/${id}`, {
+                method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error();
+            reload();
+        } catch {
+            alert('שגיאה במחיקה');
+        }
+    }
+
+    if (loading) return <Spinner />;
+
+    return (
+        <div>
+            <div style={{ marginBottom: '8px', color: '#64748b', fontSize: '0.88rem' }}>
+                כאשר מאשרים דיווח — הסכום נרשם אוטומטית בטאב הסטטיסטיקות, ומייל תודה נשלח לתורם (אם הזין מייל).
+            </div>
+            <div style={s.tyFilters}>
+                {FILTERS.map(f => (
+                    <button key={f.key} type="button"
+                        style={{ ...s.tyFilterBtn, ...(filter === f.key ? s.tyFilterBtnActive : {}) }}
+                        onClick={() => setFilter(f.key)}>
+                        {f.label} ({counts[f.key]})
+                    </button>
+                ))}
+            </div>
+            {filtered.length === 0 ? (
+                <Empty text={filter === 'pending' ? 'אין דיווחים ממתינים' : 'אין דיווחים'} />
+            ) : (
+                <div style={s.tyTableWrap}>
+                    <table style={s.tyTable}>
+                        <thead>
+                            <tr>
+                                <th style={s.tyTh}>סטטוס</th>
+                                <th style={s.tyTh}>שם</th>
+                                <th style={s.tyTh}>סכום</th>
+                                <th style={s.tyTh}>אמצעי</th>
+                                <th style={s.tyTh}>מייל</th>
+                                <th style={s.tyTh}>טלפון</th>
+                                <th style={s.tyTh}>הערה</th>
+                                <th style={s.tyTh}>תאריך</th>
+                                <th style={s.tyTh}>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filtered.map(r => (
+                                <tr key={r.id} style={s.tyRow}>
+                                    <td style={s.tyTd}>{STATUS_LABEL[r.status] || r.status}</td>
+                                    <td style={s.tyTd}>{r.donor_name || '—'}</td>
+                                    <td style={s.tyTd}>{r.amount ? `₪${parseFloat(r.amount).toLocaleString('he-IL')}` : '—'}</td>
+                                    <td style={s.tyTd}>{METHOD_LABEL[r.method] || r.method}</td>
+                                    <td style={{ ...s.tyTd, ...s.tyMsgCell }}>{r.email || '—'}</td>
+                                    <td style={s.tyTd}>{r.phone || '—'}</td>
+                                    <td style={{ ...s.tyTd, ...s.tyMsgCell }} title={r.note}>{r.note ? (r.note.length > 50 ? r.note.slice(0, 50) + '…' : r.note) : '—'}</td>
+                                    <td style={{ ...s.tyTd, ...s.tyDateCell }}>{fmt(r.created_at)}</td>
+                                    <td style={s.tyTd}>
+                                        <div style={s.tyActions}>
+                                            {r.status === 'pending' && (
+                                                <>
+                                                    <button style={s.approveBtn} disabled={actioning === r.id}
+                                                        onClick={() => setStatus(r.id, 'approved')}>
+                                                        {actioning === r.id ? '...' : '✅ אשר + תודה'}
+                                                    </button>
+                                                    <button style={s.rejectBtn} disabled={actioning === r.id}
+                                                        onClick={() => setStatus(r.id, 'rejected')}>❌ דחה</button>
+                                                </>
+                                            )}
+                                            {r.status === 'approved' && (
+                                                <button style={s.rejectBtn} onClick={() => setStatus(r.id, 'pending')}>↩️ בטל</button>
+                                            )}
+                                            {r.status === 'rejected' && (
+                                                <button style={s.approveBtn} onClick={() => setStatus(r.id, 'pending')}>↩️ שחזר</button>
+                                            )}
+                                            <button style={s.rejectBtn} onClick={() => deleteReport(r.id)}>🗑️ מחק</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
         </div>
     );
 }
@@ -1359,13 +1489,14 @@ export default function AdminDashboardPage() {
             </div>
 
             <div style={s.content}>
-                {tab === 'contacts'      && <ContactsTab      token={token} />}
-                {tab === 'volunteers'    && <VolunteersTab     token={token} />}
-                {tab === 'thankyou'      && <ThankYouTab       token={token} />}
-                {tab === 'stats'         && <StatsTab          token={token} />}
-                {tab === 'media'         && <MediaTab          token={token} />}
-                {tab === 'newsletter'    && <NewsletterTab      token={token} />}
-                {tab === 'transparency'  && <TransparencyTab   token={token} />}
+                {tab === 'contacts'        && <ContactsTab        token={token} />}
+                {tab === 'volunteers'      && <VolunteersTab       token={token} />}
+                {tab === 'thankyou'        && <ThankYouTab         token={token} />}
+                {tab === 'donationreports' && <DonationReportsTab  token={token} />}
+                {tab === 'stats'           && <StatsTab            token={token} />}
+                {tab === 'media'           && <MediaTab            token={token} />}
+                {tab === 'newsletter'      && <NewsletterTab       token={token} />}
+                {tab === 'transparency'    && <TransparencyTab     token={token} />}
             </div>
         </div>
     );
