@@ -54,6 +54,8 @@ const s = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        width: '100%',
+        maxWidth: '100%',
         minHeight: 'calc(100dvh - 64px)',
         background: 'linear-gradient(165deg, #0f2044 0%, #1a3460 25%, #071530 65%, #2e0a66 100%)',
         color: '#fff',
@@ -62,6 +64,7 @@ const s = {
         padding: '60px 20px 40px',
         textAlign: 'center',
         overflow: 'hidden',
+        boxSizing: 'border-box',
     },
     orb1: {
         position: 'absolute',
@@ -188,6 +191,8 @@ const s = {
         cursor: 'pointer',
         letterSpacing: '0.3px',
         transition: 'background 0.2s',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
     },
     activityPulse: {
         width: '8px',

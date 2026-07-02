@@ -32,11 +32,11 @@ function Layout() {
     const isAdmin = location.pathname.startsWith('/admin');
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', maxWidth: '100%', overflowX: 'clip' }}>
             <SecretAdminTrigger />
             <a href="#main-content" className="skip-to-content">{t('a11y_skip_to_content')}</a>
             {!isQR && !isAdmin && <Navbar />}
-            <main id="main-content" style={{ flex: 1 }}>
+            <main id="main-content" style={{ flex: 1, width: '100%', maxWidth: '100%', overflowX: 'clip' }}>
                 <Routes>
                     <Route path="/"                  element={<HomePage />} />
                     <Route path="/gallery"            element={<GalleryPage />} />

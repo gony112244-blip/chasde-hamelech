@@ -107,18 +107,21 @@ export default function Navbar() {
                 transform: hidden && !menuOpen ? 'translateY(-100%)' : 'translateY(0)',
                 boxShadow: scrolled ? '0 4px 20px rgba(0,0,0,0.25)' : 'none',
             }} role="navigation" aria-label="ניווט ראשי">
-                <div style={{
-                    ...s.inner,
-                    ...(lang === 'he' ? { paddingRight: '54px' } : {}),
-                }}>
-                    {lang === 'he' && (
-                        <span style={s.bsdCorner} aria-label='בס"ד'>
-                            בס״ד
-                        </span>
-                    )}
+                {lang === 'he' && (
+                    <span
+                        style={{
+                            ...s.bsdCorner,
+                            ...(isMobile ? { left: '12px', right: 'auto' } : { right: '12px', left: 'auto' }),
+                        }}
+                        aria-label='בס"ד'
+                    >
+                        בס״ד
+                    </span>
+                )}
+                <div style={s.inner}>
                     {/* לוגו */}
                     <Link to="/" style={s.logoLink} aria-label="חסדי המלך — דף הבית" onClick={handleLogoTap}>
-                        <Logo size={36} showText={true} />
+                        <Logo size={36} showText={!isMobile} />
                     </Link>
 
                     {/* קישורים — דסקטופ בלבד */}
@@ -229,11 +232,15 @@ const s = {
         fontFamily: "'Heebo', sans-serif",
         position: 'sticky',
         top: 0,
+        width: '100%',
+        maxWidth: '100%',
+        overflow: 'hidden',
         transition: 'transform 0.35s ease, box-shadow 0.3s ease',
         willChange: 'transform',
     },
     inner: {
         position: 'relative',
+        width: '100%',
         maxWidth: '1100px',
         margin: '0 auto',
         padding: '0 20px',
@@ -241,12 +248,12 @@ const s = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '16px',
+        gap: '12px',
+        minWidth: 0,
     },
     bsdCorner: {
         position: 'absolute',
         top: '7px',
-        right: '12px',
         color: 'rgba(251, 191, 36, 0.82)',
         fontSize: '0.68rem',
         fontWeight: 600,
@@ -255,9 +262,9 @@ const s = {
         lineHeight: 1,
         pointerEvents: 'none',
         userSelect: 'none',
-        zIndex: 1,
+        zIndex: 2,
     },
-    logoLink: { textDecoration: 'none', flexShrink: 0 },
+    logoLink: { textDecoration: 'none', flexShrink: 1, minWidth: 0 },
 
     desktopLinks: {
         display: 'flex',
