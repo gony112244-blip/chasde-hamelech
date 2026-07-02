@@ -232,7 +232,7 @@ export default function HelpPage() {
                             )}
                         </div>
 
-                        {paypalLink && (
+                        {paypalLink ? (
                             <a
                                 href={paypalLink}
                                 style={s.paypalBtn}
@@ -241,6 +241,14 @@ export default function HelpPage() {
                             >
                                 {t('help_paypal_btn')}
                             </a>
+                        ) : (
+                            <div style={s.payOption}>
+                                <span style={s.payOptionIcon}>🌍</span>
+                                <div style={{ flex: 1, textAlign: 'inherit' }}>
+                                    <strong style={s.payOptionLabel}>PayPal</strong>
+                                    <span style={s.payOptionPending}>{t('help_payment_pending')}</span>
+                                </div>
+                            </div>
                         )}
 
                         <button
