@@ -423,11 +423,19 @@ function passwordMatches(input) {
     return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-// הגבלת ניסיונות כניסה — מונע ניחוש סיסמה (brute-force)
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
     message: { error: 'יותר מדי נסיונות כניסה. נסו שוב בעוד 15 דקות.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// הגבלת שליחת טפסים למניעת ספאם במייל ובבסיס הנתונים
+const formLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // שעה אחת
+    max: 10, // מקסימום 10 שליחות בשעה לכל IP
+    message: { error: 'חרגת ממכסת שליחת הטפסים לשעה זו. אנא נסה שוב מאוחר יותר.' },
     standardHeaders: true,
     legacyHeaders: false,
 });
@@ -471,7 +479,7 @@ app.get('/api/thank-you', async (req, res) => {
 });
 
 // קיר תודה — הגשה חדשה (multipart: תומך בתמונות אופציונליות)
-app.post('/api/thank-you', uploadPhoto.single('photo'), async (req, res) => {
+app.post('/api/thank-you', formLimiter, uploadPhoto.single('photo'), async (req, res) => {
     const { name, message, email, hospital } = req.body;
     if (!message?.trim()) {
         return res.status(400).json({ error: 'הודעה היא שדה חובה' });
@@ -520,7 +528,7 @@ app.post('/api/thank-you', uploadPhoto.single('photo'), async (req, res) => {
 });
 
 // צור קשר
-app.post('/api/contact', async (req, res) => {
+app.post('/api/contact', formLimiter, async (req, res) => {
     const { name, phone, email, message, isTech } = req.body;
     if (!name?.trim() || !message?.trim()) {
         return res.status(400).json({ error: 'שם והודעה הם שדות חובה' });
@@ -567,7 +575,7 @@ app.post('/api/contact', async (req, res) => {
 });
 
 // מתנדבים
-app.post('/api/volunteer', async (req, res) => {
+app.post('/api/volunteer', formLimiter, async (req, res) => {
     const { name, phone, email, city, hasCar, message } = req.body;
     if (!name?.trim() || !phone?.trim() || !city?.trim()) {
         return res.status(400).json({ error: 'שם, טלפון ועיר הם שדות חובה' });
