@@ -2,6 +2,29 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API_BASE, { UPLOADS_BASE } from '../config';
 
+const WHATSAPP_ENABLED = false;
+
+function WhatsAppButton({ phone }) {
+    if (WHATSAPP_ENABLED && phone) {
+        const num = phone.replace(/^0/, '').replace(/[-\s]/g, '');
+        return (
+            <a
+                href={`https://wa.me/972${num}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={s.waBtn}
+            >
+                💬 WhatsApp
+            </a>
+        );
+    }
+    return (
+        <button type="button" disabled style={s.waBtnDisabled} title="WhatsApp — יחובר בהמשך">
+            💬 WhatsApp
+        </button>
+    );
+}
+
 const TABS = [
     { id: 'contacts',      label: 'פניות',        icon: '✉️' },
     { id: 'volunteers',    label: 'מתנדבים',      icon: '🙋' },
@@ -135,15 +158,7 @@ function ContactsTab({ token }) {
                                 )}
                             </>
                         )}
-                        {c.phone && (
-                            <a
-                                href={`https://wa.me/972${c.phone.replace(/^0/, '').replace(/[-\s]/g, '')}`}
-                                target="_blank" rel="noopener noreferrer"
-                                style={s.waBtn}
-                            >
-                                💬 WhatsApp
-                            </a>
-                        )}
+                        {c.phone && <WhatsAppButton phone={c.phone} />}
                         <button style={s.rejectBtn} onClick={() => deleteContact(c.id)}>🗑️ מחק</button>
                     </div>
                 </div>
@@ -158,6 +173,45 @@ function VolunteersTab({ token }) {
     const [editNotes, setEditNotes] = useState(null);
     const [noteText, setNoteText] = useState('');
     const [savingNote, setSavingNote] = useState(false);
+    const [addForm, setAddForm] = useState({
+        name: '', phone: '', email: '', city: '', has_car: false, notes: '',
+    });
+    const [adding, setAdding] = useState(false);
+    const [addMsg, setAddMsg] = useState('');
+
+    async function addVolunteer(e) {
+        e.preventDefault();
+        if (!addForm.name.trim() || !addForm.phone.trim() || !addForm.city.trim()) {
+            setAddMsg('❌ שם, טלפון ועיר הם שדות חובה');
+            return;
+        }
+        setAdding(true);
+        setAddMsg('');
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/volunteers`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({
+                    name: addForm.name.trim(),
+                    phone: addForm.phone.trim(),
+                    email: addForm.email.trim(),
+                    city: addForm.city.trim(),
+                    has_car: addForm.has_car,
+                    notes: addForm.notes.trim(),
+                }),
+            });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.error || 'שגיאה');
+            setAddForm({ name: '', phone: '', email: '', city: '', has_car: false, notes: '' });
+            setAddMsg('✅ מתנדב נוסף');
+            reload();
+            setTimeout(() => setAddMsg(''), 2500);
+        } catch (err) {
+            setAddMsg('❌ ' + (err.message || 'שגיאה'));
+        } finally {
+            setAdding(false);
+        }
+    }
 
     async function deleteVolunteer(id) {
         if (!window.confirm('למחוק את המתנדב?')) return;
@@ -188,9 +242,33 @@ function VolunteersTab({ token }) {
     }
 
     if (loading) return <Spinner />;
-    if (!data?.length) return <Empty text="אין מתנדבים עדיין" />;
 
     return (
+        <div>
+            <h3 style={s.sectionTitle}>➕ הוספת מתנדב</h3>
+            {addMsg && <div style={s.flashMsg}>{addMsg}</div>}
+            <form onSubmit={addVolunteer} style={s.volunteerAddForm}>
+                <input style={s.volInput} placeholder="שם מלא *" value={addForm.name}
+                    onChange={e => setAddForm(f => ({ ...f, name: e.target.value }))} required />
+                <input style={s.volInput} placeholder="טלפון *" value={addForm.phone}
+                    onChange={e => setAddForm(f => ({ ...f, phone: e.target.value }))} required />
+                <input style={s.volInput} placeholder="עיר *" value={addForm.city}
+                    onChange={e => setAddForm(f => ({ ...f, city: e.target.value }))} required />
+                <input style={s.volInput} placeholder="מייל (אופציונלי)" value={addForm.email}
+                    onChange={e => setAddForm(f => ({ ...f, email: e.target.value }))} />
+                <label style={s.volCheckLabel}>
+                    <input type="checkbox" checked={addForm.has_car}
+                        onChange={e => setAddForm(f => ({ ...f, has_car: e.target.checked }))} />
+                    🚗 יש רכב
+                </label>
+                <input style={{ ...s.volInput, gridColumn: '1 / -1' }} placeholder="הערות (אופציונלי)"
+                    value={addForm.notes} onChange={e => setAddForm(f => ({ ...f, notes: e.target.value }))} />
+                <button type="submit" style={s.approveBtn} disabled={adding}>
+                    {adding ? 'מוסיף...' : '➕ הוסף מתנדב'}
+                </button>
+            </form>
+
+            {!data?.length ? <Empty text="אין מתנדבים עדיין" /> : (
         <div style={s.list}>
             {data.map(v => (
                 <div key={v.id} style={s.card}>
@@ -224,10 +302,7 @@ function VolunteersTab({ token }) {
                                 <button style={s.replyBtn} onClick={() => { setEditNotes(v.id); setNoteText(v.notes || ''); }}>
                                     📝 {v.notes ? 'ערוך הערה' : 'הוסף הערה'}
                                 </button>
-                                <a href={`https://wa.me/972${v.phone.replace(/^0/, '').replace(/[-\s]/g, '')}`}
-                                    target="_blank" rel="noopener noreferrer" style={s.waBtn}>
-                                    💬 WhatsApp
-                                </a>
+                                <WhatsAppButton phone={v.phone} />
                                 <button style={s.rejectBtn} onClick={() => deleteVolunteer(v.id)}>🗑️ מחק</button>
                             </div>
                         </>
@@ -235,12 +310,15 @@ function VolunteersTab({ token }) {
                 </div>
             ))}
         </div>
+            )}
+        </div>
     );
 }
 
 // ─── Tab: הודעות תודה ──────────────────────────────────────
 function ThankYouTab({ token }) {
     const { data, loading, reload } = useAdminFetch('/api/admin/thank-you', token);
+    const [filter, setFilter] = useState('all');
 
     async function setStatus(id, status) {
         await fetch(`${API_BASE}/api/admin/thank-you/${id}`, {
@@ -268,79 +346,107 @@ function ThankYouTab({ token }) {
     if (loading) return <Spinner />;
     if (!data?.length) return <Empty text="אין הודעות עדיין" />;
 
-    const pending  = data.filter(n => n.status === 'pending');
-    const approved = data.filter(n => n.status === 'approved');
-    const rejected = data.filter(n => n.status === 'rejected');
+    const counts = {
+        all: data.length,
+        pending: data.filter(n => n.status === 'pending').length,
+        approved: data.filter(n => n.status === 'approved').length,
+        rejected: data.filter(n => n.status === 'rejected').length,
+    };
+    const filtered = filter === 'all' ? data : data.filter(n => n.status === filter);
+
+    const statusLabel = (status) => {
+        if (status === 'pending') return '⏳ ממתינה';
+        if (status === 'approved') return '✅ מאושרת';
+        return '❌ נדחה';
+    };
+
+    const truncate = (text, len = 80) => {
+        if (!text) return '';
+        return text.length <= len ? text : text.slice(0, len) + '…';
+    };
+
+    const FILTERS = [
+        { key: 'all', label: 'הכל' },
+        { key: 'pending', label: 'ממתינות' },
+        { key: 'approved', label: 'מאושרות' },
+        { key: 'rejected', label: 'נדחו' },
+    ];
 
     return (
         <div>
-            {pending.length > 0 && (
-                <>
-                    <h3 style={s.groupTitle}>⏳ ממתינות לאישור ({pending.length})</h3>
-                    <div style={s.list}>
-                        {pending.map(n => (
-                            <div key={n.id} style={{ ...s.card, borderRight: '4px solid #f59e0b' }}>
-                                {n.photo_filename && (
-                                    <img src={`${UPLOADS_BASE}/${n.photo_filename}`}
-                                        alt="מכתב תודה" style={s.notePhoto} />
-                                )}
-                                <div style={s.cardTop}>
-                                    <strong style={s.name}>{n.display_name}</strong>
-                                    <span style={s.date}>{fmt(n.created_at)}</span>
-                                </div>
-                                <p style={s.msg}>{n.message}</p>
-                                <div style={s.actions}>
-                                    <button style={s.approveBtn} onClick={() => setStatus(n.id, 'approved')}>✅ אשר פרסום</button>
-                                    <button style={s.rejectBtn} onClick={() => setStatus(n.id, 'rejected')}>❌ דחה</button>
-                                    <button style={s.rejectBtn} onClick={() => deleteNote(n.id)}>🗑️ מחק</button>
-                                </div>
-                            </div>
+            <div style={s.tyFilters}>
+                {FILTERS.map(f => (
+                    <button
+                        key={f.key}
+                        type="button"
+                        style={{ ...s.tyFilterBtn, ...(filter === f.key ? s.tyFilterBtnActive : {}) }}
+                        onClick={() => setFilter(f.key)}
+                    >
+                        {f.label} ({counts[f.key]})
+                    </button>
+                ))}
+            </div>
+            <div style={s.tyTableWrap}>
+                <table style={s.tyTable}>
+                    <thead>
+                        <tr>
+                            <th style={s.tyTh}>סטטוס</th>
+                            <th style={s.tyTh}>שם</th>
+                            <th style={s.tyTh}>הודעה</th>
+                            <th style={s.tyTh}>בית חולים</th>
+                            <th style={s.tyTh}>תאריך</th>
+                            <th style={s.tyTh}>פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filtered.length === 0 ? (
+                            <tr>
+                                <td colSpan={6} style={s.tyEmptyCell}>אין הודעות בקטגוריה זו</td>
+                            </tr>
+                        ) : filtered.map(n => (
+                            <tr key={n.id} style={s.tyRow}>
+                                <td style={s.tyTd}>{statusLabel(n.status)}</td>
+                                <td style={s.tyTd}>
+                                    <div style={s.tyNameCell}>
+                                        {n.photo_filename ? (
+                                            <img
+                                                src={`${UPLOADS_BASE}/${n.photo_filename}`}
+                                                alt=""
+                                                style={s.tyThumb}
+                                            />
+                                        ) : (
+                                            <span style={s.tyNoPhoto}>📷</span>
+                                        )}
+                                        <span>{n.display_name}</span>
+                                    </div>
+                                </td>
+                                <td style={{ ...s.tyTd, ...s.tyMsgCell }} title={n.message}>
+                                    {truncate(n.message)}
+                                </td>
+                                <td style={s.tyTd}>{n.hospital || '—'}</td>
+                                <td style={{ ...s.tyTd, ...s.tyDateCell }}>{fmt(n.created_at)}</td>
+                                <td style={s.tyTd}>
+                                    <div style={s.tyActions}>
+                                        {n.status === 'pending' && (
+                                            <>
+                                                <button style={s.approveBtn} onClick={() => setStatus(n.id, 'approved')}>✅ אשר</button>
+                                                <button style={s.rejectBtn} onClick={() => setStatus(n.id, 'rejected')}>❌ דחה</button>
+                                            </>
+                                        )}
+                                        {n.status === 'approved' && (
+                                            <button style={s.rejectBtn} onClick={() => setStatus(n.id, 'rejected')}>↩️ בטל</button>
+                                        )}
+                                        {n.status === 'rejected' && (
+                                            <button style={s.approveBtn} onClick={() => setStatus(n.id, 'approved')}>↩️ שחזר</button>
+                                        )}
+                                        <button style={s.rejectBtn} onClick={() => deleteNote(n.id)}>🗑️ מחק</button>
+                                    </div>
+                                </td>
+                            </tr>
                         ))}
-                    </div>
-                </>
-            )}
-            {approved.length > 0 && (
-                <>
-                    <h3 style={{ ...s.groupTitle, marginTop: '24px' }}>✅ מאושרות ({approved.length})</h3>
-                    <div style={s.list}>
-                        {approved.map(n => (
-                            <div key={n.id} style={{ ...s.card, borderRight: '4px solid #10b981' }}>
-                                {n.photo_filename && (
-                                    <img src={`${UPLOADS_BASE}/${n.photo_filename}`}
-                                        alt="תמונה" style={s.notePhoto} />
-                                )}
-                                <div style={s.cardTop}>
-                                    <strong style={s.name}>{n.display_name}</strong>
-                                    <span style={s.date}>{fmt(n.created_at)}</span>
-                                </div>
-                                {n.hospital && <div style={s.meta}><span>🏥 {n.hospital}</span></div>}
-                                <p style={s.msg}>{n.message}</p>
-                                <div style={s.actions}>
-                                    <button style={s.rejectBtn} onClick={() => setStatus(n.id, 'rejected')}>↩️ בטל אישור</button>
-                                    <button style={s.rejectBtn} onClick={() => deleteNote(n.id)}>🗑️ מחק</button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </>
-            )}
-            {rejected.length > 0 && (
-                <>
-                    <h3 style={{ ...s.groupTitle, marginTop: '24px', color: '#ef4444' }}>❌ נדחו ({rejected.length})</h3>
-                    <div style={s.list}>
-                        {rejected.map(n => (
-                            <div key={n.id} style={{ ...s.card, borderRight: '4px solid #fca5a5', opacity: 0.7 }}>
-                                <div style={s.cardTop}>
-                                    <strong style={s.name}>{n.display_name}</strong>
-                                    <span style={s.date}>{fmt(n.created_at)}</span>
-                                </div>
-                                <p style={s.msg}>{n.message}</p>
-                                <button style={s.approveBtn} onClick={() => setStatus(n.id, 'approved')}>↩️ שחזר</button>
-                            </div>
-                        ))}
-                    </div>
-                </>
-            )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
@@ -1401,6 +1507,72 @@ const s = {
         fontFamily: "'Heebo', sans-serif", fontWeight: 600, fontSize: '0.88rem',
         border: 'none',
     },
+    waBtnDisabled: {
+        display: 'inline-flex', alignItems: 'center', gap: '4px',
+        padding: '8px 18px', background: '#e5e7eb', color: '#9ca3af',
+        borderRadius: '10px', cursor: 'not-allowed',
+        fontFamily: "'Heebo', sans-serif", fontWeight: 600, fontSize: '0.88rem',
+        border: 'none',
+    },
+    volunteerAddForm: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+        gap: '10px',
+        marginBottom: '24px',
+        padding: '16px',
+        background: '#f8fafc',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0',
+    },
+    volInput: {
+        padding: '10px 12px',
+        borderRadius: '8px',
+        border: '1px solid #cbd5e1',
+        fontFamily: "'Heebo', sans-serif",
+        fontSize: '0.9rem',
+    },
+    volCheckLabel: {
+        display: 'flex', alignItems: 'center', gap: '8px',
+        fontSize: '0.9rem', color: NAVY, cursor: 'pointer',
+    },
+    tyFilters: {
+        display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px',
+    },
+    tyFilterBtn: {
+        padding: '8px 16px', borderRadius: '20px', border: '1px solid #cbd5e1',
+        background: '#fff', cursor: 'pointer', fontFamily: "'Heebo', sans-serif",
+        fontSize: '0.88rem', color: NAVY,
+    },
+    tyFilterBtnActive: {
+        background: NAVY, color: '#fff', borderColor: NAVY, fontWeight: 600,
+    },
+    tyTableWrap: {
+        overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+    },
+    tyTable: {
+        width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem',
+        minWidth: '640px',
+    },
+    tyTh: {
+        textAlign: 'right', padding: '10px 12px', background: '#f1f5f9',
+        color: NAVY, fontWeight: 600, borderBottom: '2px solid #e2e8f0',
+        whiteSpace: 'nowrap',
+    },
+    tyTd: {
+        padding: '10px 12px', borderBottom: '1px solid #e2e8f0',
+        verticalAlign: 'middle', color: '#334155',
+    },
+    tyRow: { background: '#fff' },
+    tyNameCell: { display: 'flex', alignItems: 'center', gap: '8px' },
+    tyThumb: {
+        width: '36px', height: '36px', objectFit: 'cover',
+        borderRadius: '6px', flexShrink: 0,
+    },
+    tyNoPhoto: { fontSize: '1.1rem', opacity: 0.4 },
+    tyMsgCell: { maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+    tyDateCell: { whiteSpace: 'nowrap', color: '#64748b', fontSize: '0.82rem' },
+    tyActions: { display: 'flex', flexWrap: 'wrap', gap: '6px' },
+    tyEmptyCell: { textAlign: 'center', padding: '32px', color: '#64748b' },
     notePhoto: {
         width: '100%', maxHeight: '200px', objectFit: 'cover',
         borderRadius: '10px', marginBottom: '10px',

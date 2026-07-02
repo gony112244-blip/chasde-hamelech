@@ -178,18 +178,31 @@ const transporter = nodemailer.createTransport({
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
 const SITE_URL = process.env.SITE_URL || 'https://chasde-hamelech.org.il';
 
-async function notifyAdmin(subject, rowsHtml) {
-    if (!process.env.EMAIL_USER || !ADMIN_EMAIL) return;
+async function notifyAdmin(subject, rowsHtml, toEmail = null, directLink = null) {
+    const recipient = toEmail || ADMIN_EMAIL;
+    if (!process.env.EMAIL_USER || !recipient) return;
+
+    let linkHtml = '';
+    if (directLink) {
+        linkHtml = `
+            <div style="text-align:center;margin:24px 0 12px 0;">
+                <a href="${directLink}" style="background-color:#1e3a8a;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;display:inline-block;">התחברות למערכת הניהול ומענה</a>
+            </div>
+        `;
+    }
+
     try {
         await transporter.sendMail({
             from: `"חסדי המלך — מערכת" <${process.env.EMAIL_USER}>`,
-            to: ADMIN_EMAIL,
+            to: recipient,
             subject,
-            html: `<div dir="rtl" style="font-family:Arial,sans-serif;font-size:15px;color:#1f2937;">
-                <h2 style="color:#0f2044;">${subject}</h2>
-                <table style="border-collapse:collapse;">${rowsHtml}</table>
-                <hr>
-                <p style="color:#888;font-size:12px;">הודעה אוטומטית מאתר חסדי המלך</p>
+            html: `<div dir="rtl" style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;font-size:15px;color:#1f2937;background-color:#f3f4f6;padding:20px;border-radius:8px;max-width:600px;margin:0 auto;border:1px solid #d1d5db;">
+                <h2 style="color:#1e3a8a;border-bottom:2px solid #93c5fd;padding-bottom:10px;margin-top:0;">${subject}</h2>
+                <div style="background-color:white;padding:16px;border-radius:6px;border:1px solid #e5e7eb;margin-bottom:16px;">
+                    <table style="border-collapse:collapse;width:100%;">${rowsHtml}</table>
+                </div>
+                ${linkHtml}
+                <p style="color:#6b7280;font-size:12px;margin:0;text-align:center;">התראה אוטומטית ממערכת חסדי המלך ⚡</p>
             </div>`,
         });
     } catch (err) {
@@ -205,11 +218,21 @@ async function sendUserEmail(to, subject, bodyHtml) {
             from: `"חסדי המלך" <${process.env.EMAIL_USER}>`,
             to: to.trim(),
             subject,
-            html: `<div dir="rtl" style="font-family:Arial,sans-serif;font-size:16px;color:#1f2937;max-width:560px;line-height:1.7;">
-                ${bodyHtml}
-                <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
-                <p style="color:#888;font-size:12px;margin:0;">חסדי המלך — מביאים שמחה לילדים 💙<br>
-                <a href="${SITE_URL}" style="color:#0f2044;">${SITE_URL}</a></p>
+            html: `<div dir="rtl" style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;font-size:16px;color:#333;max-width:600px;margin:0 auto;background-color:#f9fafb;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+                <div style="background-color:#1e3a8a;color:white;padding:24px;text-align:center;">
+                    <h1 style="margin:0;font-size:26px;font-weight:700;">חסדי המלך 👑</h1>
+                    <p style="margin:8px 0 0 0;font-size:16px;opacity:0.9;">מביאים שמחה לילדים מיוחדים</p>
+                </div>
+                <div style="padding:32px;background-color:#ffffff;">
+                    ${bodyHtml}
+                </div>
+                <div style="background-color:#f3f4f6;padding:20px;text-align:center;border-top:1px solid #e5e7eb;">
+                    <p style="color:#6b7280;font-size:14px;margin:0;line-height:1.6;">
+                        הודעה זו נשלחה אוטומטית מאתר חסדי המלך.<br>
+                        <a href="${SITE_URL}" style="color:#2563eb;text-decoration:none;font-weight:600;">בקרו באתר שלנו</a> &nbsp;|&nbsp; 
+                        <a href="${SITE_URL}/help" style="color:#2563eb;text-decoration:none;font-weight:600;">לתרומות ותמיכה</a>
+                    </p>
+                </div>
             </div>`,
         });
         return true;
@@ -220,30 +243,65 @@ async function sendUserEmail(to, subject, bodyHtml) {
 }
 
 function emailContactReceived(name) {
-    return `<p>שלום ${escapeHtml(name)},</p>
-        <p>קיבלנו את פנייתך ונחזור אליך בהקדם האפשרי.</p>
-        <p>תודה על הפנייה — כל מילה חשובה לנו.</p>`;
+    return `
+        <h2 style="color:#1e3a8a;margin-top:0;">שלום ${escapeHtml(name)}, 👋</h2>
+        <p style="font-size:16px;line-height:1.6;color:#4b5563;">
+            קיבלנו את פנייתך במערכת ואנחנו מודים לך על יצירת הקשר!
+        </p>
+        <p style="font-size:16px;line-height:1.6;color:#4b5563;">
+            צוות <strong>חסדי המלך</strong> קורא כל הודעה בתשומת לב, ואנו נחזור אליך בהקדם האפשרי עם מענה מפורט.
+        </p>
+        <div style="margin-top:24px;padding:16px;background-color:#eff6ff;border-right:4px solid #3b82f6;border-radius:4px;">
+            <p style="margin:0;color:#1e40af;font-weight:500;">כל פנייה חשובה לנו — תודה שאתם חלק מהעשייה המבורכת!</p>
+        </div>
+    `;
 }
 
 function emailVolunteerWelcome(name) {
-    return `<p>שלום ${escapeHtml(name)},</p>
-        <p>ברוכים הבאים למשפחת חסדי המלך! 🙏</p>
-        <p>שמחים שהצטרפתם. ניצור קשר בהקדם עם פרטים על הפעילות הקרובה.</p>
-        <p>בינתיים, תוכלו לעקוב אחרינו ב<a href="${SITE_URL}/gallery">גלריה</a> ו<a href="${SITE_URL}/help">לתרום</a>.</p>`;
+    return `
+        <h2 style="color:#1e3a8a;margin-top:0;">ברוכים הבאים, ${escapeHtml(name)}! 🎉</h2>
+        <p style="font-size:16px;line-height:1.6;color:#4b5563;">
+            אנו נרגשים ושמחים שבחרת להצטרף למשפחת מתנדבי <strong>חסדי המלך</strong>. בזכות אנשים כמוך אנחנו מצליחים להעלות חיוך על פניהם של מאות ילדים בכל רחבי הארץ.
+        </p>
+        <p style="font-size:16px;line-height:1.6;color:#4b5563;">
+            פנייתך התקבלה במערכת, ורכז/ת המתנדבים שלנו ייצור איתך קשר בהקדם האפשרי עם כל הפרטים על הפעילויות הקרובות באזורך.
+        </p>
+        <div style="text-align:center;margin:32px 0;">
+            <a href="${SITE_URL}/gallery" style="background-color:#2563eb;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;font-size:16px;display:inline-block;">לצפייה בגלריית הפעילות שלנו</a>
+        </div>
+    `;
 }
 
 function emailThankYouPending(name) {
     const who = name?.trim() ? escapeHtml(name) : 'ידיד/ה יקר/ה';
-    return `<p>שלום ${who},</p>
-        <p>תודה רבה על הודעת התודה שלך! 💙</p>
-        <p>קיבלנו את ההודעה והיא תפורסם ב<a href="${SITE_URL}/thank-you">קיר התודה</a> לאחר אישור המנהל.</p>`;
+    return `
+        <h2 style="color:#1e3a8a;margin-top:0;">שלום ${who}, 💙</h2>
+        <p style="font-size:16px;line-height:1.6;color:#4b5563;">
+            תודה רבה שהקדשת מזמנך וכתבת לנו הודעת תודה!
+        </p>
+        <p style="font-size:16px;line-height:1.6;color:#4b5563;">
+            ההודעה שלך התקבלה בהצלחה במערכת. היא עוברת כעת תהליך אישור קצר על ידי צוות הניהול, ותפורסם בקרוב ב<a href="${SITE_URL}/thank-you" style="color:#2563eb;text-decoration:underline;">קיר התודה באתר שלנו</a>.
+        </p>
+        <p style="font-size:16px;line-height:1.6;color:#4b5563;margin-top:20px;">
+            המילים החמות שלכם נותנות לנו את הכוח להמשיך לפעול!
+        </p>
+    `;
 }
 
 function emailThankYouApproved(name) {
     const who = name?.trim() ? escapeHtml(name) : 'ידיד/ה יקר/ה';
-    return `<p>שלום ${who},</p>
-        <p>שמחים לעדכן שהודעת התודה שלך אושרה ופורסמה ב<a href="${SITE_URL}/thank-you">קיר התודה</a>! 🎉</p>
-        <p>תודה ששיתפת את הסיפור שלך — זה מחמם את הלב.</p>`;
+    return `
+        <h2 style="color:#1e3a8a;margin-top:0;">בשורות משמחות, ${who}! 🌟</h2>
+        <p style="font-size:16px;line-height:1.6;color:#4b5563;">
+            אנו שמחים לעדכן שהודעת התודה שכתבת לנו אושרה ופורסמה רשמית ב<a href="${SITE_URL}/thank-you" style="color:#2563eb;text-decoration:underline;">קיר התודה</a> באתר "חסדי המלך"!
+        </p>
+        <p style="font-size:16px;line-height:1.6;color:#4b5563;">
+            תודה ששיתפת את הסיפור והתחושות שלך. המילים שלך משמחות אותנו ומעודדות תורמים ומתנדבים נוספים להצטרף לעשייה.
+        </p>
+        <div style="text-align:center;margin:32px 0;">
+            <a href="${SITE_URL}/thank-you" style="background-color:#10b981;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;font-size:16px;display:inline-block;">צפו בהודעה שלכם בקיר התודה</a>
+        </div>
+    `;
 }
 // אימות קלט בסיסי לטפסים ציבוריים
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -269,14 +327,17 @@ function escapeHtml(str) {
 }
 function row(label, value) {
     if (!value) return '';
-    return `<tr><td style="padding:4px 12px;font-weight:bold;">${escapeHtml(label)}:</td><td style="padding:4px 12px;">${escapeHtml(value)}</td></tr>`;
+    return `<tr>
+        <td style="padding:10px 12px;font-weight:bold;color:#4b5563;border-bottom:1px solid #f3f4f6;width:120px;vertical-align:top;">${escapeHtml(label)}:</td>
+        <td style="padding:10px 12px;color:#1f2937;border-bottom:1px solid #f3f4f6;vertical-align:top;">${escapeHtml(value)}</td>
+    </tr>`;
 }
 
 // התראה מאוחדת לכל הערוצים (מייל + וואטסאפ) — לא חוסמת את הבקשה.
 // fields = מערך של [תווית, ערך]. כל ערוץ שלא מוגדר פשוט מדולג.
-function notifyChannels(subject, fields = []) {
+function notifyChannels(subject, fields = [], toEmail = null, directLink = null) {
     const rowsHtml = fields.map(([label, value]) => row(label, value)).join('');
-    notifyAdmin(subject, rowsHtml);
+    notifyAdmin(subject, rowsHtml, toEmail, directLink);
     sendWhatsApp(subject, fields);
 }
 
@@ -433,7 +494,7 @@ app.post('/api/thank-you', uploadPhoto.single('photo'), async (req, res) => {
 
 // צור קשר
 app.post('/api/contact', async (req, res) => {
-    const { name, phone, email, message } = req.body;
+    const { name, phone, email, message, isTech } = req.body;
     if (!name?.trim() || !message?.trim()) {
         return res.status(400).json({ error: 'שם והודעה הם שדות חובה' });
     }
@@ -448,10 +509,22 @@ app.post('/api/contact', async (req, res) => {
             'INSERT INTO contacts (name, phone, email, message) VALUES ($1, $2, $3, $4)',
             [name.trim(), phone?.trim() || '', email?.trim() || '', message.trim()]
         );
-        notifyChannels('📩 פנייה חדשה באתר', [
+
+        const isTechnical = isTech || message.includes('בעיה טכנית באתר');
+        let recipient = null;
+        let directLink = null;
+        let subject = '📩 פנייה חדשה באתר';
+
+        if (isTechnical) {
+            recipient = 'gony112244@gmail.com';
+            directLink = `${SITE_URL}/admin`;
+            subject = '🛠️ דיווח על בעיה טכנית באתר';
+        }
+
+        notifyChannels(subject, [
             ['שם', name.trim()], ['טלפון', phone?.trim()],
             ['מייל', email?.trim()], ['הודעה', message.trim()],
-        ]);
+        ], recipient, directLink);
         if (email?.trim()) {
             sendUserEmail(
                 email.trim(),
@@ -605,6 +678,29 @@ app.get('/api/admin/volunteers', adminAuth, async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM volunteers ORDER BY created_at DESC');
         res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'שגיאת שרת' });
+    }
+});
+
+app.post('/api/admin/volunteers', adminAuth, async (req, res) => {
+    const { name, phone, email, city, has_car, notes } = req.body;
+    if (!name?.trim() || !phone?.trim() || !city?.trim()) {
+        return res.status(400).json({ error: 'שם, טלפון ועיר הם שדות חובה' });
+    }
+    if (tooLong(req.body, { name: 100, phone: 30, email: 150, city: 60, notes: 2000 })) {
+        return res.status(400).json({ error: 'אחד השדות ארוך מדי' });
+    }
+    if (email?.trim() && !isValidEmail(email)) {
+        return res.status(400).json({ error: 'כתובת מייל לא תקינה' });
+    }
+    try {
+        const result = await pool.query(
+            'INSERT INTO volunteers (name, phone, email, city, has_car, notes) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [name.trim(), phone.trim(), email?.trim() || '', city.trim(), !!has_car, notes?.trim() || '']
+        );
+        res.status(201).json({ ok: true, volunteer: result.rows[0] });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'שגיאת שרת' });

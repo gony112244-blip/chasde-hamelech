@@ -20,7 +20,6 @@ export default function Footer() {
                         <Link to="/gallery" style={s.link}>{t('nav_gallery')}</Link>
                         <Link to="/thank-you" style={s.link}>{t('nav_thankyou')}</Link>
                         <Link to="/parasha" style={s.link}>{t('nav_parasha')}</Link>
-                        <Link to="/transparency" style={s.link}>{t('nav_transparency')}</Link>
                         <Link to="/volunteer" style={s.link}>{t('nav_volunteer')}</Link>
                         <Link to="/contact" style={s.link}>{t('nav_contact')}</Link>
                     </nav>
@@ -41,8 +40,9 @@ export default function Footer() {
                 <span style={s.credit}>נבנה באהבה ובהתנדבות</span>
             </div>
             <div style={s.authorCredit}>
-                {t('footer_dev_contact')}{' '}
-                <a href="mailto:gony112244@gmail.com" style={s.authorLink}>gony112244@gmail.com</a>
+                <Link to="/contact?type=tech" style={s.authorLink}>
+                    {t('footer_dev_contact')}
+                </Link>
             </div>
         </footer>
     );
@@ -114,7 +114,8 @@ const s = {
         direction: 'inherit',
     },
     authorLink: {
-        color: 'rgba(255,255,255,0.38)',
-        textDecoration: 'none',
+        color: 'rgba(255,255,255,0.45)',
+        textDecoration: 'underline',
+        cursor: 'pointer',
     },
 };

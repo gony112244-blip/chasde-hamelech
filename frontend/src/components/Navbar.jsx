@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Logo from './Logo';
 import { useLang } from '../contexts/LangContext';
@@ -24,11 +24,27 @@ const LANGS = [
     { code: 'fr', label: 'Français', short: 'FR' },
 ];
 
+function BurgerButton({ menuOpen, onToggle }) {
+    return (
+        <button
+            style={s.burger}
+            onClick={onToggle}
+            aria-label={menuOpen ? 'סגור תפריט' : 'פתח תפריט'}
+            aria-expanded={menuOpen}
+        >
+            <span style={{ ...s.burgerLine, ...(menuOpen ? s.burgerLine1Open : {}) }} />
+            <span style={{ ...s.burgerLine, ...(menuOpen ? s.burgerLine2Open : {}) }} />
+            <span style={{ ...s.burgerLine, ...(menuOpen ? s.burgerLine3Open : {}) }} />
+        </button>
+    );
+}
+
 export default function Navbar() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [hidden, setHidden] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [langOpen, setLangOpen] = useState(false);
+    const [langMenuPos, setLangMenuPos] = useState({ top: 0, left: 0 });
     const [isMobile, setIsMobile] = useState(
         typeof window !== 'undefined' ? window.innerWidth <= MOBILE_BREAKPOINT : false
     );
@@ -40,6 +56,7 @@ export default function Navbar() {
     const tapTimer = useRef(null);
     const lastScroll = useRef(0);
     const langRef = useRef(null);
+    const langBtnRef = useRef(null);
 
     function handleLogoTap(e) {
         tapCount.current += 1;
@@ -51,6 +68,16 @@ export default function Navbar() {
             navigate('/admin');
         }
     }
+
+    const updateLangMenuPos = useCallback(() => {
+        const btn = langBtnRef.current;
+        if (!btn) return;
+        const rect = btn.getBoundingClientRect();
+        setLangMenuPos({
+            top: rect.bottom + 8,
+            left: rect.right - 120,
+        });
+    }, []);
 
     useEffect(() => {
         const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
@@ -84,7 +111,17 @@ export default function Navbar() {
         return () => { document.body.style.overflow = ''; };
     }, [menuOpen]);
 
-    // סגירת dropdown שפה בלחיצה מחוץ
+    useEffect(() => {
+        if (!langOpen) return;
+        updateLangMenuPos();
+        window.addEventListener('scroll', updateLangMenuPos, { passive: true });
+        window.addEventListener('resize', updateLangMenuPos);
+        return () => {
+            window.removeEventListener('scroll', updateLangMenuPos);
+            window.removeEventListener('resize', updateLangMenuPos);
+        };
+    }, [langOpen, updateLangMenuPos]);
+
     useEffect(() => {
         function onClickOutside(e) {
             if (langRef.current && !langRef.current.contains(e.target)) {
@@ -100,6 +137,52 @@ export default function Navbar() {
 
     const currentLang = LANGS.find(l => l.code === lang) || LANGS[0];
 
+    const langPicker = (
+        <div ref={langRef} style={s.langWrapper}>
+            <button
+                ref={langBtnRef}
+                style={s.langBtn}
+                onClick={() => {
+                    setLangOpen(o => {
+                        if (!o) updateLangMenuPos();
+                        return !o;
+                    });
+                }}
+                aria-label="בחרו שפה"
+                aria-expanded={langOpen}
+                title="Language / שפה"
+            >
+                <span style={{ fontSize: '1rem' }}>🌐</span>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>{currentLang.short}</span>
+                <span style={{ fontSize: '0.55rem', opacity: 0.7 }}>▾</span>
+            </button>
+            {langOpen && (
+                <div
+                    style={{
+                        ...s.langDropdown,
+                        position: 'fixed',
+                        top: langMenuPos.top,
+                        left: Math.max(8, langMenuPos.left),
+                    }}
+                >
+                    {LANGS.map(l => (
+                        <button
+                            key={l.code}
+                            style={{
+                                ...s.langOption,
+                                ...(lang === l.code ? s.langOptionActive : {}),
+                            }}
+                            onClick={() => { setLang(l.code); setLangOpen(false); }}
+                        >
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.6, minWidth: '20px' }}>{l.short}</span>
+                            <span>{l.label}</span>
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <>
             <nav style={{
@@ -111,7 +194,7 @@ export default function Navbar() {
                     <span
                         style={{
                             ...s.bsdCorner,
-                            ...(isMobile ? { left: '12px', right: 'auto' } : { right: '12px', left: 'auto' }),
+                            ...(isMobile ? { right: '52px' } : {}),
                         }}
                         aria-label='בס"ד'
                     >
@@ -119,18 +202,28 @@ export default function Navbar() {
                     </span>
                 )}
                 <div style={s.inner}>
-                    {/* לוגו */}
-                    <Link to="/" style={s.logoLink} aria-label="חסדי המלך — דף הבית" onClick={handleLogoTap}>
+                    {isMobile && (
+                        <BurgerButton menuOpen={menuOpen} onToggle={() => setMenuOpen(o => !o)} />
+                    )}
+
+                    <Link
+                        to="/"
+                        style={{
+                            ...s.logoLink,
+                            ...(isMobile ? s.logoLinkMobile : {}),
+                        }}
+                        aria-label="חסדי המלך — דף הבית"
+                        onClick={handleLogoTap}
+                    >
                         <Logo size={36} showText={!isMobile} />
                     </Link>
 
-                    {/* קישורים — דסקטופ בלבד */}
                     {!isMobile && (
                         <div style={s.desktopLinks}>
                             {NAV_LINKS.map(({ to, key }) => (
                                 <Link key={to} to={to} style={{
                                     ...s.link,
-                                    ...(isActive(to) ? s.linkActive : {})
+                                    ...(isActive(to) ? s.linkActive : {}),
                                 }}>
                                     {t(key)}
                                     {isActive(to) && <span style={s.activeDot} />}
@@ -139,67 +232,22 @@ export default function Navbar() {
                         </div>
                     )}
 
-                    {/* ימין: כפתור תרומה + בורר שפה */}
                     <div style={s.rightGroup}>
-                        {/* בורר שפה */}
-                        <div ref={langRef} style={s.langWrapper}>
-                            <button
-                                style={s.langBtn}
-                                onClick={() => setLangOpen(o => !o)}
-                                aria-label="בחרו שפה"
-                                title="Language / שפה"
-                            >
-                                <span style={{ fontSize: '1rem' }}>🌐</span>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>{currentLang.short}</span>
-                                <span style={{ fontSize: '0.55rem', opacity: 0.7 }}>▾</span>
-                            </button>
-                            {langOpen && (
-                                <div style={s.langDropdown}>
-                                    {LANGS.map(l => (
-                                        <button
-                                            key={l.code}
-                                            style={{
-                                                ...s.langOption,
-                                                ...(lang === l.code ? s.langOptionActive : {})
-                                            }}
-                                            onClick={() => { setLang(l.code); setLangOpen(false); }}
-                                        >
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.6, minWidth: '20px' }}>{l.short}</span>
-                                            <span>{l.label}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* כפתור תרומה — דסקטופ בלבד */}
+                        {langPicker}
                         {!isMobile && (
                             <Link to="/help" style={s.donateBtn} aria-label={t('nav_donate')}>
                                 {t('nav_donate')}
                             </Link>
                         )}
-
-                        {/* המבורגר — מובייל בלבד */}
-                        {isMobile && <button
-                            style={s.burger}
-                            onClick={() => setMenuOpen(o => !o)}
-                            aria-label={menuOpen ? "סגור תפריט" : "פתח תפריט"}
-                            aria-expanded={menuOpen}
-                        >
-                            <span style={{ ...s.burgerLine, ...(menuOpen ? s.burgerLine1Open : {}) }} />
-                            <span style={{ ...s.burgerLine, ...(menuOpen ? s.burgerLine2Open : {}) }} />
-                            <span style={{ ...s.burgerLine, ...(menuOpen ? s.burgerLine3Open : {}) }} />
-                        </button>}
                     </div>
                 </div>
 
-                {/* תפריט מובייל */}
                 {isMobile && menuOpen && (
                     <div style={s.mobileMenu} role="menu">
                         {NAV_LINKS.map(({ to, key, icon }) => (
                             <Link key={to} to={to} style={{
                                 ...s.mobileLink,
-                                ...(isActive(to) ? s.mobileLinkActive : {})
+                                ...(isActive(to) ? s.mobileLinkActive : {}),
                             }} role="menuitem">
                                 <span style={{ fontSize: '1.1rem' }}>{icon}</span>
                                 {t(key)}
@@ -212,7 +260,6 @@ export default function Navbar() {
                 )}
             </nav>
 
-            {/* Overlay כשתפריט מובייל פתוח */}
             {isMobile && menuOpen && (
                 <div
                     style={s.overlay}
@@ -234,7 +281,7 @@ const s = {
         top: 0,
         width: '100%',
         maxWidth: '100%',
-        overflow: 'hidden',
+        overflow: 'visible',
         transition: 'transform 0.35s ease, box-shadow 0.3s ease',
         willChange: 'transform',
     },
@@ -250,10 +297,13 @@ const s = {
         justifyContent: 'space-between',
         gap: '12px',
         minWidth: 0,
+        overflow: 'visible',
     },
     bsdCorner: {
         position: 'absolute',
         top: '7px',
+        right: '12px',
+        left: 'auto',
         color: 'rgba(251, 191, 36, 0.82)',
         fontSize: '0.68rem',
         fontWeight: 600,
@@ -265,6 +315,12 @@ const s = {
         zIndex: 2,
     },
     logoLink: { textDecoration: 'none', flexShrink: 1, minWidth: 0 },
+    logoLinkMobile: {
+        flex: 1,
+        display: 'flex',
+        justifyContent: 'center',
+        minWidth: 0,
+    },
 
     desktopLinks: {
         display: 'flex',
@@ -325,16 +381,13 @@ const s = {
         whiteSpace: 'nowrap',
     },
     langDropdown: {
-        position: 'absolute',
-        top: 'calc(100% + 8px)',
-        right: 0,
         background: '#0f2044',
         border: '1px solid rgba(255,255,255,0.15)',
         borderRadius: '14px',
         overflow: 'hidden',
         minWidth: '120px',
         boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-        zIndex: 1100,
+        zIndex: 1200,
     },
     langOption: {
         display: 'flex',
@@ -380,6 +433,7 @@ const s = {
         cursor: 'pointer',
         padding: '8px',
         borderRadius: '8px',
+        flexShrink: 0,
     },
     burgerLine: {
         display: 'block',

@@ -1,14 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
 import API_BASE from '../config';
 
 export default function ContactPage() {
     const t = useT();
+    const [searchParams] = useSearchParams();
     const [form, setForm] = useState({ name: '', phone: '', email: '', message: '' });
     const [submitted, setSubmitted] = useState(false);
     const [sending, setSending] = useState(false);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        const type = searchParams.get('type');
+        if (type === 'tech') {
+            setForm(f => ({
+                ...f,
+                message: 'שלום, פנייה בנושא בעיה טכנית באתר:\n'
+            }));
+        }
+    }, [searchParams]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -18,7 +30,10 @@ export default function ContactPage() {
             const res = await fetch(`${API_BASE}/api/contact`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(form),
+                body: JSON.stringify({
+                    ...form,
+                    isTech: searchParams.get('type') === 'tech'
+                }),
             });
             if (res.ok) {
                 setSubmitted(true);
