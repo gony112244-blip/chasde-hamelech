@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
 import API_BASE from '../config';
@@ -24,6 +24,10 @@ export default function ContactPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!form.phone.trim() && !form.email.trim()) {
+            setError('נא למלא טלפון או מייל כדי שנוכל לחזור אליכם.');
+            return;
+        }
         setSending(true);
         setError('');
         try {
@@ -48,8 +52,6 @@ export default function ContactPage() {
         }
     };
 
-    const updateField = (field, value) => setForm(f => ({ ...f, [field]: value }));
-
     if (submitted) {
         return (
             <div style={s.page}>
@@ -60,7 +62,7 @@ export default function ContactPage() {
                     <div style={s.successCard}>
                         <span style={{ fontSize: '3rem' }}>✅</span>
                         <h2 style={{ color: 'var(--royal)', margin: 0 }}>{t('contact_success')}</h2>
-                        <a href="/" style={s.backBtn}>{t('notfound_home')}</a>
+                        <Link to="/" style={s.backBtn}>{t('notfound_home')}</Link>
                     </div>
                 </div>
             </div>
@@ -86,9 +88,12 @@ export default function ContactPage() {
                             <input style={s.input} required placeholder={t('placeholder_contact_name')}
                                 value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
                         </div>
+                        <p style={{ margin: '0 0 8px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                            נא למלא טלפון או מייל (לפחות אחד) כדי שנוכל לחזור אליכם.
+                        </p>
                         <div style={s.row}>
                             <div style={s.field}>
-                                <label style={s.label}>{t('contact_phone')}</label>
+                                <label style={s.label}>{t('contact_phone')} / מייל *</label>
                                 <input style={s.input} type="tel" placeholder="050-1234567"
                                     value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
                             </div>

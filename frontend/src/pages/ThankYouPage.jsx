@@ -59,7 +59,10 @@ export default function ThankYouPage() {
 
     async function handleSubmit(e) {
         e.preventDefault();
-        if (!form.message.trim()) return;
+        if (!form.message.trim()) {
+            setError('נא לכתוב הודעת תודה לפני השליחה.');
+            return;
+        }
         setSending(true);
         setError('');
         try {

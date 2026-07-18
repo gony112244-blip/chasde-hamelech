@@ -9,13 +9,14 @@ import { BP_MD } from '../breakpoints';
 const MOBILE_BREAKPOINT = BP_MD;
 
 const NAV_LINKS = [
-    { to: '/',          key: 'nav_home',      icon: '🏠' },
-    { to: '/gallery',   key: 'nav_gallery',   icon: '📸' },
-    { to: '/thank-you', key: 'nav_thankyou',  icon: '💬' },
-    { to: '/help',      key: 'nav_help',      icon: '💝' },
-    { to: '/parasha',   key: 'nav_parasha',   icon: '📖' },
-    { to: '/volunteer', key: 'nav_volunteer', icon: '🤝' },
-    { to: '/contact',   key: 'nav_contact',   icon: '📩' },
+    { to: '/',             key: 'nav_home',          icon: '🏠' },
+    { to: '/parasha',      key: 'nav_parasha',       icon: '📖' },
+    { to: '/gallery',      key: 'nav_gallery',       icon: '📸' },
+    { to: '/thank-you',    key: 'nav_thankyou',      icon: '💬' },
+    { to: '/help',         key: 'nav_help',          icon: '💝' },
+    { to: '/transparency', key: 'nav_transparency',  icon: '📊' },
+    { to: '/volunteer',    key: 'nav_volunteer',     icon: '🤝' },
+    { to: '/contact',      key: 'nav_contact',       icon: '📩' },
 ];
 
 const LANGS = [
@@ -248,6 +249,7 @@ export default function Navbar() {
                             <Link key={to} to={to} style={{
                                 ...s.mobileLink,
                                 ...(isActive(to) ? s.mobileLinkActive : {}),
+                                ...(to === '/parasha' && !isActive(to) ? s.mobileLinkHighlight : {}),
                             }} role="menuitem">
                                 <span style={{ fontSize: '1.1rem' }}>{icon}</span>
                                 {t(key)}
@@ -454,6 +456,9 @@ const s = {
         gap: '4px',
         borderTop: '1px solid rgba(255,255,255,0.1)',
         background: 'linear-gradient(180deg, #0f2044 0%, #071530 100%)',
+        maxHeight: 'calc(100dvh - 64px)',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
     },
     mobileLink: {
         color: 'rgba(255,255,255,0.85)',
@@ -471,6 +476,12 @@ const s = {
         color: '#fbbf24',
         background: 'rgba(251, 191, 36, 0.12)',
         fontWeight: 700,
+    },
+    mobileLinkHighlight: {
+        color: '#fde68a',
+        border: '1px solid rgba(251, 191, 36, 0.28)',
+        background: 'rgba(251, 191, 36, 0.08)',
+        fontWeight: 600,
     },
     mobileDonateBtn: {
         marginTop: '12px',

@@ -4,7 +4,7 @@ export default {
     nav_gallery: 'Galerie',
     nav_thankyou: 'Mur de Remerciements',
     nav_help: 'Comment Aider',
-    nav_parasha: 'Bulletin Hebdomadaire',
+    nav_parasha: 'Parole de Torah',
     nav_volunteer: 'Bénévoles',
     nav_contact: 'Contact',
     nav_donate: 'Aidez-nous ✨',
@@ -93,8 +93,8 @@ export default {
     thankyou_form_submit: '📨 Envoyer',
     thankyou_form_cancel: 'Annuler',
     thankyou_success_title: 'Merci beaucoup!',
-    thankyou_success_msg: 'Votre message a été publié sur le Mur de Remerciements! 🎉',
-    thankyou_success_msg_photo: 'Votre message avec la photo a été envoyé et sera publié après approbation de l\'administrateur.',
+    thankyou_success_msg: 'Votre message a été reçu et sera publié sur le Mur de Remerciements après approbation. 💛',
+    thankyou_success_msg_photo: 'Votre message avec la photo a été reçu et sera publié après approbation de l\'administrateur.',
     thankyou_first_write: 'Soyez le premier à écrire! ✍️',
     thankyou_anonymous: 'Anonyme',
 
@@ -143,8 +143,8 @@ export default {
     volunteer_success: 'Bienvenue dans la famille!',
 
     // ParashaPage
-    parasha_title: '📖 Bulletin Hebdomadaire',
-    parasha_subtitle: 'Bulletin hebdomadaire de la paracha pour le Chabbat — lire, imprimer et partager',
+    parasha_title: '📖 Parole de Torah',
+    parasha_subtitle: 'Parole de Torah et feuillet de la paracha pour le Chabbat — lire, imprimer et partager',
     parasha_update: 'Mis à jour le mercredi après-midi',
     parasha_download: '⬇️ Télécharger le bulletin',
     parasha_archive: 'Archive des bulletins précédents',
@@ -154,6 +154,7 @@ export default {
     footer_about: 'Distribution de jeux, livres et amour aux enfants hospitalisés dans les hôpitaux d\'Israël.',
     footer_links: 'Liens Rapides',
     footer_contact: 'Contact',
+    footer_legal: 'Informations légales',
     footer_rights: 'Tous droits réservés',
     footer_terms: "Conditions d'utilisation",
     footer_privacy: 'Politique de confidentialité',

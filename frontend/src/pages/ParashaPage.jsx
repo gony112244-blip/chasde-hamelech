@@ -49,7 +49,7 @@ export default function ParashaPage() {
 
     return (
         <div style={s.page}>
-            <PageMeta title="עלון השבוע" description="עלון פרשת שבוע לכבוד השבת — לקרוא, להדפיס ולשתף. מתעדכן מדי שבוע." path="/parasha" />
+            <PageMeta title="דבר תורה" description="דבר תורה ועלון פרשת שבוע לכבוד השבת — לקרוא, להדפיס ולשתף. מתעדכן מדי שבוע." path="/parasha" />
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={{ position: 'relative', zIndex: 2 }}>
@@ -94,9 +94,9 @@ export default function ParashaPage() {
                                 <a href={fileUrl(latest)} target="_blank" rel="noopener noreferrer"
                                     style={s.fallbackBox} onClick={() => trackDownload(latest.id)}>
                                     <span style={{ fontSize: '2.5rem' }}>📄</span>
-                                    <strong style={{ color: 'var(--royal)' }}>לחצו לפתיחת העלון</strong>
+                                    <strong style={{ color: 'var(--royal)' }}>{t('parasha_open_pdf')}</strong>
                                     <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                        התצוגה המקדימה לא נטענה — אפשר לפתוח את הקובץ ישירות
+                                        {t('parasha_open_pdf_hint')}
                                     </span>
                                 </a>
                             ) : latest.file_type === 'application/pdf' ? (
@@ -114,14 +114,14 @@ export default function ParashaPage() {
                                     <iframe
                                         src={`${fileUrl(latest)}#toolbar=0`}
                                         style={s.pdfFrame}
-                                        title="עלון השבוע"
+                                        title={t('parasha_title')}
                                         onError={() => setImgError(true)}
                                     />
                                 )
                             ) : (
                                 <img
                                     src={fileUrl(latest)}
-                                    alt="עלון השבוע"
+                                    alt={t('parasha_title')}
                                     style={s.previewImg}
                                     onError={() => setImgError(true)}
                                 />

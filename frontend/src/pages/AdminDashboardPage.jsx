@@ -320,6 +320,42 @@ function VolunteersTab({ token }) {
     );
 }
 
+// תמונת תודה לאדמין — pending דרך endpoint מוגן (Bearer), מאושרות מ-/uploads
+function AdminThankYouPhoto({ noteId, token, status, filename }) {
+    const [src, setSrc] = useState(null);
+
+    useEffect(() => {
+        if (!filename) {
+            setSrc(null);
+            return undefined;
+        }
+        if (status === 'approved') {
+            setSrc(`${UPLOADS_BASE}/${filename}`);
+            return undefined;
+        }
+        let objectUrl;
+        let cancelled = false;
+        fetch(`${API_BASE}/api/admin/thank-you/${noteId}/photo`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(r => (r.ok ? r.blob() : null))
+            .then(blob => {
+                if (cancelled || !blob) return;
+                objectUrl = URL.createObjectURL(blob);
+                setSrc(objectUrl);
+            })
+            .catch(() => {});
+        return () => {
+            cancelled = true;
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+        };
+    }, [noteId, token, status, filename]);
+
+    if (!filename) return <span style={s.tyNoPhoto}>📷</span>;
+    if (!src) return <span style={s.tyNoPhoto}>⏳</span>;
+    return <img src={src} alt="תמונת תודה" style={s.tyThumb} />;
+}
+
 // ─── Tab: הודעות תודה ──────────────────────────────────────
 function ThankYouTab({ token }) {
     const { data, loading, reload } = useAdminFetch('/api/admin/thank-you', token);
@@ -418,15 +454,12 @@ function ThankYouTab({ token }) {
                                 <td style={s.tyTd}>{statusLabel(n.status)}</td>
                                 <td style={s.tyTd}>
                                     <div style={s.tyNameCell}>
-                                        {n.photo_filename ? (
-                                            <img
-                                                src={`${UPLOADS_BASE}/${n.photo_filename}`}
-                                                alt=""
-                                                style={s.tyThumb}
-                                            />
-                                        ) : (
-                                            <span style={s.tyNoPhoto}>📷</span>
-                                        )}
+                                        <AdminThankYouPhoto
+                                            noteId={n.id}
+                                            token={token}
+                                            status={n.status}
+                                            filename={n.photo_filename}
+                                        />
                                         <span>{n.display_name}</span>
                                     </div>
                                 </td>
@@ -618,14 +651,20 @@ function StatsTab({ token }) {
         e.preventDefault();
         setSaving(true);
         try {
-            await fetch(`${API_BASE}/api/admin/stats`, {
+            const res = await fetch(`${API_BASE}/api/admin/stats`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify(form),
             });
+            if (!res.ok) {
+                alert('שגיאה בשמירת הסטטיסטיקות');
+                return;
+            }
             setSaved(true);
             setTimeout(() => setSaved(false), 2500);
             reloadStats();
+        } catch {
+            alert('שגיאה בחיבור לשרת');
         } finally {
             setSaving(false);
         }
@@ -1469,7 +1508,13 @@ export default function AdminDashboardPage() {
         if (!token) navigate('/admin');
     }, [token, navigate]);
 
-    function logout() {
+    async function logout() {
+        try {
+            await fetch(`${API_BASE}/api/admin/logout`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+            });
+        } catch (_) { /* ignore network errors on logout */ }
         sessionStorage.removeItem('adminToken');
         navigate('/');
     }

@@ -33,7 +33,7 @@ export default function TransparencyPage() {
         <div style={s.page}>
             <PageMeta
                 title="שקיפות ופעילות — חסדי המלך"
-                description="כל חודש אנחנו מדווחים בשקיפות מלאה על מספר החלוקות שביצענו. ראו כמה ילדים ומשפחות קיבלו עזרה."
+                description="כל חודש אנחנו מפרסמים דוח פעילות עם מספר החלוקות שביצענו בשטח."
                 path="/transparency"
             />
 
@@ -44,7 +44,7 @@ export default function TransparencyPage() {
                     <h1 style={s.title}>🔍 שקיפות ופעילות</h1>
                     <p style={s.subtitle}>
                         כאן תוכלו לראות בדיוק כמה חלוקות ביצענו כל חודש.<br />
-                        אנחנו מאמינים בפתיחות מלאה — כל שקל הולך ישירות לנזקקים.
+                        אנחנו מאמינים בפתיחות — מפרסמים דוחות פעילות ומעדכנים על החלוקות בשטח.
                     </p>
                 </div>
             </section>
@@ -91,8 +91,13 @@ export default function TransparencyPage() {
                             )}
                             {current.receipts_url && (
                                 <a href={current.receipts_url} target="_blank" rel="noopener noreferrer" style={s.receiptsBtn}>
-                                    📎 לצפייה בקבלות החודש
+                                    📎 מסמכי רכש / הוצאות החודש
                                 </a>
+                            )}
+                            {current.receipts_url && (
+                                <p style={{ color: '#6478a8', fontSize: '0.78rem', margin: '8px 0 0', textAlign: 'center' }}>
+                                    מדובר במסמכי רכש/הוצאות לפעילות — לא באישורי מס לתורמים.
+                                </p>
                             )}
                         </>
                     ) : (
@@ -109,7 +114,7 @@ export default function TransparencyPage() {
                 <section style={s.histSection}>
                     <div style={s.histInner}>
                         <h2 style={s.histTitle}>📅 היסטוריית פעילות</h2>
-                        <p style={s.histSub}>כל הדוחות שמורים כאן — פתיחות מלאה לכל דורש.</p>
+                        <p style={s.histSub}>היסטוריית דוחות הפעילות שפורסמו באתר.</p>
                         <div style={s.histList}>
                             {history.map(r => {
                                 const p = r.goal > 0
@@ -134,7 +139,7 @@ export default function TransparencyPage() {
                                         )}
                                         {r.receipts_url && (
                                             <a href={r.receipts_url} target="_blank" rel="noopener noreferrer" style={s.histReceiptsBtn}>
-                                                📎 קבלות
+                                                📎 מסמכי רכש
                                             </a>
                                         )}
                                     </div>
@@ -149,9 +154,9 @@ export default function TransparencyPage() {
             <section style={s.values}>
                 <div style={s.valuesInner}>
                     {[
-                        { icon: '💯', t: '100% לנזקקים', d: 'כל תרומה מגיעה ישירות לחלוקה. אין הוצאות ניהול.' },
-                        { icon: '🧾', t: 'קבלות פומביות', d: 'כל חשבונית שמורה ונגישה לכל דורש.' },
-                        { icon: '📅', t: 'דיווח חודשי', d: 'כל חודש מתעדכן המספר המדויק של החלוקות.' },
+                        { icon: '💛', t: 'לתרומה ישירה', d: 'התרומות מיועדות לרכישת ציוד ולחלוקה לילדים. מפרסמים דוחות פעילות.' },
+                        { icon: '🧾', t: 'מסמכי רכש', d: 'כשיש קישור — מפרסמים מסמכי רכש/הוצאות (לא אישורי מס לתורמים).' },
+                        { icon: '📅', t: 'דיווח חודשי', d: 'כל חודש מתעדכן מספר החלוקות שבוצעו.' },
                     ].map((v, i) => (
                         <div key={i} style={s.valueCard}>
                             <span style={{ fontSize: '2.2rem' }}>{v.icon}</span>

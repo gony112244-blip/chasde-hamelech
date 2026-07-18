@@ -35,6 +35,10 @@ function DonationReportForm({ defaultMethod, onClose }) {
 
     async function handleSubmit(e) {
         e.preventDefault();
+        if (!form.donor_name.trim() || !String(form.amount).trim()) {
+            setErr('נא למלא שם וסכום תרומה');
+            return;
+        }
         setSending(true);
         setErr('');
         try {
@@ -72,23 +76,24 @@ function DonationReportForm({ defaultMethod, onClose }) {
         <form onSubmit={handleSubmit} style={sf.form}>
             <h3 style={sf.formTitle}>דיווח על תרומה שביצעתי</h3>
             <p style={sf.formDesc}>
-                שלחתם תרומה? ספרו לנו — נשלח לכם הודעת תודה ונרשום את הפעולה הטובה שלכם.
+                שלחתם תרומה? ספרו לנו — נרשום את הפעולה. אם תמלאו מייל, נוכל לשלוח הודעת תודה לאחר אישור.
             </p>
 
             <div style={sf.note}>
                 Bit, PayBox ו-PayPal באתר זה מיועדים אך ורק לתרומות לפעילות חסדי המלך.
                 התשלום מתבצע ישירות בין התורם לחשבון הפעילות — האתר אינו גובה כרטיס אשראי ואינו שומר פרטי תשלום.
+                חסדי המלך אינה עמותה רשומה ואינה מוכרת לצרכי מס — אין אפשרות להנפיק אישור מס על תרומה.
             </div>
 
             <div style={sf.grid}>
                 <div style={sf.field}>
-                    <label style={sf.label}>שם (אופציונלי)</label>
-                    <input style={sf.input} placeholder="השם שלך" value={form.donor_name}
+                    <label style={sf.label}>שם *</label>
+                    <input style={sf.input} required placeholder="השם שלך" value={form.donor_name}
                         onChange={e => setForm(f => ({ ...f, donor_name: e.target.value }))} />
                 </div>
                 <div style={sf.field}>
-                    <label style={sf.label}>סכום ₪ (אופציונלי)</label>
-                    <input style={sf.input} type="number" min="1" placeholder="100"
+                    <label style={sf.label}>סכום ₪ *</label>
+                    <input style={sf.input} type="number" min="1" required placeholder="100"
                         value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />
                 </div>
                 <div style={sf.field}>
@@ -120,7 +125,9 @@ function DonationReportForm({ defaultMethod, onClose }) {
             </div>
 
             <p style={sf.privacy}>
-                הפרטים ישמשו אך ורק לשליחת הודעת תודה ולרישום פנימי. לא נשתף עם שום צד שלישי.
+                הפרטים ישמשו לרישום פנימי ולשליחת הודעת תודה (אם צוין מייל).
+                ייתכן שימוש בספקי שירות הכרחיים להפעלת האתר (כגון שליחת מייל).
+                לפירוט ראו את <Link to="/privacy" style={{ color: 'inherit' }}>מדיניות הפרטיות</Link>.
             </p>
 
             {err && <p style={sf.errMsg}>{err}</p>}
@@ -146,8 +153,10 @@ export default function HelpPage() {
     const itemsRef = useRef(null);
     const location = useLocation();
 
-    const { payboxLink, bitNumber, paypalLink, bank } = PAYMENTS;
+    const { payboxLink, bitNumber, bitLink, paypalLink, bank } = PAYMENTS;
     const bankReady = hasBankDetails(bank);
+    const bitReady = !!(bitNumber || bitLink);
+    const hasPrimaryPayment = !!(payboxLink || bitReady);
 
     useEffect(() => {
         if (location.hash === '#donate' && itemsRef.current) {
@@ -181,6 +190,11 @@ export default function HelpPage() {
         }, 100);
     }
 
+    function afterExternalPay(method) {
+        setReportMethod(method);
+        setTimeout(() => openReport(method), 600);
+    }
+
     return (
         <div style={s.page}>
             <PageMeta title="איך עוזרים" description="תרומה כספית, תרומת משחקים וספרים, או התנדבות — כל דרך לעזור לילדים מאושפזים. הצטרפו אלינו." path="/help" />
@@ -204,82 +218,93 @@ export default function HelpPage() {
                             כל שקל הופך למשחק, ספר או חיוך ביד ילד מאושפז.
                         </p>
 
+                        {!hasPrimaryPayment && (
+                            <p style={s.payOptionPending}>
+                                {t('help_payment_pending')} — בקרוב נוסיף קישור Bit או PayBox לתרומה.
+                            </p>
+                        )}
+
                         {payboxLink && (
                             <a
                                 href={payboxLink}
                                 style={s.donateBtnPrimary}
                                 target="_blank" rel="noopener noreferrer"
-                                onClick={() => setReportMethod('paybox')}
+                                onClick={() => afterExternalPay('paybox')}
                             >
                                 {t('help_paybox_btn')}
                             </a>
                         )}
 
-                        <div style={s.payOption}>
-                            <span style={s.payOptionIcon}>📱</span>
-                            <div style={{ flex: 1, textAlign: 'inherit' }}>
-                                <strong style={s.payOptionLabel}>Bit</strong>
-                                {bitNumber ? (
-                                    <span style={s.payOptionValue}>{bitNumber}</span>
-                                ) : (
-                                    <span style={s.payOptionPending}>{t('help_payment_pending')}</span>
+                        {bitLink && (
+                            <a
+                                href={bitLink}
+                                style={s.donateBtnPrimary}
+                                target="_blank" rel="noopener noreferrer"
+                                onClick={() => afterExternalPay('bit')}
+                            >
+                                📱 Bit — תרמו עכשיו
+                            </a>
+                        )}
+
+                        {(bitNumber || !bitLink) && (
+                            <div style={s.payOption}>
+                                <span style={s.payOptionIcon}>📱</span>
+                                <div style={{ flex: 1, textAlign: 'inherit' }}>
+                                    <strong style={s.payOptionLabel}>Bit</strong>
+                                    {bitNumber ? (
+                                        <span style={s.payOptionValue}>{bitNumber}</span>
+                                    ) : (
+                                        <span style={s.payOptionPending}>{t('help_payment_pending')}</span>
+                                    )}
+                                </div>
+                                {bitNumber && (
+                                    <button type="button" style={s.copyBtn} onClick={copyBit}>
+                                        {t('help_bit_copy')}
+                                    </button>
                                 )}
                             </div>
-                            {bitNumber && (
-                                <button type="button" style={s.copyBtn} onClick={copyBit}>
-                                    {t('help_bit_copy')}
-                                </button>
-                            )}
-                        </div>
+                        )}
 
                         {paypalLink ? (
                             <a
                                 href={paypalLink}
                                 style={s.paypalBtn}
                                 target="_blank" rel="noopener noreferrer"
-                                onClick={() => setReportMethod('paypal')}
+                                onClick={() => afterExternalPay('paypal')}
                             >
                                 {t('help_paypal_btn')}
                             </a>
-                        ) : (
-                            <div style={s.payOption}>
-                                <span style={s.payOptionIcon}>🌍</span>
-                                <div style={{ flex: 1, textAlign: 'inherit' }}>
-                                    <strong style={s.payOptionLabel}>PayPal</strong>
-                                    <span style={s.payOptionPending}>{t('help_payment_pending')}</span>
-                                </div>
-                            </div>
-                        )}
+                        ) : null}
 
-                        <button
-                            style={s.bankToggle}
-                            onClick={() => {
-                                setShowBank(v => {
-                                    const next = !v;
-                                    if (next) setReportMethod('bank');
-                                    return next;
-                                });
-                            }}
-                        >
-                            {showBank ? t('help_bank_hide') : t('help_bank_show')}
-                        </button>
-                        {showBank && (
-                            <div style={s.bankBox}>
-                                {bankReady ? (
-                                    <>
+                        {bankReady && (
+                            <>
+                                <button
+                                    type="button"
+                                    style={s.bankToggle}
+                                    onClick={() => {
+                                        setShowBank(v => {
+                                            const next = !v;
+                                            if (next) setReportMethod('bank');
+                                            return next;
+                                        });
+                                    }}
+                                >
+                                    {showBank ? t('help_bank_hide') : t('help_bank_show')}
+                                </button>
+                                {showBank && (
+                                    <div style={s.bankBox}>
                                         <p style={s.bankLine}>{t('help_bank_name')}: {bank.name}</p>
                                         <p style={s.bankLine}>{t('help_bank_branch')}: {bank.branch}</p>
                                         <p style={s.bankLine}>{t('help_bank_account')}: {bank.account}</p>
                                         <p style={s.bankLine}>{t('help_bank_holder')}: {bank.holder}</p>
-                                    </>
-                                ) : (
-                                    <p style={s.bankPending}>{t('help_payment_pending')}</p>
+                                    </div>
                                 )}
-                            </div>
+                            </>
                         )}
 
                         <p style={s.donateNote}>
-                            100% מהתרומות מגיעות ישירות לילדים
+                            התרומות מיועדות לרכישת ציוד ולחלוקה לילדים מאושפזים.
+                            אין אישור מס — ראו <Link to="/terms" style={{ color: 'inherit' }}>תקנון</Link>.
                         </p>
                     </div>
 
@@ -289,7 +314,7 @@ export default function HelpPage() {
                             <span style={{ fontSize: '1.4rem' }}>✅</span>
                             <div style={{ flex: 1 }}>
                                 <strong style={s.reportBannerTitle}>סיימתם לשלם?</strong>
-                                <span style={s.reportBannerText}> ספרו לנו ונשלח לכם הודעת תודה אישית!</span>
+                                <span style={s.reportBannerText}> ספרו לנו — נרשום את התרומה (ונוכל לשלוח תודה אם תמלאו מייל).</span>
                             </div>
                             <button
                                 type="button"

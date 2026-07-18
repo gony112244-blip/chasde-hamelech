@@ -72,7 +72,12 @@ function PhotoCard({ item, onClick }) {
 
     return (
         <button className="gal-photo" style={s.photoCard} onClick={() => onClick(item)}>
-            <img src={src} alt="" style={s.photoImg} loading="lazy" />
+            <img
+                src={src}
+                alt={item.title || item.original_name || 'תמונה מגלריית חסדי המלך'}
+                style={s.photoImg}
+                loading="lazy"
+            />
             <div className="gal-overlay" style={s.photoOverlay}>
                 <span className="gal-zoom" style={s.photoZoom}>🔍</span>
             </div>
@@ -172,7 +177,7 @@ export default function GalleryPage() {
                     <button style={s.closeBtn} onClick={() => setLightbox(null)} aria-label={t('a11y_close')}>✕</button>
                     <img
                         src={lightbox.filename ? `${UPLOADS_BASE}/${lightbox.filename}` : lightbox.src}
-                        alt={lightbox.title || ''}
+                        alt={lightbox.title || lightbox.original_name || 'תמונה מגלריית חסדי המלך'}
                         style={s.lightboxImg}
                         onClick={e => e.stopPropagation()}
                     />
@@ -214,7 +219,7 @@ export default function GalleryPage() {
                                                         onClick={() => setLightbox(m)}>
                                                         <img
                                                             src={`${UPLOADS_BASE}/${m.filename}`}
-                                                            alt={m.title || ''}
+                                                            alt={m.title || m.original_name || 'תמונה מגלריית חסדי המלך'}
                                                             style={s.postThumbImg}
                                                             loading="lazy"
                                                         />

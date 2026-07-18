@@ -138,6 +138,17 @@ CREATE TABLE IF NOT EXISTS donation_reports (
     created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- דוחות חודשיים — שקיפות פעילות
+CREATE TABLE IF NOT EXISTS monthly_reports (
+    id            SERIAL PRIMARY KEY,
+    month_year    TEXT NOT NULL UNIQUE,  -- פורמט: '2026-06'
+    distributions INTEGER DEFAULT 0,
+    goal          INTEGER DEFAULT 0,
+    description   TEXT DEFAULT '',
+    receipts_url  TEXT DEFAULT '',
+    created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- מטמון תרגומים (DeepL)
 CREATE TABLE IF NOT EXISTS translations (
     id              SERIAL PRIMARY KEY,

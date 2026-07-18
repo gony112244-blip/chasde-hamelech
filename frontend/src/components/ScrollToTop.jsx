@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import API_BASE from '../config';
 
 export default function ScrollToTop() {
     const { pathname } = useLocation();
@@ -7,6 +8,14 @@ export default function ScrollToTop() {
 
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'instant' });
+        if (!pathname.startsWith('/admin')) {
+            fetch(`${API_BASE}/api/visit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path: pathname }),
+                keepalive: true,
+            }).catch(() => {});
+        }
     }, [pathname]);
 
     useEffect(() => {

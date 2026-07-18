@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
 import API_BASE from '../config';
@@ -47,7 +48,7 @@ export default function VolunteerPage() {
                     <div style={s.successCard}>
                         <span style={{ fontSize: '3rem' }}>🎉</span>
                         <h2 style={{ color: 'var(--royal)', margin: 0 }}>{t('volunteer_success')}</h2>
-                        <a href="/" style={s.backBtn}>{t('notfound_home')}</a>
+                        <Link to="/" style={s.backBtn}>{t('notfound_home')}</Link>
                     </div>
                 </div>
             </div>
@@ -67,6 +68,15 @@ export default function VolunteerPage() {
 
             <section style={s.formSection}>
                 <form onSubmit={handleSubmit} style={s.formCard}>
+                    <p style={{
+                        margin: '0 0 18px', padding: '12px 14px', borderRadius: '12px',
+                        background: 'rgba(15,32,68,0.06)', color: 'var(--text-soft)',
+                        fontSize: '0.88rem', lineHeight: 1.6,
+                    }}>
+                        חשוב לדעת: ההתנדבות היא על בסיס אישי. מאחר שחסדי המלך אינה עמותה רשומה,
+                        אין ביטוח מתנדבים מטעם ביטוח לאומי במסגרת פעילות זו — ראו{' '}
+                        <Link to="/terms" style={{ color: 'var(--royal)' }}>תקנון</Link>.
+                    </p>
                     <div style={s.row}>
                         <div style={s.field}>
                             <label style={s.label}>{t('volunteer_name')}</label>

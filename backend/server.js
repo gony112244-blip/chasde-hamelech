@@ -71,7 +71,11 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 // קבצים סטטיים — uploads
 // =====================
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const PENDING_UPLOADS_DIR = path.join(UPLOADS_DIR, 'pending');
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+if (!fs.existsSync(PENDING_UPLOADS_DIR)) fs.mkdirSync(PENDING_UPLOADS_DIR, { recursive: true });
+// תמונות ממתינות אינן זמינות לציבור עד לאישורן.
+app.use(['/uploads/pending', '/api/uploads/pending'], (req, res) => res.status(404).end());
 app.use('/uploads', express.static(UPLOADS_DIR));
 app.use('/api/uploads', express.static(UPLOADS_DIR));
 
@@ -83,6 +87,13 @@ const storage = multer.diskStorage({
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname).toLowerCase();
         // שם קובץ אקראי ולא ניתן לניחוש
+        cb(null, `${crypto.randomUUID()}${ext}`);
+    }
+});
+const pendingPhotoStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, PENDING_UPLOADS_DIR),
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname).toLowerCase();
         cb(null, `${crypto.randomUUID()}${ext}`);
     }
 });
@@ -117,6 +128,34 @@ const photoFilter = makeFilter(
     'ניתן להעלות תמונות בלבד'
 );
 const uploadPhoto = multer({ storage, fileFilter: photoFilter, limits: { fileSize: 10 * 1024 * 1024 } });
+const uploadPendingPhoto = multer({ storage: pendingPhotoStorage, fileFilter: photoFilter, limits: { fileSize: 10 * 1024 * 1024 } });
+
+function hasValidImageMagic(bytes, mimetype) {
+    const isJpeg = bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    const isPng = bytes.length >= 8 && bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+    const isGif = bytes.length >= 6 && (bytes.subarray(0, 6).toString('ascii') === 'GIF87a' || bytes.subarray(0, 6).toString('ascii') === 'GIF89a');
+    const isWebp = bytes.length >= 12 && bytes.subarray(0, 4).toString('ascii') === 'RIFF' && bytes.subarray(8, 12).toString('ascii') === 'WEBP';
+    return (
+        (mimetype === 'image/jpeg' && isJpeg) ||
+        (mimetype === 'image/png' && isPng) ||
+        (mimetype === 'image/gif' && isGif) ||
+        (mimetype === 'image/webp' && isWebp)
+    );
+}
+
+function validateUploadedImage(req, res, next) {
+    if (!req.file || !req.file.mimetype?.startsWith('image/')) return next();
+    try {
+        const bytes = fs.readFileSync(req.file.path);
+        if (hasValidImageMagic(bytes, req.file.mimetype)) return next();
+    } catch (_) { /* מטופל כשגיאה למטה */ }
+    fs.unlink(req.file.path, () => {});
+    return res.status(400).json({ error: 'תוכן קובץ התמונה אינו תואם לסוג הקובץ' });
+}
+
+function removeUploadedFile(file) {
+    if (file?.path) fs.unlink(file.path, () => {});
+}
 
 // טעינת לוגו "חסדי המלך" פעם אחת (לסימן מים על העלונים)
 const LOGO_PATH = path.join(__dirname, 'assets', 'logo.png');
@@ -312,18 +351,21 @@ function emailDonorThanks(name, amount, method) {
     return `
         <h2 style="color:#1e3a8a;margin-top:0;">תודה רבה על תרומתך, ${who}! 💛</h2>
         <p style="font-size:16px;line-height:1.6;color:#4b5563;">
-            קיבלנו את דיווח התרומה שלך${amountStr ? ` על סך <strong>${amountStr}</strong>` : ''} דרך <strong>${methodStr}</strong> — ואנו מודים לך מעומק הלב!
+            דיווח התרומה שלך אושר${amountStr ? ` על סך <strong>${amountStr}</strong>` : ''} דרך <strong>${methodStr}</strong> — תודה מעומק הלב!
         </p>
         <p style="font-size:16px;line-height:1.6;color:#4b5563;">
             בזכותך, ילדים מאושפזים יזכו לקבל משחקים, ספרים וחיוכים שיאירו את ימיהם הקשים.
         </p>
         <div style="margin:24px 0;padding:18px 20px;background:#eff6ff;border-right:4px solid #3b82f6;border-radius:6px;">
             <p style="margin:0;color:#1e40af;font-weight:600;font-size:15px;">
-                כל שקל מגיע ישירות לידי הילדים — ללא עלויות ניהול.
+                אנו פועלים כדי להפנות את התרומות לעשייה עבור הילדים, בהתאם למדיניות האתר.
             </p>
         </div>
         <p style="font-size:16px;line-height:1.6;color:#4b5563;">
             תרומתך נרשמה במערכת שלנו. תודה שבחרת להיות חלק ממשפחת חסדי המלך!
+        </p>
+        <p style="font-size:13px;line-height:1.5;color:#6b7280;">
+            לתשומת לבך: חסדי המלך אינה עמותה רשומה ואינה מוכרת לצרכי מס — אין אפשרות להנפיק אישור מס על תרומה.
         </p>
         <div style="text-align:center;margin:32px 0;">
             <a href="${SITE_URL}/thank-you" style="background-color:#1e3a8a;color:white;padding:12px 28px;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px;display:inline-block;">קיר התודה שלנו</a>
@@ -375,7 +417,7 @@ async function logVisit(req, res, next) {
     try {
         await pool.query(
             'INSERT INTO page_visits (path) VALUES ($1)',
-            [req.path]
+            [typeof req.query.path === 'string' && req.query.path.startsWith('/') ? req.query.path.slice(0, 200) : req.path]
         );
     } catch (_) { /* לא לעצור את הבקשה בגלל שגיאת לוג */ }
     next();
@@ -385,8 +427,8 @@ async function logVisit(req, res, next) {
 // Admin Auth — טוקן הפעלה אקראי עם תפוגה (לא הסיסמה עצמה)
 // =====================
 const ADMIN_PASS = process.env.ADMIN_PASSWORD;
-if (!ADMIN_PASS || ADMIN_PASS.length < 4) {
-    console.error('❌ ADMIN_PASSWORD חסר או קצר מ-4 תווים. הגדירו אותו ב-.env. השרת לא יעלה.');
+if (!ADMIN_PASS || ADMIN_PASS.length < 12) {
+    console.error('❌ ADMIN_PASSWORD חסר או קצר מ-12 תווים. הגדירו אותו ב-.env. השרת לא יעלה.');
     process.exit(1);
 }
 
@@ -444,8 +486,27 @@ const formLimiter = rateLimit({
 // Routes — Public
 // =====================
 
-app.get('/api/health', (req, res) => {
-    res.json({ ok: true, project: 'חסדי המלך', timestamp: new Date().toISOString() });
+app.get('/api/health', async (req, res) => {
+    const emailConfigured = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+    try {
+        await pool.query('SELECT 1');
+        res.json({ ok: true, project: 'חסדי המלך', emailConfigured, timestamp: new Date().toISOString() });
+    } catch (err) {
+        res.status(503).json({ ok: false, project: 'חסדי המלך', emailConfigured, timestamp: new Date().toISOString() });
+    }
+});
+
+// מעקב ביקורים מדפי האתר (לא חוסם UI — fire-and-forget)
+app.post('/api/visit', async (req, res) => {
+    const raw = typeof req.body?.path === 'string' ? req.body.path : '';
+    const pathValue = raw.startsWith('/') ? raw.slice(0, 200) : '';
+    if (!pathValue || pathValue.startsWith('/admin') || pathValue.startsWith('/api')) {
+        return res.status(204).end();
+    }
+    try {
+        await pool.query('INSERT INTO page_visits (path) VALUES ($1)', [pathValue]);
+    } catch (_) { /* לא חוסם */ }
+    res.status(204).end();
 });
 
 // סטטיסטיקות (מדד החיוכים)
@@ -479,17 +540,17 @@ app.get('/api/thank-you', async (req, res) => {
 });
 
 // קיר תודה — הגשה חדשה (multipart: תומך בתמונות אופציונליות)
-app.post('/api/thank-you', formLimiter, uploadPhoto.single('photo'), async (req, res) => {
+app.post('/api/thank-you', formLimiter, uploadPendingPhoto.single('photo'), validateUploadedImage, async (req, res) => {
     const { name, message, email, hospital } = req.body;
     if (!message?.trim()) {
         return res.status(400).json({ error: 'הודעה היא שדה חובה' });
     }
     if (tooLong(req.body, { name: 80, email: 150, hospital: 80, message: 2000 })) {
-        if (req.file) fs.unlink(path.join(UPLOADS_DIR, req.file.filename), () => {});
+        removeUploadedFile(req.file);
         return res.status(400).json({ error: 'אחד השדות ארוך מדי' });
     }
     if (email?.trim() && !isValidEmail(email)) {
-        if (req.file) fs.unlink(path.join(UPLOADS_DIR, req.file.filename), () => {});
+        removeUploadedFile(req.file);
         return res.status(400).json({ error: 'כתובת מייל לא תקינה' });
     }
     const photoFilename = req.file ? req.file.filename : null;
@@ -522,7 +583,7 @@ app.post('/api/thank-you', formLimiter, uploadPhoto.single('photo'), async (req,
         });
     } catch (err) {
         console.error(err);
-        if (req.file) fs.unlink(path.join(UPLOADS_DIR, req.file.filename), () => {});
+        removeUploadedFile(req.file);
         res.status(500).json({ error: 'שגיאת שרת' });
     }
 });
@@ -532,6 +593,9 @@ app.post('/api/contact', formLimiter, async (req, res) => {
     const { name, phone, email, message, isTech } = req.body;
     if (!name?.trim() || !message?.trim()) {
         return res.status(400).json({ error: 'שם והודעה הם שדות חובה' });
+    }
+    if (!phone?.trim() && !email?.trim()) {
+        return res.status(400).json({ error: 'נא למלא טלפון או מייל כדי שנוכל לחזור אליכם' });
     }
     if (tooLong(req.body, { name: 100, phone: 30, email: 150, message: 3000 })) {
         return res.status(400).json({ error: 'אחד השדות ארוך מדי' });
@@ -551,7 +615,7 @@ app.post('/api/contact', formLimiter, async (req, res) => {
         let subject = '📩 פנייה חדשה באתר';
 
         if (isTechnical) {
-            recipient = 'gony112244@gmail.com';
+            recipient = process.env.TECH_SUPPORT_EMAIL || ADMIN_EMAIL || process.env.EMAIL_USER;
             directLink = `${SITE_URL}/admin`;
             subject = '🛠️ דיווח על בעיה טכנית באתר';
         }
@@ -660,6 +724,12 @@ app.post('/api/admin/login', loginLimiter, (req, res) => {
     }
 });
 
+app.post('/api/admin/logout', adminAuth, (req, res) => {
+    const token = req.headers.authorization.slice(7);
+    sessions.delete(token);
+    res.json({ ok: true });
+});
+
 // פניות
 app.get('/api/admin/contacts', adminAuth, async (req, res) => {
     try {
@@ -677,6 +747,9 @@ app.post('/api/admin/contacts/:id/reply', adminAuth, async (req, res) => {
     const { reply_text } = req.body;
     if (!reply_text?.trim()) {
         return res.status(400).json({ error: 'תוכן התשובה הוא חובה' });
+    }
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        return res.status(503).json({ error: 'שליחת מייל אינה מוגדרת בשרת' });
     }
     try {
         const contact = await pool.query('SELECT * FROM contacts WHERE id=$1', [id]);
@@ -753,6 +826,34 @@ app.get('/api/admin/thank-you', adminAuth, async (req, res) => {
     }
 });
 
+// צפייה בתמונת תודה (כולל pending) — רק למנהל; לא נחשף ב-/uploads/pending
+app.get('/api/admin/thank-you/:id/photo', adminAuth, async (req, res) => {
+    const noteId = parseInt(req.params.id, 10);
+    if (!Number.isFinite(noteId) || noteId <= 0) {
+        return res.status(400).json({ error: 'מזהה לא תקין' });
+    }
+    try {
+        const result = await pool.query(
+            'SELECT photo_filename FROM thank_you_notes WHERE id=$1',
+            [noteId]
+        );
+        if (!result.rows.length || !result.rows[0].photo_filename) {
+            return res.status(404).json({ error: 'לא נמצא' });
+        }
+        const photo = path.basename(result.rows[0].photo_filename);
+        const pendingPath = path.join(PENDING_UPLOADS_DIR, photo);
+        const approvedPath = path.join(UPLOADS_DIR, photo);
+        const filePath = fs.existsSync(pendingPath)
+            ? pendingPath
+            : (fs.existsSync(approvedPath) ? approvedPath : null);
+        if (!filePath) return res.status(404).json({ error: 'קובץ לא נמצא' });
+        res.sendFile(filePath);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'שגיאת שרת' });
+    }
+});
+
 // אישור/דחייה תודה
 app.put('/api/admin/thank-you/:id', adminAuth, async (req, res) => {
     const { id } = req.params;
@@ -761,11 +862,26 @@ app.put('/api/admin/thank-you/:id', adminAuth, async (req, res) => {
         return res.status(400).json({ error: 'סטטוס לא חוקי' });
     }
     try {
+        const existing = await pool.query(
+            'SELECT status, photo_filename FROM thank_you_notes WHERE id=$1',
+            [id]
+        );
+        if (!existing.rows.length) return res.status(404).json({ error: 'לא נמצא' });
+        const previous = existing.rows[0];
+        const photo = previous.photo_filename;
+        if (photo && status === 'approved' && previous.status !== 'approved') {
+            const pendingPath = path.join(PENDING_UPLOADS_DIR, photo);
+            const approvedPath = path.join(UPLOADS_DIR, photo);
+            if (fs.existsSync(pendingPath)) fs.renameSync(pendingPath, approvedPath);
+        } else if (photo && status !== 'approved' && previous.status === 'approved') {
+            const approvedPath = path.join(UPLOADS_DIR, photo);
+            const pendingPath = path.join(PENDING_UPLOADS_DIR, photo);
+            if (fs.existsSync(approvedPath)) fs.renameSync(approvedPath, pendingPath);
+        }
         const result = await pool.query(
             'UPDATE thank_you_notes SET status=$1 WHERE id=$2 RETURNING *',
             [status, id]
         );
-        if (!result.rows.length) return res.status(404).json({ error: 'לא נמצא' });
         const note = result.rows[0];
         if (status === 'approved' && note.email?.trim()) {
             sendUserEmail(
@@ -823,25 +939,6 @@ app.get('/api/admin/stats/visits', adminAuth, async (req, res) => {
     }
 });
 
-// תרומות — הוספה (Admin בלבד; אין רישום תרומות ציבורי כדי למנוע זיהום נתונים)
-app.post('/api/donations', adminAuth, async (req, res) => {
-    const { donor_name, amount, method, note } = req.body;
-    const amt = parseFloat(amount);
-    if (!Number.isFinite(amt) || amt <= 0) {
-        return res.status(400).json({ error: 'סכום תרומה חייב להיות מספר חיובי' });
-    }
-    try {
-        await pool.query(
-            'INSERT INTO donations (donor_name, amount, method, note) VALUES ($1, $2, $3, $4)',
-            [donor_name?.trim() || 'אנונימי', amt, method || 'other', note?.trim() || '']
-        );
-        res.status(201).json({ ok: true });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'שגיאת שרת' });
-    }
-});
-
 // תרומות — רשימה (Admin)
 app.get('/api/admin/donations', adminAuth, async (req, res) => {
     try {
@@ -871,7 +968,7 @@ app.put('/api/admin/volunteers/:id/notes', adminAuth, async (req, res) => {
 });
 
 // מדיה — העלאה (Admin)
-app.post('/api/admin/media', adminAuth, upload.single('file'), async (req, res) => {
+app.post('/api/admin/media', adminAuth, upload.single('file'), validateUploadedImage, async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'לא נשלח קובץ' });
     const { title, description, category } = req.body;
     const ext = path.extname(req.file.originalname).toLowerCase();
@@ -1008,7 +1105,7 @@ app.delete('/api/admin/gallery-posts/:id', adminAuth, async (req, res) => {
 });
 
 // העלאת מדיה לפוסט
-app.post('/api/admin/gallery-posts/:id/media', adminAuth, upload.single('file'), async (req, res) => {
+app.post('/api/admin/gallery-posts/:id/media', adminAuth, upload.single('file'), validateUploadedImage, async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'לא נשלח קובץ' });
     const { title, description, category } = req.body;
     const ext = path.extname(req.file.originalname).toLowerCase();
@@ -1041,7 +1138,7 @@ app.get('/api/newsletters', async (req, res) => {
     }
 });
 
-app.post('/api/admin/newsletters', adminAuth, uploadNewsletter.single('file'), async (req, res) => {
+app.post('/api/admin/newsletters', adminAuth, uploadNewsletter.single('file'), validateUploadedImage, async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'לא נשלח קובץ' });
     const { title, parasha_name, week_of } = req.body;
 
@@ -1228,7 +1325,10 @@ app.delete('/api/admin/thank-you/:id', adminAuth, async (req, res) => {
         );
         if (!result.rows.length) return res.status(404).json({ error: 'לא נמצא' });
         const photo = result.rows[0].photo_filename;
-        if (photo) fs.unlink(path.join(UPLOADS_DIR, photo), () => {});
+        if (photo) {
+            fs.unlink(path.join(UPLOADS_DIR, photo), () => {});
+            fs.unlink(path.join(PENDING_UPLOADS_DIR, photo), () => {});
+        }
         res.json({ ok: true });
     } catch (err) {
         console.error(err);
@@ -1239,12 +1339,21 @@ app.delete('/api/admin/thank-you/:id', adminAuth, async (req, res) => {
 // =====================
 // מעקב הורדות עלון פרשה
 // =====================
-app.post('/api/newsletters/:id/download', async (req, res) => {
+const newsletterDownloadLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: { error: 'יותר מדי בקשות הורדה, נסה שוב מאוחר יותר.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+app.post('/api/newsletters/:id/download', newsletterDownloadLimiter, async (req, res) => {
     try {
-        await pool.query(
+        const result = await pool.query(
             'UPDATE newsletters SET downloads = COALESCE(downloads,0) + 1 WHERE id=$1',
             [req.params.id]
         );
+        if (!result.rowCount) return res.status(404).json({ ok: false, error: 'עלון לא נמצא' });
         res.json({ ok: true });
     } catch {
         res.json({ ok: false });
@@ -1258,7 +1367,7 @@ app.post('/api/newsletters/:id/download', async (req, res) => {
 // הגבלת קצב לתרגום — מונע ניצול מכסת DeepL
 const translateLimiter = rateLimit({
     windowMs: 60 * 1000,
-    max: 120,
+    max: 20, // הגבלה מחמירה — מונע שריפת מכסת DeepL
     message: { translated: '' },
     standardHeaders: true,
     legacyHeaders: false,
@@ -1270,7 +1379,7 @@ app.post('/api/translate', translateLimiter, async (req, res) => {
     if (!text || !lang || lang === 'he') return res.json({ translated: text });
     // רק שפות נתמכות, וטקסט בגודל סביר
     if (!['en', 'fr'].includes(lang)) return res.json({ translated: text });
-    if (typeof text !== 'string' || text.length > 5000) return res.json({ translated: text });
+    if (typeof text !== 'string' || text.length > 2000) return res.json({ translated: text });
 
     try {
         // בדוק מטמון
@@ -1282,10 +1391,10 @@ app.post('/api/translate', translateLimiter, async (req, res) => {
             return res.json({ translated: cached.rows[0].translated_text, cached: true });
         }
 
-        // שלח ל-DeepL (Free tier)
+        // שלח ל-DeepL (Free tier) — רק אם מוגדר מפתח
         const DEEPL_KEY = process.env.DEEPL_API_KEY;
         if (!DEEPL_KEY) {
-            return res.json({ translated: text, note: 'no deepl key' });
+            return res.json({ translated: text });
         }
 
         const targetLang = lang === 'fr' ? 'FR' : 'EN';
@@ -1379,6 +1488,10 @@ app.post('/api/admin/monthly-reports', adminAuth, async (req, res) => {
     }
     const dist = Math.max(0, parseInt(distributions) || 0);
     const g    = Math.max(0, parseInt(goal) || 0);
+    const receiptsUrl = receipts_url?.trim() || '';
+    if (receiptsUrl && !receiptsUrl.startsWith('https://')) {
+        return res.status(400).json({ error: 'קישור קבלות חייב להתחיל ב-https://' });
+    }
     try {
         const result = await pool.query(
             `INSERT INTO monthly_reports (month_year, distributions, goal, description, receipts_url)
@@ -1386,7 +1499,7 @@ app.post('/api/admin/monthly-reports', adminAuth, async (req, res) => {
              ON CONFLICT (month_year) DO UPDATE
                SET distributions=$2, goal=$3, description=$4, receipts_url=$5
              RETURNING *`,
-            [month_year, dist, g, description?.trim() || '', receipts_url?.trim() || '']
+            [month_year, dist, g, description?.trim() || '', receiptsUrl]
         );
         res.status(201).json({ ok: true, report: result.rows[0] });
     } catch (err) {
@@ -1413,14 +1526,17 @@ app.delete('/api/admin/monthly-reports/:id', adminAuth, async (req, res) => {
 // הגשת דיווח תרומה על ידי תורם (ציבורי)
 app.post('/api/donation-report', formLimiter, async (req, res) => {
     const { donor_name, amount, method, email, phone, note } = req.body;
+    if (!donor_name?.trim() || amount === undefined || amount === null || String(amount).trim() === '') {
+        return res.status(400).json({ error: 'שם התורם וסכום התרומה הם שדות חובה' });
+    }
     if (tooLong(req.body, { donor_name: 100, email: 150, phone: 30, note: 1000 })) {
         return res.status(400).json({ error: 'אחד השדות ארוך מדי' });
     }
     if (email?.trim() && !isValidEmail(email)) {
         return res.status(400).json({ error: 'כתובת מייל לא תקינה' });
     }
-    const amt = amount ? parseFloat(amount) : null;
-    if (amount && (!Number.isFinite(amt) || amt <= 0)) {
+    const amt = parseFloat(amount);
+    if (!Number.isFinite(amt) || amt <= 0) {
         return res.status(400).json({ error: 'סכום לא תקין' });
     }
     const validMethods = ['bit', 'paybox', 'paypal', 'bank', 'other'];
@@ -1467,12 +1583,18 @@ app.put('/api/admin/donation-reports/:id', adminAuth, async (req, res) => {
     if (!['approved', 'rejected', 'pending'].includes(status)) {
         return res.status(400).json({ error: 'סטטוס לא תקין' });
     }
+    let client;
     try {
-        const prev = await pool.query('SELECT status FROM donation_reports WHERE id=$1', [reportId]);
-        if (!prev.rows.length) return res.status(404).json({ error: 'לא נמצא' });
+        client = await pool.connect();
+        await client.query('BEGIN');
+        const prev = await client.query('SELECT status FROM donation_reports WHERE id=$1 FOR UPDATE', [reportId]);
+        if (!prev.rows.length) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ error: 'לא נמצא' });
+        }
         const oldStatus = prev.rows[0].status;
 
-        const result = await pool.query(
+        const result = await client.query(
             'UPDATE donation_reports SET status=$1 WHERE id=$2 RETURNING *',
             [status, reportId]
         );
@@ -1482,41 +1604,60 @@ app.put('/api/admin/donation-reports/:id', adminAuth, async (req, res) => {
         // אישור ראשון בלבד — מונע כפילות תרומות ומיילים
         if (status === 'approved' && oldStatus !== 'approved') {
             if (report.amount) {
-                await pool.query(
+                await client.query(
                     'INSERT INTO donations (donor_name, amount, method, note) VALUES ($1,$2,$3,$4)',
                     [report.donor_name || 'אנונימי', report.amount, report.method, donationNote]
                 );
             }
-            if (report.email) {
-                sendUserEmail(
-                    report.email,
-                    'תודה על תרומתך לחסדי המלך! 💛',
-                    emailDonorThanks(report.donor_name, report.amount, report.method)
-                );
-            }
         }
 
-        // ביטול אישור — מסיר את הרישום מטבלת donations
-        if (status === 'pending' && oldStatus === 'approved') {
-            await pool.query('DELETE FROM donations WHERE note = $1', [donationNote]);
+        // ביטול/דחיית אישור — מסיר את הרישום מטבלת donations
+        if (status !== 'approved' && oldStatus === 'approved') {
+            await client.query('DELETE FROM donations WHERE note = $1', [donationNote]);
         }
 
+        await client.query('COMMIT');
+        if (status === 'approved' && oldStatus !== 'approved' && report.email) {
+            sendUserEmail(
+                report.email,
+                'דיווח התרומה שלך אושר — חסדי המלך 💛',
+                emailDonorThanks(report.donor_name, report.amount, report.method)
+            );
+        }
         res.json({ ok: true, report });
     } catch (err) {
+        if (client) await client.query('ROLLBACK').catch(() => {});
         console.error(err);
         res.status(500).json({ error: 'שגיאת שרת' });
+    } finally {
+        if (client) client.release();
     }
 });
 
 // מחיקת דיווח תרומה (Admin)
 app.delete('/api/admin/donation-reports/:id', adminAuth, async (req, res) => {
+    const reportId = parseInt(req.params.id, 10);
+    if (!Number.isFinite(reportId) || reportId <= 0) {
+        return res.status(400).json({ error: 'מזהה לא תקין' });
+    }
+    let client;
     try {
-        const result = await pool.query('DELETE FROM donation_reports WHERE id=$1 RETURNING id', [req.params.id]);
-        if (!result.rows.length) return res.status(404).json({ error: 'לא נמצא' });
+        client = await pool.connect();
+        await client.query('BEGIN');
+        const result = await client.query('DELETE FROM donation_reports WHERE id=$1 RETURNING id', [reportId]);
+        if (!result.rows.length) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ error: 'לא נמצא' });
+        }
+        await client.query('DELETE FROM donations WHERE note = $1', [`דיווח #${reportId}`]);
+        await client.query('COMMIT');
         res.json({ ok: true });
     } catch (err) {
+        if (client) await client.query('ROLLBACK').catch(() => {});
         console.error(err);
         res.status(500).json({ error: 'שגיאת שרת' });
+    } finally {
+        if (client) client.release();
     }
 });
 

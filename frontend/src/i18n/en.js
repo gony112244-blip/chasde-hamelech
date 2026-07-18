@@ -4,7 +4,7 @@ export default {
     nav_gallery: 'Gallery',
     nav_thankyou: 'Thank You Wall',
     nav_help: 'How to Help',
-    nav_parasha: 'Weekly Newsletter',
+    nav_parasha: 'Torah Thought',
     nav_volunteer: 'Volunteers',
     nav_contact: 'Contact',
     nav_donate: 'Help Us ✨',
@@ -93,8 +93,8 @@ export default {
     thankyou_form_submit: '📨 Send',
     thankyou_form_cancel: 'Cancel',
     thankyou_success_title: 'Thank you so much!',
-    thankyou_success_msg: 'Your message has been published on the Thank You Wall! 🎉',
-    thankyou_success_msg_photo: 'Your message with the photo was sent and will be published after admin approval.',
+    thankyou_success_msg: 'Your message was received and will appear on the Thank You Wall after admin approval. 💛',
+    thankyou_success_msg_photo: 'Your message with the photo was received and will appear on the Thank You Wall after admin approval.',
     thankyou_first_write: 'Be the first to write! ✍️',
     thankyou_anonymous: 'Anonymous',
 
@@ -143,8 +143,8 @@ export default {
     volunteer_success: 'Welcome to the family!',
 
     // ParashaPage
-    parasha_title: '📖 Weekly Newsletter',
-    parasha_subtitle: 'Weekly parasha newsletter for Shabbat — read, print, and share',
+    parasha_title: '📖 Torah Thought',
+    parasha_subtitle: 'Weekly Torah thought and parasha leaflet for Shabbat — read, print, and share',
     parasha_update: 'Updated Wednesday afternoon',
     parasha_download: '⬇️ Download newsletter',
     parasha_archive: 'Previous newsletters archive',
@@ -154,6 +154,7 @@ export default {
     footer_about: 'Distributing games, books, and love to hospitalized children in hospitals across Israel.',
     footer_links: 'Quick Links',
     footer_contact: 'Contact',
+    footer_legal: 'Legal',
     footer_rights: 'All rights reserved',
     footer_terms: 'Terms of Use',
     footer_privacy: 'Privacy Policy',

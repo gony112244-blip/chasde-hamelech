@@ -17,16 +17,18 @@ export default function Footer() {
                 <div style={s.col}>
                     <h4 style={s.colTitle}>{t('footer_links')}</h4>
                     <nav style={s.links}>
+                        <Link to="/parasha" style={s.link}>{t('nav_parasha')}</Link>
                         <Link to="/gallery" style={s.link}>{t('nav_gallery')}</Link>
                         <Link to="/thank-you" style={s.link}>{t('nav_thankyou')}</Link>
-                        <Link to="/parasha" style={s.link}>{t('nav_parasha')}</Link>
+                        <Link to="/help" style={s.link}>{t('nav_help')}</Link>
+                        <Link to="/transparency" style={s.link}>{t('nav_transparency')}</Link>
                         <Link to="/volunteer" style={s.link}>{t('nav_volunteer')}</Link>
                         <Link to="/contact" style={s.link}>{t('nav_contact')}</Link>
                     </nav>
                 </div>
 
                 <div style={s.col}>
-                    <h4 style={s.colTitle}>{t('footer_contact')}</h4>
+                    <h4 style={s.colTitle}>{t('footer_legal')}</h4>
                     <nav style={s.links}>
                         <Link to="/terms" style={s.link}>{t('footer_terms')}</Link>
                         <Link to="/privacy" style={s.link}>{t('footer_privacy')}</Link>

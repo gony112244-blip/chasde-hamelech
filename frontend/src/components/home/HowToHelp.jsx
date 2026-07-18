@@ -74,6 +74,13 @@ export default function HowToHelp() {
                         <p style={s.cardDesc}>{t('how_share_desc')}</p>
                         <button style={s.cardBtn} onClick={handleShare}>{t('how_share_btn')}</button>
                     </div>
+
+                    <div style={s.card}>
+                        <span style={s.cardIcon}>📖</span>
+                        <h3 style={s.cardTitle}>{t('nav_parasha')}</h3>
+                        <p style={s.cardDesc}>{t('parasha_subtitle')}</p>
+                        <Link to="/parasha" style={s.cardBtn}>{t('parasha_title')}</Link>
+                    </div>
                 </div>
             </div>
         </section>
