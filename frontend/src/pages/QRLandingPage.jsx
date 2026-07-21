@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
 
 // דף QR ייעודי — ללא Navbar/Footer — נפתח מסריקת QR בבית החולים
@@ -6,6 +7,12 @@ export default function QRLandingPage() {
     const t = useT();
     return (
         <div style={s.page}>
+            <PageMeta
+                title="סריקת QR"
+                description="דף נחיתה מסריקת QR של חסדי המלך בבתי החולים."
+                path="/qr"
+                noindex
+            />
             {/* רקע */}
             <div style={s.bgOrb1} />
             <div style={s.bgOrb2} />

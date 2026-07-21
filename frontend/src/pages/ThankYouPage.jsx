@@ -4,6 +4,7 @@ import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
 import { useLang } from '../contexts/LangContext';
 import { translateBatch } from '../hooks/useTranslate';
+import { FIELD_LIMITS, toPlainText, validateThankYouForm } from '../utils/formValidation';
 
 const DATE_LOCALES = { he: 'he-IL', en: 'en-US', fr: 'fr-FR' };
 
@@ -28,6 +29,7 @@ export default function ThankYouPage() {
     const [sending, setSending] = useState(false);
     const [error, setError] = useState('');
     const writeRef = useRef(null);
+    const limits = FIELD_LIMITS.thankYou;
 
     useEffect(() => {
         fetch(`${API_BASE}/api/thank-you`)
@@ -59,18 +61,19 @@ export default function ThankYouPage() {
 
     async function handleSubmit(e) {
         e.preventDefault();
-        if (!form.message.trim()) {
-            setError('נא לכתוב הודעת תודה לפני השליחה.');
+        const validationError = validateThankYouForm(form);
+        if (validationError) {
+            setError(validationError);
             return;
         }
         setSending(true);
         setError('');
         try {
             const fd = new FormData();
-            fd.append('name', form.name);
-            fd.append('message', form.message);
-            fd.append('email', form.email);
-            fd.append('hospital', form.hospital);
+            fd.append('name', toPlainText(form.name));
+            fd.append('message', toPlainText(form.message));
+            fd.append('email', form.email.trim());
+            fd.append('hospital', toPlainText(form.hospital));
             if (photo) fd.append('photo', photo);
 
             const res = await fetch(`${API_BASE}/api/thank-you`, {
@@ -147,6 +150,7 @@ export default function ThankYouPage() {
                                     value={form.name}
                                     onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                                     style={s.input}
+                                    maxLength={limits.name}
                                 />
                                 <input
                                     type="text"
@@ -154,6 +158,7 @@ export default function ThankYouPage() {
                                     value={form.hospital}
                                     onChange={e => setForm(f => ({ ...f, hospital: e.target.value }))}
                                     style={s.input}
+                                    maxLength={limits.hospital}
                                 />
                                 <textarea
                                     placeholder={t('thankyou_form_message')}
@@ -162,6 +167,7 @@ export default function ThankYouPage() {
                                     style={s.textarea}
                                     rows={4}
                                     required
+                                    maxLength={limits.message}
                                 />
                                 <input
                                     type="email"
@@ -169,6 +175,7 @@ export default function ThankYouPage() {
                                     value={form.email}
                                     onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                                     style={s.input}
+                                    maxLength={limits.email}
                                 />
 
                                 {/* העלאת תמונה / מכתב */}
@@ -235,21 +242,24 @@ export default function ThankYouPage() {
                                         src={`${UPLOADS_BASE}/${note.photo_filename}`}
                                         alt={t('thankyou_note_alt')}
                                         style={s.notePhoto}
+                                        loading="lazy"
                                     />
                                 )}
                                 <div style={s.noteQuote}>&ldquo;</div>
-                                <p style={s.noteText}>{note.messageKey ? t(note.messageKey) : note.message}</p>
+                                <p style={s.noteText}>
+                                    {note.messageKey ? t(note.messageKey) : toPlainText(note.message)}
+                                </p>
                                 <div style={s.noteFooter}>
                                     <div style={s.noteAvatar}>
-                                        {(note.nameKey ? t(note.nameKey) : (note.name || 'א')).charAt(0)}
+                                        {(note.nameKey ? t(note.nameKey) : toPlainText(note.name || 'א')).charAt(0)}
                                     </div>
                                     <div>
                                         <strong style={s.noteName}>
-                                            {note.nameKey ? t(note.nameKey) : (note.name || t('thankyou_anonymous'))}
+                                            {note.nameKey ? t(note.nameKey) : (toPlainText(note.name) || t('thankyou_anonymous'))}
                                         </strong>
-                                        {(note.hospitalKey ? t(note.hospitalKey) : note.hospital) && (
+                                        {(note.hospitalKey ? t(note.hospitalKey) : toPlainText(note.hospital)) && (
                                             <span style={s.noteDate}>
-                                                {note.hospitalKey ? t(note.hospitalKey) : note.hospital}
+                                                {note.hospitalKey ? t(note.hospitalKey) : toPlainText(note.hospital)}
                                             </span>
                                         )}
                                         <span style={s.noteDate}>
@@ -346,7 +356,10 @@ const s = {
     },
     notePhoto: { width: '100%', borderRadius: '12px', maxHeight: '180px', objectFit: 'cover' },
     noteQuote: { position: 'absolute', top: '12px', right: '18px', fontSize: '2.5rem', color: 'var(--royal-pale)', fontFamily: 'serif', lineHeight: 1, opacity: 0.5 },
-    noteText: { color: 'var(--text-soft)', fontSize: '0.95rem', lineHeight: 1.7, margin: 0, paddingTop: '10px', flex: 1 },
+    noteText: {
+        color: 'var(--text-soft)', fontSize: '0.95rem', lineHeight: 1.7, margin: 0, paddingTop: '10px', flex: 1,
+        whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+    },
     noteFooter: { display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '12px', borderTop: '1px solid rgba(15,32,68,0.06)', marginTop: 'auto' },
     noteAvatar: {
         width: '38px', height: '38px', borderRadius: '10px',

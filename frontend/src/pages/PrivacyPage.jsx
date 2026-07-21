@@ -14,7 +14,7 @@ export default function PrivacyPage() {
                 <div style={s.inner}>
                     <Section title="כללי">
                         <p>
-                            חסדי המלך (&rdquo;אנחנו&rdquo;, &rdquo;האתר&rdquo;) מכבדים את פרטיות המשתמשים.
+                            חסדי המלך (&ldquo;אנחנו&rdquo;, &ldquo;האתר&rdquo;) מכבדים את פרטיות המשתמשים.
                             מדיניות זו מסבירה אילו מידע אנו אוספים, כיצד אנו משתמשים בו,
                             ומהן זכויותיכם.
                         </p>
@@ -46,7 +46,7 @@ export default function PrivacyPage() {
                             <li>שליחת מיילים (Gmail / Nodemailer)</li>
                             <li>תרגום אוטומטי של תוכן (DeepL) — אם מופעל — כולל שמירת תרגומים במטמון</li>
                             <li>התראות WhatsApp למנהל — אם מופעל</li>
-                            <li>קישורי Google Drive למסמכי רכש בדף השקיפות — אם פורסמו</li>
+                            <li>קישורי Google Drive למסמכי רכש — אם יפורסמו בעתיד באתר</li>
                         </ul>
                         <p>
                             אמצעי תשלום חיצוניים (Bit / PayBox וכו&apos;) פועלים מחוץ לאתר ואינם מעבירים

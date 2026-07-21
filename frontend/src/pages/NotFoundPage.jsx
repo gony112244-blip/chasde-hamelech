@@ -1,10 +1,16 @@
 ﻿import { Link } from 'react-router-dom';
+import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
 
 export default function NotFoundPage() {
     const t = useT();
     return (
         <div style={s.container}>
+            <PageMeta
+                title="הדף לא נמצא"
+                description="הדף שחיפשתם לא נמצא באתר חסדי המלך."
+                noindex
+            />
             <div style={s.content}>
                 <div style={s.numberContainer}>
                     <span style={s.number}>4</span>

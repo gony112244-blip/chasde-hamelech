@@ -36,6 +36,47 @@ const TABS = [
     { id: 'transparency',     label: 'שקיפות',          icon: '🔍' },
 ];
 
+const ADMIN_TOKEN_KEY = 'adminToken';
+
+function clearAdminSession() {
+    try { sessionStorage.removeItem(ADMIN_TOKEN_KEY); } catch (_) { /* ignore */ }
+    try { localStorage.removeItem(ADMIN_TOKEN_KEY); } catch (_) { /* ignore */ }
+}
+
+function getAdminToken() {
+    try {
+        return sessionStorage.getItem(ADMIN_TOKEN_KEY) || localStorage.getItem(ADMIN_TOKEN_KEY) || '';
+    } catch (_) {
+        return '';
+    }
+}
+
+/** אישור כפול למחיקות רגישות — בלי מודאל מותאם אישית */
+function confirmSensitiveDelete(label) {
+    if (!window.confirm(`למחוק ${label}?`)) return false;
+    return window.confirm('אישור נוסף: פעולה זו אינה ניתנת לביטול. להמשיך?');
+}
+
+/**
+ * fetch ל-admin — שולח token רק ב-Authorization header (לא ב-query),
+ * ומנקה session + מעביר ל-/admin ב-401.
+ */
+async function adminApiFetch(url, { token, navigate, headers, ...rest } = {}) {
+    const res = await fetch(url, {
+        ...rest,
+        headers: {
+            ...(headers || {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+    });
+    if (res.status === 401) {
+        clearAdminSession();
+        if (navigate) navigate('/admin');
+        else window.location.assign('/admin');
+    }
+    return res;
+}
+
 function useAdminFetch(path, token) {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -44,14 +85,8 @@ function useAdminFetch(path, token) {
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_BASE}${path}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (res.status === 401) {
-                sessionStorage.removeItem('adminToken');
-                navigate('/admin');
-                return;
-            }
+            const res = await adminApiFetch(`${API_BASE}${path}`, { token, navigate });
+            if (res.status === 401) return;
             const json = await res.json();
             if (!res.ok) {
                 setData(null);
@@ -78,11 +113,10 @@ function ContactsTab({ token }) {
     const [msg, setMsg] = useState('');
 
     async function deleteContact(id) {
-        if (!window.confirm('למחוק את הפנייה?')) return;
+        if (!confirmSensitiveDelete('את הפנייה')) return;
         try {
-            const res = await fetch(`${API_BASE}/api/admin/contacts/${id}`, {
-                method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/contacts/${id}`, { method: 'DELETE', token });
+            if (res.status === 401) return;
             if (!res.ok) throw new Error();
             reload();
         } catch {
@@ -95,11 +129,7 @@ function ContactsTab({ token }) {
         setSending(true);
         setMsg('');
         try {
-            const res = await fetch(`${API_BASE}/api/admin/contacts/${id}/reply`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ reply_text: replyText }),
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/contacts/${id}/reply`, { method: 'POST', token, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reply_text: replyText }) });
             const json = await res.json();
             if (res.ok) {
                 setMsg(json.emailSent ? '✅ תשובה נשלחה במייל!' : '✅ נשמר (אין כתובת מייל)');
@@ -193,9 +223,10 @@ function VolunteersTab({ token }) {
         setAdding(true);
         setAddMsg('');
         try {
-            const res = await fetch(`${API_BASE}/api/admin/volunteers`, {
+            const res = await adminApiFetch(`${API_BASE}/api/admin/volunteers`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                token,
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: addForm.name.trim(),
                     phone: addForm.phone.trim(),
@@ -205,6 +236,7 @@ function VolunteersTab({ token }) {
                     notes: addForm.notes.trim(),
                 }),
             });
+            if (res.status === 401) return;
             const json = await res.json();
             if (!res.ok) throw new Error(json.error || 'שגיאה');
             setAddForm({ name: '', phone: '', email: '', city: '', has_car: false, notes: '' });
@@ -219,11 +251,12 @@ function VolunteersTab({ token }) {
     }
 
     async function deleteVolunteer(id) {
-        if (!window.confirm('למחוק את המתנדב?')) return;
+        if (!confirmSensitiveDelete('את המתנדב')) return;
         try {
-            const res = await fetch(`${API_BASE}/api/admin/volunteers/${id}`, {
-                method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+            const res = await adminApiFetch(`${API_BASE}/api/admin/volunteers/${id}`, {
+                method: 'DELETE', token,
             });
+            if (res.status === 401) return;
             if (!res.ok) throw new Error();
             reload();
         } catch {
@@ -234,11 +267,13 @@ function VolunteersTab({ token }) {
     async function saveNote(id) {
         setSavingNote(true);
         try {
-            await fetch(`${API_BASE}/api/admin/volunteers/${id}/notes`, {
+            const res = await adminApiFetch(`${API_BASE}/api/admin/volunteers/${id}/notes`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                token,
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ notes: noteText }),
             });
+            if (res.status === 401) return;
             setEditNotes(null);
             reload();
         } finally {
@@ -323,37 +358,44 @@ function VolunteersTab({ token }) {
 // תמונת תודה לאדמין — pending דרך endpoint מוגן (Bearer), מאושרות מ-/uploads
 function AdminThankYouPhoto({ noteId, token, status, filename }) {
     const [src, setSrc] = useState(null);
+    const [missing, setMissing] = useState(false);
 
     useEffect(() => {
-        if (!filename) {
-            setSrc(null);
-            return undefined;
-        }
+        setMissing(false);
+        setSrc(null);
+        // דחוי / בלי קובץ — אין מה לטעון (בדחייה הקובץ נמחק מהדיסק)
+        if (!filename || status === 'rejected') return undefined;
         if (status === 'approved') {
-            setSrc(`${UPLOADS_BASE}/${filename}`);
+            setSrc(`${UPLOADS_BASE}/${pathBasename(filename)}`);
             return undefined;
         }
         let objectUrl;
         let cancelled = false;
-        fetch(`${API_BASE}/api/admin/thank-you/${noteId}/photo`, {
-            headers: { Authorization: `Bearer ${token}` },
-        })
+        adminApiFetch(`${API_BASE}/api/admin/thank-you/${noteId}/photo`, { token })
             .then(r => (r.ok ? r.blob() : null))
             .then(blob => {
-                if (cancelled || !blob) return;
+                if (cancelled) return;
+                if (!blob) { setMissing(true); return; }
                 objectUrl = URL.createObjectURL(blob);
                 setSrc(objectUrl);
             })
-            .catch(() => {});
+            .catch(() => { if (!cancelled) setMissing(true); });
         return () => {
             cancelled = true;
             if (objectUrl) URL.revokeObjectURL(objectUrl);
         };
     }, [noteId, token, status, filename]);
 
-    if (!filename) return <span style={s.tyNoPhoto}>📷</span>;
+    if (!filename || status === 'rejected' || missing) return <span style={s.tyNoPhoto}>📷</span>;
     if (!src) return <span style={s.tyNoPhoto}>⏳</span>;
     return <img src={src} alt="תמונת תודה" style={s.tyThumb} />;
+}
+
+/** שם קובץ בלבד — מונע path traversal ב-URL של תמונה */
+function pathBasename(name) {
+    const s = String(name || '');
+    const i = Math.max(s.lastIndexOf('/'), s.lastIndexOf('\\'));
+    return i >= 0 ? s.slice(i + 1) : s;
 }
 
 // ─── Tab: הודעות תודה ──────────────────────────────────────
@@ -363,11 +405,7 @@ function ThankYouTab({ token }) {
 
     async function setStatus(id, status) {
         try {
-            const res = await fetch(`${API_BASE}/api/admin/thank-you/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ status }),
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/thank-you/${id}`, { method: 'PUT', token, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
             if (!res.ok) throw new Error();
             reload();
         } catch {
@@ -378,10 +416,7 @@ function ThankYouTab({ token }) {
     async function deleteNote(id) {
         if (!window.confirm('למחוק את ההודעה?')) return;
         try {
-            const res = await fetch(`${API_BASE}/api/admin/thank-you/${id}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/thank-you/${id}`, { method: 'DELETE', token });
             if (!res.ok) throw new Error();
             reload();
         } catch {
@@ -522,11 +557,7 @@ function DonationReportsTab({ token }) {
     async function setStatus(id, status) {
         setActioning(id);
         try {
-            const res = await fetch(`${API_BASE}/api/admin/donation-reports/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ status }),
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/donation-reports/${id}`, { method: 'PUT', token, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
             if (!res.ok) throw new Error();
             reload();
         } catch {
@@ -539,9 +570,7 @@ function DonationReportsTab({ token }) {
     async function deleteReport(id) {
         if (!window.confirm('למחוק דיווח זה?')) return;
         try {
-            const res = await fetch(`${API_BASE}/api/admin/donation-reports/${id}`, {
-                method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/donation-reports/${id}`, { method: 'DELETE', token });
             if (!res.ok) throw new Error();
             reload();
         } catch {
@@ -651,11 +680,7 @@ function StatsTab({ token }) {
         e.preventDefault();
         setSaving(true);
         try {
-            const res = await fetch(`${API_BASE}/api/admin/stats`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify(form),
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/stats`, { method: 'PUT', token, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
             if (!res.ok) {
                 alert('שגיאה בשמירת הסטטיסטיקות');
                 return;
@@ -676,11 +701,7 @@ function StatsTab({ token }) {
         setAddingDon(true);
         setDonMsg('');
         try {
-            const res = await fetch(`${API_BASE}/api/admin/donations`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify(donForm),
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/donations`, { method: 'POST', token, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(donForm) });
             if (res.ok) {
                 setDonMsg('✅ תרומה נוספה');
                 setDonForm({ donor_name: '', amount: '', method: 'bit', note: '' });
@@ -697,11 +718,7 @@ function StatsTab({ token }) {
         if (!shopForm.name.trim()) return;
         setAddingShop(true);
         try {
-            await fetch(`${API_BASE}/api/admin/shopping-list`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify(shopForm),
-            });
+            await adminApiFetch(`${API_BASE}/api/admin/shopping-list`, { method: 'POST', token, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(shopForm) });
             setShopForm({ name: '', quantity: '' });
             reloadShopping();
         } finally {
@@ -710,20 +727,13 @@ function StatsTab({ token }) {
     }
 
     async function toggleShopDone(item) {
-        await fetch(`${API_BASE}/api/admin/shopping-list/${item.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ ...item, done: !item.done }),
-        });
+        await adminApiFetch(`${API_BASE}/api/admin/shopping-list/${item.id}`, { method: 'PUT', token, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...item, done: !item.done }) });
         reloadShopping();
     }
 
     async function deleteShopItem(id) {
         try {
-            const res = await fetch(`${API_BASE}/api/admin/shopping-list/${id}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/shopping-list/${id}`, { method: 'DELETE', token });
             if (!res.ok) throw new Error();
             reloadShopping();
         } catch {
@@ -845,9 +855,10 @@ function StatsTab({ token }) {
                                     {d.note && <span>{d.note}</span>}
                                 </div>
                                 <button style={{ ...s.rejectBtn, marginTop: '8px' }} onClick={async () => {
-                                    if (!window.confirm('למחוק תרומה זו?')) return;
+                                    if (!confirmSensitiveDelete('תרומה זו')) return;
                                     try {
-                                        const res = await fetch(`${API_BASE}/api/admin/donations/${d.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+                                        const res = await adminApiFetch(`${API_BASE}/api/admin/donations/${d.id}`, { method: 'DELETE', token });
+                                        if (res.status === 401) return;
                                         if (!res.ok) throw new Error();
                                         reloadDonations();
                                     } catch {
@@ -930,11 +941,7 @@ function NewsletterTab({ token }) {
             fd.append('title', form.title);
             fd.append('parasha_name', form.parasha_name);
             fd.append('week_of', form.week_of);
-            const res = await fetch(`${API_BASE}/api/admin/newsletters`, {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${token}` },
-                body: fd,
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/newsletters`, { method: 'POST', token, body: fd });
             const json = await res.json();
             if (res.ok) {
                 setMsg('✅ העלון הועלה בהצלחה!');
@@ -951,10 +958,7 @@ function NewsletterTab({ token }) {
     async function deleteNewsletter(id) {
         if (!window.confirm('למחוק את העלון?')) return;
         try {
-            const res = await fetch(`${API_BASE}/api/admin/newsletters/${id}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/newsletters/${id}`, { method: 'DELETE', token });
             if (!res.ok) throw new Error();
             reload();
         } catch {
@@ -1047,11 +1051,7 @@ function MediaTab({ token }) {
         if (!editPostForm.title.trim()) return;
         setSavingEdit(true);
         try {
-            const res = await fetch(`${API_BASE}/api/admin/gallery-posts/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify(editPostForm),
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/gallery-posts/${id}`, { method: 'PUT', token, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editPostForm) });
             if (res.ok) {
                 setEditPostId(null);
                 reloadPosts();
@@ -1067,11 +1067,7 @@ function MediaTab({ token }) {
         setAddingPost(true);
         setPostMsg('');
         try {
-            const res = await fetch(`${API_BASE}/api/admin/gallery-posts`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify(postForm),
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/gallery-posts`, { method: 'POST', token, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(postForm) });
             const json = await res.json();
             if (res.ok) {
                 setPostMsg('✅ הפוסט נוצר! עכשיו ניתן להעלות תמונות אליו');
@@ -1087,10 +1083,7 @@ function MediaTab({ token }) {
     async function deletePost(id) {
         if (!window.confirm('למחוק את הפוסט?')) return;
         try {
-            const res = await fetch(`${API_BASE}/api/admin/gallery-posts/${id}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/gallery-posts/${id}`, { method: 'DELETE', token });
             if (!res.ok) throw new Error();
             reloadPosts();
         } catch {
@@ -1137,11 +1130,7 @@ function MediaTab({ token }) {
                 ? `${API_BASE}/api/admin/gallery-posts/${selectedPostId}/media`
                 : `${API_BASE}/api/admin/media`;
 
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${token}` },
-                body: fd,
-            });
+            const res = await adminApiFetch(endpoint, { method: 'POST', token, body: fd });
             const json = await res.json();
             if (res.ok) {
                 setUploadMsg('✅ הקובץ הועלה בהצלחה!');
@@ -1165,10 +1154,7 @@ function MediaTab({ token }) {
     async function deleteMedia(id, filename) {
         if (!window.confirm(`למחוק את "${filename}"?`)) return;
         try {
-            const res = await fetch(`${API_BASE}/api/admin/media/${id}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/media/${id}`, { method: 'DELETE', token });
             if (!res.ok) throw new Error();
             reload();
         } catch {
@@ -1360,11 +1346,7 @@ function TransparencyTab({ token }) {
         setSaving(true);
         setMsg('');
         try {
-            const res = await fetch(`${API_BASE}/api/admin/monthly-reports`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify(form),
-            });
+            const res = await adminApiFetch(`${API_BASE}/api/admin/monthly-reports`, { method: 'POST', token, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
             const json = await res.json();
             if (res.ok) {
                 setMsg('✅ נשמר!');
@@ -1383,9 +1365,7 @@ function TransparencyTab({ token }) {
     async function handleDelete(id) {
         if (!window.confirm('למחוק את הדוח?')) return;
         try {
-            await fetch(`${API_BASE}/api/admin/monthly-reports/${id}`, {
-                method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
-            });
+            await adminApiFetch(`${API_BASE}/api/admin/monthly-reports/${id}`, { method: 'DELETE', token });
             reload();
         } catch {
             alert('שגיאה במחיקה');
@@ -1502,21 +1482,25 @@ function fmtDate(dateStr) {
 export default function AdminDashboardPage() {
     const navigate = useNavigate();
     const [tab, setTab] = useState('contacts');
-    const token = sessionStorage.getItem('adminToken');
+    const token = getAdminToken();
 
     useEffect(() => {
-        if (!token) navigate('/admin');
+        if (!token) {
+            clearAdminSession();
+            navigate('/admin');
+        }
     }, [token, navigate]);
 
     async function logout() {
         try {
+            // מבטל session בשרת; token רק ב-Authorization (לא ב-query)
             await fetch(`${API_BASE}/api/admin/logout`, {
                 method: 'POST',
-                headers: { Authorization: `Bearer ${token}` },
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
             });
         } catch (_) { /* ignore network errors on logout */ }
-        sessionStorage.removeItem('adminToken');
-        navigate('/');
+        clearAdminSession();
+        navigate('/admin');
     }
 
     if (!token) return null;

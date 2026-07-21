@@ -109,7 +109,7 @@ function DonationReportForm({ defaultMethod, onClose }) {
                 </div>
                 <div style={sf.field}>
                     <label style={sf.label}>מייל לתודה (אופציונלי)</label>
-                    <input style={sf.input} type="email" placeholder="your@email.com"
+                    <input style={sf.input} type="email" placeholder="email@example.com"
                         value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
                 </div>
                 <div style={sf.field}>
@@ -215,7 +215,7 @@ export default function HelpPage() {
                         <span style={{ fontSize: '3rem' }}>💰</span>
                         <h2 style={s.donateTitle}>{t('helppage_donate_title')}</h2>
                         <p style={s.donateText}>
-                            כל שקל הופך למשחק, ספר או חיוך ביד ילד מאושפז.
+                            התרומות מיועדות לרכישת משחקים, ספרים וציוד לחלוקה לילדים מאושפזים.
                         </p>
 
                         {!hasPrimaryPayment && (
@@ -303,8 +303,11 @@ export default function HelpPage() {
                         )}
 
                         <p style={s.donateNote}>
+                            התשלום מתבצע מחוץ לאתר (Bit / PayBox / PayPal / העברה בנקאית) —
+                            האתר אינו גובה כרטיס אשראי ואינו שומר פרטי תשלום.
                             התרומות מיועדות לרכישת ציוד ולחלוקה לילדים מאושפזים.
-                            אין אישור מס — ראו <Link to="/terms" style={{ color: 'inherit' }}>תקנון</Link>.
+                            חסדי המלך אינה עמותה רשומה ואינה מוכרת לצרכי מס — אין אפשרות להנפיק אישור מס על תרומה.
+                            {' '}ראו <Link to="/terms" style={{ color: 'inherit' }}>תקנון</Link>.
                         </p>
                     </div>
 
@@ -369,7 +372,7 @@ export default function HelpPage() {
 
             <section style={s.ctaSection}>
                 <div style={s.ctaInner}>
-                    <h2 style={s.ctaTitle}>כל ילד ראוי לחייך 😊</h2>
+                    <h2 style={s.ctaTitle}>כל ילד ראוי לחיוך 😊</h2>
                     <p style={s.ctaText}>
                         בין אם בתרומה, בהתנדבות או בשיתוף — אתם עושים הבדל.
                     </p>

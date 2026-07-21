@@ -23,8 +23,8 @@ function FounderBlock({ imgSrc, imgAlt, imgPosition, borderColor, name, children
             <div style={s.imageWrap}>
                 <div style={{ ...s.imageFrame, borderColor }}>
                     {imgSrc
-                        ? <img src={imgSrc} alt={imgAlt} style={{ ...s.profileImg, objectPosition: imgPosition }} />
-                        : <div style={s.photoPlaceholder}><span style={{ fontSize: '2.5rem' }}>🤝</span></div>
+                        ? <img src={imgSrc} alt={imgAlt} style={{ ...s.profileImg, objectPosition: imgPosition }} loading="lazy" />
+                        : <div style={s.photoPlaceholder}><span style={{ fontSize: '2.5rem' }} aria-hidden="true">🤝</span></div>
                     }
                 </div>
                 <p style={s.personName}>{name}</p>
@@ -98,7 +98,7 @@ export default function AuthorCorner() {
                                     src="/book-cover.png?v=4"
                                     alt='כריכת הספר "שר הצבא"'
                                     style={s.bookCoverImg}
-                                    loading="eager"
+                                    loading="lazy"
                                 />
                             </div>
                             <p style={s.personRole}>{t('author_book_label')}</p>

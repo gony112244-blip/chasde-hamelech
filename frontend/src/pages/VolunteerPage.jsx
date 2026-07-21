@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
 import API_BASE from '../config';
+import { FIELD_LIMITS, validateVolunteerForm } from '../utils/formValidation';
 
 export default function VolunteerPage() {
     const t = useT();
@@ -12,9 +13,15 @@ export default function VolunteerPage() {
     const [submitted, setSubmitted] = useState(false);
     const [sending, setSending] = useState(false);
     const [error, setError] = useState('');
+    const limits = FIELD_LIMITS.volunteer;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const validationError = validateVolunteerForm(form);
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
         setSending(true);
         setError('');
         try {
@@ -80,12 +87,12 @@ export default function VolunteerPage() {
                     <div style={s.row}>
                         <div style={s.field}>
                             <label style={s.label}>{t('volunteer_name')}</label>
-                            <input style={s.input} required placeholder={t('placeholder_volunteer_name')}
+                            <input style={s.input} required maxLength={limits.name} placeholder={t('placeholder_volunteer_name')}
                                 value={form.name} onChange={e => updateField('name', e.target.value)} />
                         </div>
                         <div style={s.field}>
                             <label style={s.label}>{t('volunteer_phone')}</label>
-                            <input style={s.input} required type="tel" placeholder="050-1234567"
+                            <input style={s.input} required type="tel" maxLength={limits.phone} placeholder="050-1234567"
                                 value={form.phone} onChange={e => updateField('phone', e.target.value)} />
                         </div>
                     </div>
@@ -93,12 +100,12 @@ export default function VolunteerPage() {
                     <div style={s.row}>
                         <div style={s.field}>
                             <label style={s.label}>{t('volunteer_email')}</label>
-                            <input style={s.input} type="email" placeholder="email@example.com"
+                            <input style={s.input} type="email" maxLength={limits.email} placeholder="email@example.com"
                                 value={form.email} onChange={e => updateField('email', e.target.value)} />
                         </div>
                         <div style={s.field}>
                             <label style={s.label}>{t('volunteer_city')}</label>
-                            <input style={s.input} required placeholder={t('placeholder_volunteer_city')}
+                            <input style={s.input} required maxLength={limits.city} placeholder={t('placeholder_volunteer_city')}
                                 value={form.city} onChange={e => updateField('city', e.target.value)} />
                         </div>
                     </div>
@@ -114,7 +121,7 @@ export default function VolunteerPage() {
 
                     <div style={s.field}>
                         <label style={s.label}>{t('volunteer_message')}</label>
-                        <textarea style={s.textarea} rows={3} placeholder={t('placeholder_volunteer_notes')}
+                        <textarea style={s.textarea} rows={3} maxLength={limits.message} placeholder={t('placeholder_volunteer_notes')}
                             value={form.message} onChange={e => updateField('message', e.target.value)} />
                     </div>
 

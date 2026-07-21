@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API_BASE from '../config';
+import PageMeta from '../components/PageMeta';
 
 export default function AdminLoginPage() {
     const [password, setPassword] = useState('');
@@ -20,6 +21,7 @@ export default function AdminLoginPage() {
             });
             const data = await res.json();
             if (res.ok && data.token) {
+                try { localStorage.removeItem('adminToken'); } catch (_) { /* ignore */ }
                 sessionStorage.setItem('adminToken', data.token);
                 navigate('/admin/dashboard');
             } else {
@@ -34,6 +36,7 @@ export default function AdminLoginPage() {
 
     return (
         <div style={s.page}>
+            <PageMeta title="ניהול" path="/admin" noindex />
             <div style={s.card}>
                 <div style={s.iconWrap}>
                     <span style={s.icon}>🔐</span>

@@ -13,7 +13,8 @@ const { sendWhatsApp } = require('./whatsapp');
 const pool = require('./db');
 
 const app = express();
-const IS_PROD = process.env.NODE_ENV === 'production';
+// NODE_ENV=production בלבד נחשב פרודקשן (ריווח/רישיות לא שוברים)
+const IS_PROD = String(process.env.NODE_ENV || '').trim().toLowerCase() === 'production';
 
 // =====================
 // CORS — רשימת מקורות מותרים בלבד
@@ -21,11 +22,15 @@ const IS_PROD = process.env.NODE_ENV === 'production';
 const ALLOWED_ORIGINS = [
     'https://chasde-hamelech.org.il',
     'https://www.chasde-hamelech.org.il',
-    // פיתוח מקומי
-    'http://localhost:5173',
-    'http://localhost:4173',
-    'http://localhost:3000',
 ];
+// localhost רק בפיתוח — בפרודקשן להוסיף דרך CORS_EXTRA_ORIGINS בלבד
+if (!IS_PROD) {
+    ALLOWED_ORIGINS.push(
+        'http://localhost:5173',
+        'http://localhost:4173',
+        'http://localhost:3000',
+    );
+}
 // אפשר להוסיף מקורות נוספים דרך CORS_EXTRA_ORIGINS (מופרדים בפסיק)
 if (process.env.CORS_EXTRA_ORIGINS) {
     ALLOWED_ORIGINS.push(...process.env.CORS_EXTRA_ORIGINS.split(',').map(s => s.trim()).filter(Boolean));
@@ -377,12 +382,36 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function isValidEmail(email) {
     return EMAIL_RE.test(String(email).trim());
 }
+/** טלפון ישראלי / בינלאומי בסיסי — 7–15 ספרות אחרי ניקוי */
+function isValidPhone(phone) {
+    const digits = String(phone || '').replace(/\D/g, '');
+    if (digits.length < 7 || digits.length > 15) return false;
+    if (digits.startsWith('972')) return digits.length >= 11 && digits.length <= 13;
+    if (digits.startsWith('0')) return digits.length >= 9 && digits.length <= 10;
+    return true;
+}
+const FIELD_LABELS_HE = {
+    name: 'השם', phone: 'מספר הטלפון', email: 'כתובת המייל',
+    message: 'ההודעה', city: 'שם העיר', hospital: 'שם בית החולים',
+    notes: 'ההערה', donor_name: 'שם התורם', note: 'ההערה',
+};
 // בודק שהשדות לא ארוכים מדי (מניעת התקפות / זבל). limits = { field: maxLen }
 function tooLong(body, limits) {
     for (const [field, max] of Object.entries(limits)) {
         if (body[field] && String(body[field]).length > max) return field;
     }
     return null;
+}
+/** מחזיר הודעת שגיאה בעברית לשדה ארוך מדי, או null */
+function lengthError(body, limits) {
+    const field = tooLong(body, limits);
+    if (!field) return null;
+    const label = FIELD_LABELS_HE[field] || 'אחד השדות';
+    return `${label} ארוך מדי (עד ${limits[field]} תווים)`;
+}
+/** מסיר תגי HTML — שמירה/הצגה כטקסט בלבד (מניעת XSS בקיר תודות) */
+function toPlainText(str) {
+    return String(str || '').replace(/<[^>]*>/g, '');
 }
 
 // מנקה תווי HTML מסוכנים מתוכן שהמשתמש שלח, לפני הכנסה למייל
@@ -447,14 +476,21 @@ setInterval(() => {
     for (const [token, exp] of sessions) if (exp < now) sessions.delete(token);
 }, 60 * 60 * 1000).unref();
 
-function adminAuth(req, res, next) {
+function extractBearerToken(req) {
+    // רק Authorization header — לא query string / body (מונע דליפת טוקן בלוגים/היסטוריה)
     const auth = req.headers.authorization || '';
-    const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
-    const exp = sessions.get(token);
+    if (!auth.startsWith('Bearer ')) return '';
+    return auth.slice(7).trim();
+}
+
+function adminAuth(req, res, next) {
+    const token = extractBearerToken(req);
+    const exp = token ? sessions.get(token) : null;
     if (!exp || exp < Date.now()) {
-        if (exp) sessions.delete(token);
+        if (token && exp) sessions.delete(token);
         return res.status(401).json({ error: 'גישה לא מורשית' });
     }
+    req.adminToken = token;
     next();
 }
 
@@ -482,6 +518,15 @@ const formLimiter = rateLimit({
     legacyHeaders: false,
 });
 
+// הגבלת מעקב ביקורים — מונע הצפת DB בלי לחסום גלישה רגילה
+const visitLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 120,
+    message: { error: 'יותר מדי בקשות מעקב, נסה שוב מאוחר יותר.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 // =====================
 // Routes — Public
 // =====================
@@ -497,7 +542,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // מעקב ביקורים מדפי האתר (לא חוסם UI — fire-and-forget)
-app.post('/api/visit', async (req, res) => {
+app.post('/api/visit', visitLimiter, async (req, res) => {
     const raw = typeof req.body?.path === 'string' ? req.body.path : '';
     const pathValue = raw.startsWith('/') ? raw.slice(0, 200) : '';
     if (!pathValue || pathValue.startsWith('/admin') || pathValue.startsWith('/api')) {
@@ -522,7 +567,7 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
-// קיר תודה — מאושרות בלבד
+// קיר תודה — מאושרות בלבד (ללא PII: אימייל/טלפון לא נחשפים לציבור)
 app.get('/api/thank-you', async (req, res) => {
     const limit = Math.min(50, parseInt(req.query.limit) || 50);
     try {
@@ -532,7 +577,15 @@ app.get('/api/thank-you', async (req, res) => {
              ORDER BY created_at DESC LIMIT $1`,
             [limit]
         );
-        res.json(result.rows);
+        res.json(result.rows.map(row => ({
+            id: row.id,
+            name: row.name,
+            message: row.message,
+            hospital: row.hospital,
+            // basename בלבד — מונע path traversal ב-URL ציבורי של תמונה
+            photo_filename: row.photo_filename ? path.basename(row.photo_filename) : '',
+            created_at: row.created_at,
+        })));
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'שגיאת שרת' });
@@ -543,15 +596,24 @@ app.get('/api/thank-you', async (req, res) => {
 app.post('/api/thank-you', formLimiter, uploadPendingPhoto.single('photo'), validateUploadedImage, async (req, res) => {
     const { name, message, email, hospital } = req.body;
     if (!message?.trim()) {
-        return res.status(400).json({ error: 'הודעה היא שדה חובה' });
-    }
-    if (tooLong(req.body, { name: 80, email: 150, hospital: 80, message: 2000 })) {
         removeUploadedFile(req.file);
-        return res.status(400).json({ error: 'אחד השדות ארוך מדי' });
+        return res.status(400).json({ error: 'נא לכתוב הודעת תודה לפני השליחה' });
+    }
+    const lenErr = lengthError(req.body, { name: 80, email: 150, hospital: 80, message: 2000 });
+    if (lenErr) {
+        removeUploadedFile(req.file);
+        return res.status(400).json({ error: lenErr });
     }
     if (email?.trim() && !isValidEmail(email)) {
         removeUploadedFile(req.file);
         return res.status(400).json({ error: 'כתובת מייל לא תקינה' });
+    }
+    const safeName = toPlainText(name?.trim() || '') || 'אנונימי';
+    const safeMessage = toPlainText(message.trim());
+    const safeHospital = toPlainText(hospital?.trim() || '');
+    if (!safeMessage) {
+        removeUploadedFile(req.file);
+        return res.status(400).json({ error: 'נא לכתוב הודעת תודה לפני השליחה' });
     }
     const photoFilename = req.file ? req.file.filename : null;
     // כל הודעה ממתינה לאישור מנהל לפני פרסום בקיר (מניעת ספאם)
@@ -560,21 +622,21 @@ app.post('/api/thank-you', formLimiter, uploadPendingPhoto.single('photo'), vali
         await pool.query(
             `INSERT INTO thank_you_notes (display_name, message, email, hospital, photo_filename, status)
              VALUES ($1, $2, $3, $4, $5, $6)`,
-            [name?.trim() || 'אנונימי', message.trim(),
-             email?.trim() || '', hospital?.trim() || '',
+            [safeName, safeMessage,
+             email?.trim() || '', safeHospital,
              photoFilename || '', status]
         );
         notifyChannels('💌 הודעת תודה חדשה', [
-            ['שם', name?.trim() || 'אנונימי'],
-            ['בית חולים', hospital?.trim()],
-            ['הודעה', message.trim()],
+            ['שם', safeName],
+            ['בית חולים', safeHospital],
+            ['הודעה', safeMessage],
             ['תמונה', photoFilename ? 'כן (ממתינה לאישור)' : 'לא'],
         ]);
         if (email?.trim()) {
             sendUserEmail(
                 email.trim(),
                 'קיבלנו את הודעת התודה שלך — חסדי המלך',
-                emailThankYouPending(name?.trim() || '')
+                emailThankYouPending(safeName === 'אנונימי' ? '' : safeName)
             );
         }
         res.status(201).json({
@@ -597,8 +659,12 @@ app.post('/api/contact', formLimiter, async (req, res) => {
     if (!phone?.trim() && !email?.trim()) {
         return res.status(400).json({ error: 'נא למלא טלפון או מייל כדי שנוכל לחזור אליכם' });
     }
-    if (tooLong(req.body, { name: 100, phone: 30, email: 150, message: 3000 })) {
-        return res.status(400).json({ error: 'אחד השדות ארוך מדי' });
+    const lenErr = lengthError(req.body, { name: 100, phone: 30, email: 150, message: 3000 });
+    if (lenErr) {
+        return res.status(400).json({ error: lenErr });
+    }
+    if (phone?.trim() && !isValidPhone(phone)) {
+        return res.status(400).json({ error: 'מספר טלפון לא תקין' });
     }
     if (email?.trim() && !isValidEmail(email)) {
         return res.status(400).json({ error: 'כתובת מייל לא תקינה' });
@@ -644,8 +710,12 @@ app.post('/api/volunteer', formLimiter, async (req, res) => {
     if (!name?.trim() || !phone?.trim() || !city?.trim()) {
         return res.status(400).json({ error: 'שם, טלפון ועיר הם שדות חובה' });
     }
-    if (tooLong(req.body, { name: 100, phone: 30, email: 150, city: 60, message: 2000 })) {
-        return res.status(400).json({ error: 'אחד השדות ארוך מדי' });
+    const lenErr = lengthError(req.body, { name: 100, phone: 30, email: 150, city: 60, message: 2000 });
+    if (lenErr) {
+        return res.status(400).json({ error: lenErr });
+    }
+    if (!isValidPhone(phone)) {
+        return res.status(400).json({ error: 'מספר טלפון לא תקין' });
     }
     if (email?.trim() && !isValidEmail(email)) {
         return res.status(400).json({ error: 'כתובת מייל לא תקינה' });
@@ -724,9 +794,10 @@ app.post('/api/admin/login', loginLimiter, (req, res) => {
     }
 });
 
-app.post('/api/admin/logout', adminAuth, (req, res) => {
-    const token = req.headers.authorization.slice(7);
-    sessions.delete(token);
+// Logout מבטל את ה-session בשרת גם אם הטוקן כבר פג (לא תלוי ב-adminAuth)
+app.post('/api/admin/logout', (req, res) => {
+    const token = extractBearerToken(req);
+    if (token) sessions.delete(token);
     res.json({ ok: true });
 });
 
@@ -797,8 +868,12 @@ app.post('/api/admin/volunteers', adminAuth, async (req, res) => {
     if (!name?.trim() || !phone?.trim() || !city?.trim()) {
         return res.status(400).json({ error: 'שם, טלפון ועיר הם שדות חובה' });
     }
-    if (tooLong(req.body, { name: 100, phone: 30, email: 150, city: 60, notes: 2000 })) {
-        return res.status(400).json({ error: 'אחד השדות ארוך מדי' });
+    const lenErr = lengthError(req.body, { name: 100, phone: 30, email: 150, city: 60, notes: 2000 });
+    if (lenErr) {
+        return res.status(400).json({ error: lenErr });
+    }
+    if (!isValidPhone(phone)) {
+        return res.status(400).json({ error: 'מספר טלפון לא תקין' });
     }
     if (email?.trim() && !isValidEmail(email)) {
         return res.status(400).json({ error: 'כתובת מייל לא תקינה' });
@@ -868,18 +943,26 @@ app.put('/api/admin/thank-you/:id', adminAuth, async (req, res) => {
         );
         if (!existing.rows.length) return res.status(404).json({ error: 'לא נמצא' });
         const previous = existing.rows[0];
-        const photo = previous.photo_filename;
+        const photo = previous.photo_filename ? path.basename(previous.photo_filename) : '';
         if (photo && status === 'approved' && previous.status !== 'approved') {
             const pendingPath = path.join(PENDING_UPLOADS_DIR, photo);
             const approvedPath = path.join(UPLOADS_DIR, photo);
             if (fs.existsSync(pendingPath)) fs.renameSync(pendingPath, approvedPath);
-        } else if (photo && status !== 'approved' && previous.status === 'approved') {
+        } else if (photo && status === 'rejected') {
+            // דחייה — מחק את הקובץ מהדיסק (pending ו/או מאושר)
+            fs.unlink(path.join(PENDING_UPLOADS_DIR, photo), () => {});
+            fs.unlink(path.join(UPLOADS_DIR, photo), () => {});
+        } else if (photo && status === 'pending' && previous.status === 'approved') {
             const approvedPath = path.join(UPLOADS_DIR, photo);
             const pendingPath = path.join(PENDING_UPLOADS_DIR, photo);
             if (fs.existsSync(approvedPath)) fs.renameSync(approvedPath, pendingPath);
         }
+        // בדחייה מנקים גם את שם הקובץ ב-DB (הקובץ כבר נמחק — מונע מצביע שבור בלוח ניהול)
         const result = await pool.query(
-            'UPDATE thank_you_notes SET status=$1 WHERE id=$2 RETURNING *',
+            `UPDATE thank_you_notes
+             SET status=$1,
+                 photo_filename=CASE WHEN $1='rejected' THEN '' ELSE photo_filename END
+             WHERE id=$2 RETURNING *`,
             [status, id]
         );
         const note = result.rows[0];
@@ -1002,7 +1085,7 @@ app.delete('/api/admin/media/:id', adminAuth, async (req, res) => {
     try {
         const result = await pool.query('DELETE FROM media WHERE id=$1 RETURNING filename', [req.params.id]);
         if (!result.rows.length) return res.status(404).json({ error: 'לא נמצא' });
-        const filepath = path.join(UPLOADS_DIR, result.rows[0].filename);
+        const filepath = path.join(UPLOADS_DIR, path.basename(result.rows[0].filename));
         fs.unlink(filepath, () => {});
         res.json({ ok: true });
     } catch (err) {
@@ -1185,7 +1268,7 @@ app.delete('/api/admin/newsletters/:id', adminAuth, async (req, res) => {
     try {
         const result = await pool.query('DELETE FROM newsletters WHERE id=$1 RETURNING filename', [req.params.id]);
         if (!result.rows.length) return res.status(404).json({ error: 'לא נמצא' });
-        fs.unlink(path.join(UPLOADS_DIR, result.rows[0].filename), () => {});
+        fs.unlink(path.join(UPLOADS_DIR, path.basename(result.rows[0].filename)), () => {});
         res.json({ ok: true });
     } catch (err) {
         console.error(err);
@@ -1324,7 +1407,9 @@ app.delete('/api/admin/thank-you/:id', adminAuth, async (req, res) => {
             [req.params.id]
         );
         if (!result.rows.length) return res.status(404).json({ error: 'לא נמצא' });
-        const photo = result.rows[0].photo_filename;
+        const photo = result.rows[0].photo_filename
+            ? path.basename(result.rows[0].photo_filename)
+            : '';
         if (photo) {
             fs.unlink(path.join(UPLOADS_DIR, photo), () => {});
             fs.unlink(path.join(PENDING_UPLOADS_DIR, photo), () => {});
@@ -1529,8 +1614,12 @@ app.post('/api/donation-report', formLimiter, async (req, res) => {
     if (!donor_name?.trim() || amount === undefined || amount === null || String(amount).trim() === '') {
         return res.status(400).json({ error: 'שם התורם וסכום התרומה הם שדות חובה' });
     }
-    if (tooLong(req.body, { donor_name: 100, email: 150, phone: 30, note: 1000 })) {
-        return res.status(400).json({ error: 'אחד השדות ארוך מדי' });
+    const lenErr = lengthError(req.body, { donor_name: 100, email: 150, phone: 30, note: 1000 });
+    if (lenErr) {
+        return res.status(400).json({ error: lenErr });
+    }
+    if (phone?.trim() && !isValidPhone(phone)) {
+        return res.status(400).json({ error: 'מספר טלפון לא תקין' });
     }
     if (email?.trim() && !isValidEmail(email)) {
         return res.status(400).json({ error: 'כתובת מייל לא תקינה' });
@@ -1693,6 +1782,6 @@ pool.query('SELECT 1')
     .catch((err) => console.error('⚠️  אזהרה: אין חיבור לבסיס הנתונים —', err.message));
 
 app.listen(PORT, () => {
-    console.log(`✅ שרת חסדי המלך פועל על פורט ${PORT}`);
+    console.log(`✅ שרת חסדי המלך פועל על פורט ${PORT} (${IS_PROD ? 'production' : 'development'})`);
     console.log(`📊 Health: http://localhost:${PORT}/api/health`);
 });

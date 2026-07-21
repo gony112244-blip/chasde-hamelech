@@ -123,6 +123,7 @@ export default function ParashaPage() {
                                     src={fileUrl(latest)}
                                     alt={t('parasha_title')}
                                     style={s.previewImg}
+                                    loading="lazy"
                                     onError={() => setImgError(true)}
                                 />
                             )}

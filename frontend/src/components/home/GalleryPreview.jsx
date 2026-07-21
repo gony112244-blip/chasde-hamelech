@@ -73,13 +73,26 @@ export default function GalleryPreview() {
         return () => clearTimeout(timerRef.current);
     }, [active, items.length]); // eslint-disable-line
 
-    useEffect(() => () => clearTimeout(timerRef.current), []);
+    useEffect(() => () => {
+        clearTimeout(timerRef.current);
+        // שחרור הנגן — לא משאירים music.mp3 בזיכרון אחרי עזיבת הדף
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.removeAttribute('src');
+            audioRef.current.load();
+            audioRef.current = null;
+        }
+    }, []);
 
     function toggleMusic() {
+        // יצירה רק אחרי אינטראקציה — בלי preload אגרסיבי של קובץ ~9MB
         if (!audioRef.current) {
-            audioRef.current = new Audio('/music.mp3');
-            audioRef.current.loop = true;
-            audioRef.current.volume = 0.2;
+            const audio = new Audio();
+            audio.preload = 'none';
+            audio.loop = true;
+            audio.volume = 0.2;
+            audio.src = '/music.mp3';
+            audioRef.current = audio;
         }
         if (musicOn) { audioRef.current.pause(); setMusicOn(false); }
         else { audioRef.current.play().then(() => setMusicOn(true)).catch(() => {}); }
@@ -98,10 +111,15 @@ export default function GalleryPreview() {
 
                 <div style={s.slideshowWrap} className="gp-wrap">
 
-                    {/* כל השקופיות תמיד ב-DOM — רק opacity משתנה → אין flash לבן */}
+                    {/* שקפים ב-DOM; מדיה נטענת רק לפעילה + שכנות */}
                     {items.map((item, i) => {
                         const isActive = i === active;
                         const src = getSrc(item);
+                        const n = items.length;
+                        // טוענים רק את הפעילה + שכנות — לא את כל הגלריה בבת אחת
+                        const shouldLoad = isActive
+                            || i === (active + 1) % n
+                            || i === (active - 1 + n) % n;
                         return (
                             <div
                                 key={i}
@@ -115,21 +133,26 @@ export default function GalleryPreview() {
                                     background: '#020810',
                                 }}
                             >
-                                {/* רקע מטושטש — background-image לא מראה לבן בטעינה */}
-                                <div style={{
-                                    position: 'absolute', inset: '-22px',
-                                    backgroundImage: `url(${src})`,
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center',
-                                    filter: 'blur(22px) brightness(0.52) saturate(1.1)',
-                                }} />
+                                {/* רקע מטושטש — רק כשהשקף נטען */}
+                                {shouldLoad && (
+                                    <div style={{
+                                        position: 'absolute', inset: '-22px',
+                                        backgroundImage: `url(${src})`,
+                                        backgroundSize: 'cover',
+                                        backgroundPosition: 'center',
+                                        filter: 'blur(22px) brightness(0.52) saturate(1.1)',
+                                    }} />
+                                )}
                                 {/* תמונה ראשית — key שונה כשנעשית active מריץ מחדש KB */}
-                                <img
-                                    key={isActive ? `a${kbKey}` : `s${i}`}
-                                    src={src}
-                                    alt={item.title || ''}
-                                    className="gp-photo"
-                                />
+                                {shouldLoad && (
+                                    <img
+                                        key={isActive ? `a${kbKey}` : `s${i}`}
+                                        src={src}
+                                        alt={item.title || ''}
+                                        className="gp-photo"
+                                        loading={isActive ? 'eager' : 'lazy'}
+                                    />
+                                )}
                             </div>
                         );
                     })}

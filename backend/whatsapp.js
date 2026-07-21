@@ -88,7 +88,7 @@ async function sendViaMeta(text) {
     if (!res.ok) throw new Error(`Meta ${res.status}: ${await res.text()}`);
 }
 
-// 3) CallMeBot — חינמי ופשוט (טוב לעמותה קטנה)
+// 3) CallMeBot — חינמי ופשוט (טוב ליוזמה קטנה)
 async function sendViaCallMeBot(text) {
     const apiKey = process.env.CALLMEBOT_APIKEY;
     if (!apiKey) throw new Error('CALLMEBOT_APIKEY לא הוגדר');

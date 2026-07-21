@@ -70,16 +70,22 @@ function PhotoCard({ item, onClick }) {
         ? `${UPLOADS_BASE}/${item.filename}`
         : item.src;
 
+    const label = item.title || item.original_name || 'תמונה מגלריית חסדי המלך';
     return (
-        <button className="gal-photo" style={s.photoCard} onClick={() => onClick(item)}>
+        <button
+            className="gal-photo"
+            style={s.photoCard}
+            onClick={() => onClick(item)}
+            aria-label={`הגדל: ${label}`}
+        >
             <img
                 src={src}
-                alt={item.title || item.original_name || 'תמונה מגלריית חסדי המלך'}
+                alt={label}
                 style={s.photoImg}
                 loading="lazy"
             />
             <div className="gal-overlay" style={s.photoOverlay}>
-                <span className="gal-zoom" style={s.photoZoom}>🔍</span>
+                <span className="gal-zoom" style={s.photoZoom} aria-hidden="true">🔍</span>
             </div>
         </button>
     );
@@ -214,17 +220,24 @@ export default function GalleryPage() {
                                         {post.body && <p style={s.postBody}>{post.body}</p>}
                                         {post.media && post.media.length > 0 && (
                                             <div style={s.postMedia}>
-                                                {post.media.filter(m => m.type === 'photo').map(m => (
-                                                    <button key={m.id} style={s.postThumb}
-                                                        onClick={() => setLightbox(m)}>
+                                                {post.media.filter(m => m.type === 'photo').map(m => {
+                                                    const thumbLabel = m.title || m.original_name || 'תמונה מגלריית חסדי המלך';
+                                                    return (
+                                                    <button
+                                                        key={m.id}
+                                                        style={s.postThumb}
+                                                        onClick={() => setLightbox(m)}
+                                                        aria-label={`הגדל: ${thumbLabel}`}
+                                                    >
                                                         <img
                                                             src={`${UPLOADS_BASE}/${m.filename}`}
-                                                            alt={m.title || m.original_name || 'תמונה מגלריית חסדי המלך'}
+                                                            alt={thumbLabel}
                                                             style={s.postThumbImg}
                                                             loading="lazy"
                                                         />
                                                     </button>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
                                         )}
                                     </div>

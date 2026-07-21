@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import PageMeta from '../components/PageMeta';
 import { useT } from '../hooks/useT';
 import API_BASE from '../config';
+import { FIELD_LIMITS, validateContactForm } from '../utils/formValidation';
 
 export default function ContactPage() {
     const t = useT();
@@ -11,6 +12,7 @@ export default function ContactPage() {
     const [submitted, setSubmitted] = useState(false);
     const [sending, setSending] = useState(false);
     const [error, setError] = useState('');
+    const limits = FIELD_LIMITS.contact;
 
     useEffect(() => {
         const type = searchParams.get('type');
@@ -24,8 +26,9 @@ export default function ContactPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!form.phone.trim() && !form.email.trim()) {
-            setError('נא למלא טלפון או מייל כדי שנוכל לחזור אליכם.');
+        const validationError = validateContactForm(form);
+        if (validationError) {
+            setError(validationError);
             return;
         }
         setSending(true);
@@ -85,7 +88,7 @@ export default function ContactPage() {
                     <form onSubmit={handleSubmit} style={s.formCard}>
                         <div style={s.field}>
                             <label style={s.label}>{t('contact_name')}</label>
-                            <input style={s.input} required placeholder={t('placeholder_contact_name')}
+                            <input style={s.input} required maxLength={limits.name} placeholder={t('placeholder_contact_name')}
                                 value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
                         </div>
                         <p style={{ margin: '0 0 8px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
@@ -94,18 +97,18 @@ export default function ContactPage() {
                         <div style={s.row}>
                             <div style={s.field}>
                                 <label style={s.label}>{t('contact_phone')} / מייל *</label>
-                                <input style={s.input} type="tel" placeholder="050-1234567"
+                                <input style={s.input} type="tel" maxLength={limits.phone} placeholder="050-1234567"
                                     value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
                             </div>
                             <div style={s.field}>
                                 <label style={s.label}>{t('contact_email')}</label>
-                                <input style={s.input} type="email" placeholder="email@example.com"
+                                <input style={s.input} type="email" maxLength={limits.email} placeholder="email@example.com"
                                     value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
                             </div>
                         </div>
                         <div style={s.field}>
                             <label style={s.label}>{t('contact_message')}</label>
-                            <textarea style={s.textarea} rows={5} required placeholder={t('placeholder_contact_msg')}
+                            <textarea style={s.textarea} rows={5} required maxLength={limits.message} placeholder={t('placeholder_contact_msg')}
                                 value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} />
                         </div>
                         {error && <p style={s.errorMsg}>{error}</p>}

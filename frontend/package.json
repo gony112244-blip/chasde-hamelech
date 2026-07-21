@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/fix-dist-perms.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate:og": "node scripts/generate-og-share.mjs"

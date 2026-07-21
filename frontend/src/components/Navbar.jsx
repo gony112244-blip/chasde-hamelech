@@ -14,7 +14,7 @@ const NAV_LINKS = [
     { to: '/gallery',      key: 'nav_gallery',       icon: '📸' },
     { to: '/thank-you',    key: 'nav_thankyou',      icon: '💬' },
     { to: '/help',         key: 'nav_help',          icon: '💝' },
-    { to: '/transparency', key: 'nav_transparency',  icon: '📊' },
+    // { to: '/transparency', key: 'nav_transparency',  icon: '📊' }, // מוסתר לשלב זה
     { to: '/volunteer',    key: 'nav_volunteer',     icon: '🤝' },
     { to: '/contact',      key: 'nav_contact',       icon: '📩' },
 ];
