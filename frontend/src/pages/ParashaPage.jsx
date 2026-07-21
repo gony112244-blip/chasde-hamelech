@@ -49,7 +49,7 @@ export default function ParashaPage() {
 
     return (
         <div style={s.page}>
-            <PageMeta title="דבר תורה" description="דבר תורה ועלון פרשת שבוע לכבוד השבת — לקרוא, להדפיס ולשתף. מתעדכן מדי שבוע." path="/parasha" />
+            <PageMeta title="עלון לשבת" description="עלון לשבת ופרשת השבוע — לקרוא, להדפיס ולשתף. מתעדכן מדי שבוע." path="/parasha" />
             <section style={s.header}>
                 <div style={s.headerOrb} />
                 <div style={{ position: 'relative', zIndex: 2 }}>

@@ -4,7 +4,7 @@ export default {
     nav_gallery: 'גלריה',
     nav_thankyou: 'קיר תודה',
     nav_help: 'איך עוזרים',
-    nav_parasha: 'דבר תורה',
+    nav_parasha: 'עלון לשבת',
     nav_volunteer: 'מתנדבים',
     nav_contact: 'צור קשר',
     nav_donate: 'עזרו לנו ✨',
@@ -143,8 +143,8 @@ export default {
     volunteer_success: 'ברוכים הבאים למשפחה!',
 
     // ParashaPage
-    parasha_title: '📖 דבר תורה',
-    parasha_subtitle: 'דבר תורה ועלון פרשת שבוע לכבוד השבת — לקרוא, להדפיס, ולשתף',
+    parasha_title: '📖 עלון לשבת',
+    parasha_subtitle: 'עלון לשבת ופרשת השבוע — לקרוא, להדפיס, ולשתף',
     parasha_update: 'מתעדכן מרביעי אחר הצהריים',
     parasha_download: '⬇️ הורידו את העלון',
     parasha_archive: 'ארכיון עלונים קודמים',

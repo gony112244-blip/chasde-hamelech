@@ -79,7 +79,7 @@ export default function HowToHelp() {
                         <span style={s.cardIcon}>📖</span>
                         <h3 style={s.cardTitle}>{t('nav_parasha')}</h3>
                         <p style={s.cardDesc}>{t('parasha_subtitle')}</p>
-                        <Link to="/parasha" style={s.cardBtn}>{t('parasha_title')}</Link>
+                        <Link to="/parasha" style={s.cardBtn}>{t('nav_parasha')}</Link>
                     </div>
                 </div>
             </div>

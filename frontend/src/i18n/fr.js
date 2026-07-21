@@ -4,7 +4,7 @@ export default {
     nav_gallery: 'Galerie',
     nav_thankyou: 'Mur de Remerciements',
     nav_help: 'Comment Aider',
-    nav_parasha: 'Parole de Torah',
+    nav_parasha: 'Feuillet de Chabbat',
     nav_volunteer: 'Bénévoles',
     nav_contact: 'Contact',
     nav_donate: 'Aidez-nous ✨',
@@ -143,8 +143,8 @@ export default {
     volunteer_success: 'Bienvenue dans la famille!',
 
     // ParashaPage
-    parasha_title: '📖 Parole de Torah',
-    parasha_subtitle: 'Parole de Torah et feuillet de la paracha pour le Chabbat — lire, imprimer et partager',
+    parasha_title: '📖 Feuillet de Chabbat',
+    parasha_subtitle: 'Feuillet de Chabbat pour la paracha de la semaine — lire, imprimer et partager',
     parasha_update: 'Mis à jour le mercredi après-midi',
     parasha_download: '⬇️ Télécharger le bulletin',
     parasha_archive: 'Archive des bulletins précédents',

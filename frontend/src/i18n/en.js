@@ -4,7 +4,7 @@ export default {
     nav_gallery: 'Gallery',
     nav_thankyou: 'Thank You Wall',
     nav_help: 'How to Help',
-    nav_parasha: 'Torah Thought',
+    nav_parasha: 'Shabbat Leaflet',
     nav_volunteer: 'Volunteers',
     nav_contact: 'Contact',
     nav_donate: 'Help Us ✨',
@@ -143,8 +143,8 @@ export default {
     volunteer_success: 'Welcome to the family!',
 
     // ParashaPage
-    parasha_title: '📖 Torah Thought',
-    parasha_subtitle: 'Weekly Torah thought and parasha leaflet for Shabbat — read, print, and share',
+    parasha_title: '📖 Shabbat Leaflet',
+    parasha_subtitle: 'A Shabbat leaflet for the weekly portion — read, print, and share',
     parasha_update: 'Updated Wednesday afternoon',
     parasha_download: '⬇️ Download newsletter',
     parasha_archive: 'Previous newsletters archive',
